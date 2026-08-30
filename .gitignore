@@ -11,7 +11,7 @@
 # Plugin and theme code lives in its own repos on the myICOR org
 # (Connect also keeps its OAuth token store out of git there)
 .obsidian/plugins/icor-for-life-connect/
-.obsidian/themes/ICOR for Life INKLINE/
+.obsidian/themes/ICOR for Life - INKLINE/
 
 # myICOR Connect token store (hard rule 9: secrets never reach git)
 .obsidian/plugins/icor-for-life-connect/data.json

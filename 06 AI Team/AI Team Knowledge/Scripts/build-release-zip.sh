@@ -71,7 +71,7 @@ declare -a SPECS=(
   "icor-for-life-focus|icor-for-life-focus|.obsidian/plugins/icor-for-life-focus|plugin"
   "icor-for-life-diagrams|icor-for-life-diagrams|.obsidian/plugins/icor-for-life-diagrams|plugin"
   "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
-  "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life INKLINE|theme"
+  "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life - INKLINE|theme"
 )
 
 echo "==> adding first-party plugins and theme from their repos"

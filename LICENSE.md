@@ -3,7 +3,7 @@
 
 | Artifact | License | You MAY | You may NOT |
 |---|---|---|---|
-| INKLINE theme (`ICOR for Life INKLINE`) | CC BY-NC-ND 4.0 (embedded fonts: SIL OFL 1.1, separately) | Use in your own vaults (incl. via the community theme store), modify your own copy for personal use, share unchanged copies noncommercially with attribution | Sell it or bundle it into any paid product or service, publish modified or derivative versions, redistribute the embedded font files by themselves |
+| INKLINE theme (`ICOR for Life - INKLINE`) | CC BY-NC-ND 4.0 (embedded fonts: SIL OFL 1.1, separately) | Use in your own vaults (incl. via the community theme store), modify your own copy for personal use, share unchanged copies noncommercially with attribution | Sell it or bundle it into any paid product or service, publish modified or derivative versions, redistribute the embedded font files by themselves |
 | ICOR Planner plugin (`icor-for-life-planner`) | ICOR for Life Source-Available License (Code) v1.0 | Install and run in your own vaults, read the source, modify for personal use, keep your copies forever | Redistribute or publish (original or modified), use commercially, offer to others as a product/service |
 | ICOR Focus plugin (`icor-for-life-focus`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
 | ICOR Diagrams plugin (`icor-for-life-diagrams`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
