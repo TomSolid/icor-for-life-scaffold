@@ -1003,11 +1003,17 @@
  * job (ask Larry), and a note is created from the room it belongs to.
  * Both keep a palette route, which is what makes the hide a relocation.
  *
- * Kept: change sort order, and collapse all. Sort is kept because this
- * button is its ONLY route - Obsidian registers eight file-explorer
- * commands and not one of them changes sort order, so hiding it would
- * remove the function from the vault rather than relocate it. Measured
- * against the app bundle on 2026-08-30, not assumed.
+ * Also hidden: Change sort order (user ruling, 2026-08-30: "sorting
+ * not needed"). Recorded honestly: this one is NOT a relocation. The
+ * button is sort's ONLY route - Obsidian registers eight file-explorer
+ * commands and not one of them changes sort order (measured against
+ * the app bundle on 2026-08-30, not assumed) - so this hide removes
+ * the function from the vault. That price was ruled acceptable
+ * deliberately, not overlooked; the ordering the rooms need is already
+ * pinned by their numeric prefixes, which is why sort had nothing left
+ * to do here.
+ *
+ * Kept: collapse all, permanent under the same ruling.
  *
  * Also here, and NOT hidden: the Focus map launcher and the AI Team
  * robot. The left ribbon is hidden by `icor-ribbon.css`, so this row is
@@ -1027,7 +1033,10 @@
 .nav-buttons-container .clickable-icon:has(svg.lucide-folder-plus),
 .nav-buttons-container .clickable-icon[aria-label="New note"],
 .nav-buttons-container .clickable-icon:has(svg.lucide-edit-3),
-.nav-buttons-container .clickable-icon:has(svg.lucide-pen-box) {
+.nav-buttons-container .clickable-icon:has(svg.lucide-pen-box),
+.nav-buttons-container .clickable-icon[aria-label="Change sort order"],
+.nav-buttons-container .clickable-icon:has(svg.lucide-sort-asc),
+.nav-buttons-container .clickable-icon:has(svg.lucide-sort-desc) {
   display: none !important;
 }
 
