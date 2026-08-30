@@ -956,8 +956,13 @@
 
 /* ------------------------------------------------------------------ *
  * Bottom of the left column: the vault-switcher row is hidden so the
- * myICOR button sits at the very bottom. Settings stays reachable via
- * the gear the myICOR Connect plugin puts on the ribbon (and Cmd+,).
+ * myICOR button sits at the very bottom. Both functions this row used
+ * to carry now live at the FOOT OF THE LEFT RAIL, where the myICOR
+ * Connect plugin puts them: the settings gear as a rounded square, and
+ * the vault switcher as a circle. Settings is also still Cmd+,.
+ *
+ * Decision, 2026-08-30: a settings entry in two places means one of
+ * them is wrong, so the panel-corner entry is the one that goes.
  * ------------------------------------------------------------------ */
 .workspace-sidedock-vault-profile {
   display: none !important;
@@ -965,12 +970,36 @@
 
 
 /* ------------------------------------------------------------------ *
- * No manual folder creation: rooms and folders are the AI Team's job
- * (ask Larry). The new-folder button is hidden; notes are what the
- * toolbar creates.
+ * THE FILE-TREE TOOLBAR IS REDUCED TO FILE-TREE ACTIONS.
+ *
+ * Decision, 2026-08-30, and it is a decision rather than a fact, so it
+ * is dated: this row used to be a destination for things that had been
+ * pushed out of the hidden ribbon. The ribbon is back, those things
+ * went home to it, and what is left here is judged on one question -
+ * is this an action ON THE FILE TREE?
+ *
+ * Hidden: New note and New folder. Rooms and folders are the AI Team's
+ * job (ask Larry), and a note is created from the room it belongs to.
+ *
+ * Kept: change sort order, and collapse all. Sort is kept because this
+ * button is its ONLY route - Obsidian registers eight file-explorer
+ * commands and not one of them changes sort order, so hiding it would
+ * remove the function from the vault rather than relocate it. Measured
+ * against the app bundle on 2026-08-30, not assumed.
+ *
+ * The CONTAINER is deliberately not hidden. It is the slot the two
+ * surviving controls live in, and the theme styles it.
+ *
+ * This hide stays in the SCAFFOLD and never moves into the theme: what
+ * Obsidian shows is a product decision, and a community user who
+ * installed INKLINE for its typography must not silently lose their
+ * file-tree toolbar.
  * ------------------------------------------------------------------ */
 .nav-buttons-container .clickable-icon[aria-label="New folder"],
-.nav-buttons-container .clickable-icon:has(svg.lucide-folder-plus) {
+.nav-buttons-container .clickable-icon:has(svg.lucide-folder-plus),
+.nav-buttons-container .clickable-icon[aria-label="New note"],
+.nav-buttons-container .clickable-icon:has(svg.lucide-edit-3),
+.nav-buttons-container .clickable-icon:has(svg.lucide-pen-box) {
   display: none !important;
 }
 
