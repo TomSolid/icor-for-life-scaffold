@@ -2,82 +2,118 @@
    ICOR for Life Scaffold - room icons and colors
    Companion snippet to the INKLINE theme.
 
-   The six rooms carry numeric prefixes (00..05) so the file
+   The seven rooms carry numeric prefixes (00..06) so the file
    explorer always sorts them in working order. This snippet
    hides those prefixes and renders each room with an inked
    stroke icon (Lucide line set, matching INKLINE's hand-drawn
    language) tinted in INKLINE's own hue system, with the
    correct shade per light and dark room.
 
+   -------------------------------------------------------------
+   HOW THESE RULES KEY, AND WHY (Iris, 2026-08-30)
+   -------------------------------------------------------------
+   A selector that names a full folder path is a contract keyed
+   on a VALUE, and it breaks the moment the value changes. It
+   breaks silently, because CSS that matches nothing raises
+   nothing. Two instances of that landed on one day: the
+   01 INBOX to 01 Inbox rename moved 21 selectors, and AI Sessions
+   shipped with no styling at all because nobody remembered to add
+   its name to a list. So:
+
+     1. A ROOM is keyed on its numeric prefix and on having no
+        slash in its path. The prefix is the room's identity; the
+        words after it are a label Tom may rewrite at any time.
+        Renaming a room is now a no-op here.
+     2. The FAMILY TREATMENT is DERIVED, never listed. Any folder
+        inside a room picks up that room's colour and a plain
+        folder mark from the floor block below, whether or not
+        anybody has written a rule for it.
+     3. A GLYPH is ENUMERATED, because choosing an icon is an
+        editorial act and no rule can derive one. Named rules key
+        on room prefix plus the folder's own basename, so they
+        survive a room rename too, and they sit AFTER the floor at
+        equal specificity so they simply win.
+
+   The floor is what makes the enumeration safe. A folder nobody
+   has named is under-specified; it is never naked. New room
+   member, new agent folder, new anything: it joins the family on
+   arrival and someone can give it a glyph later.
+
+   Cost of prefix keying, stated plainly: a user-made root folder
+   starting "06 " would inherit the AI Team look. The new-folder
+   button is hidden further down, so this does not arise in a
+   shipped vault.
+
    Hue mapping (from INKLINE --ink-* tokens):
-     Daily Scratchpad  yellow    (pencil work)
+     Daily Scratchpad  yellow     (pencil work)
      Inbox             terracotta (muted marker: hand-over point)
-     WiP               cyan      (the workbench)
-     Inner World       success   (growth)
-     Assets            burgundy  (the shelf)
-     AI Team           indigo    (the staff)
+     Planner           marker     (an app surface among the rooms)
+     WiP               cyan       (the workbench)
+     Inner World       success    (growth)
+     Assets            burgundy   (the shelf)
+     AI Team           indigo     (the staff)
    ============================================================ */
 
 /* --- room colors: dark-room values, light-room overrides ---- */
-.nav-folder-title[data-path="00 Daily Scratchpad"] { --room-color: #c2a35c; }
-.theme-light .nav-folder-title[data-path="00 Daily Scratchpad"] { --room-color: #7f662f; }
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) { --room-color: #c2a35c; }
+.theme-light .nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) { --room-color: #7f662f; }
 
-.nav-folder-title[data-path="01 Inbox"] { --room-color: #c2765a; }
-.theme-light .nav-folder-title[data-path="01 Inbox"] { --room-color: #9e4526; }
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) { --room-color: #c2765a; }
+.theme-light .nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) { --room-color: #9e4526; }
 
-.nav-folder-title[data-path="02 Planner"] { --room-color: #ff5a2d; }
-.theme-light .nav-folder-title[data-path="02 Planner"] { --room-color: #b3401f; }
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) { --room-color: #ff5a2d; }
+.theme-light .nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) { --room-color: #b3401f; }
 
-.nav-folder-title[data-path="03 WiP"] { --room-color: #7a99a1; }
-.theme-light .nav-folder-title[data-path="03 WiP"] { --room-color: #4e6b73; }
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) { --room-color: #7a99a1; }
+.theme-light .nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) { --room-color: #4e6b73; }
 
-.nav-folder-title[data-path="04 Inner World"] { --room-color: #7d9a7f; }
-.theme-light .nav-folder-title[data-path="04 Inner World"] { --room-color: #5e7a60; }
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) { --room-color: #7d9a7f; }
+.theme-light .nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) { --room-color: #5e7a60; }
 
-.nav-folder-title[data-path="05 Assets"] { --room-color: #a87795; }
-.theme-light .nav-folder-title[data-path="05 Assets"] { --room-color: #7c5570; }
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) { --room-color: #7c5570; }
 
-.nav-folder-title[data-path="06 AI Team"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) { --room-color: #565e7e; }
 
 /* --- shared row treatment ----------------------------------- */
-.nav-folder-title[data-path="00 Daily Scratchpad"],
-.nav-folder-title[data-path="01 Inbox"],
-.nav-folder-title[data-path="02 Planner"],
-.nav-folder-title[data-path="03 WiP"],
-.nav-folder-title[data-path="04 Inner World"],
-.nav-folder-title[data-path="05 Assets"],
-.nav-folder-title[data-path="06 AI Team"] {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])),
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) {
   border-left: 2px solid var(--room-color);
   border-radius: 3px;
   background: color-mix(in srgb, var(--room-color) 7%, transparent);
   margin-bottom: 2px;
 }
-.nav-folder-title[data-path="00 Daily Scratchpad"]:hover,
-.nav-folder-title[data-path="01 Inbox"]:hover,
-.nav-folder-title[data-path="02 Planner"]:hover,
-.nav-folder-title[data-path="03 WiP"]:hover,
-.nav-folder-title[data-path="04 Inner World"]:hover,
-.nav-folder-title[data-path="05 Assets"]:hover,
-.nav-folder-title[data-path="06 AI Team"]:hover {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])):hover,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])):hover {
   background: color-mix(in srgb, var(--room-color) 15%, transparent);
 }
 
 /* no collapse arrows on the six rooms: icon + text only */
-.nav-folder-title[data-path="00 Daily Scratchpad"] .collapse-icon,
-.nav-folder-title[data-path="01 Inbox"] .collapse-icon,
-.nav-folder-title[data-path="02 Planner"] .collapse-icon,
-.nav-folder-title[data-path="03 WiP"] .collapse-icon,
-.nav-folder-title[data-path="04 Inner World"] .collapse-icon,
-.nav-folder-title[data-path="05 Assets"] .collapse-icon,
-.nav-folder-title[data-path="06 AI Team"] .collapse-icon,
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="02 Planner"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="03 WiP"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="05 Assets"] .nav-folder-collapse-indicator,
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-collapse-indicator {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .collapse-icon,
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-collapse-indicator {
   display: none !important;
   width: 0 !important;
   margin: 0 !important;
@@ -85,13 +121,13 @@
 }
 
 /* hide the real name text (with its 00..06 prefix) */
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-title-content,
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-title-content,
-.nav-folder-title[data-path="02 Planner"] .nav-folder-title-content,
-.nav-folder-title[data-path="03 WiP"] .nav-folder-title-content,
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-title-content,
-.nav-folder-title[data-path="05 Assets"] .nav-folder-title-content,
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-title-content {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-title-content {
   font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
@@ -99,13 +135,13 @@
 }
 
 /* the inked icon: a mask filled with the room color */
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="02 Planner"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="03 WiP"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="05 Assets"] .nav-folder-title-content::before,
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 15px;
@@ -122,13 +158,13 @@
 }
 
 /* the room name, in the room color */
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="02 Planner"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="03 WiP"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="05 Assets"] .nav-folder-title-content::after,
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after,
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   font-size: var(--nav-item-size, 14px);
   font-weight: var(--nav-item-weight-hover, 600);
   color: var(--room-color);
@@ -137,56 +173,56 @@
 /* --- per-room icon (Lucide stroke set) and name -------------- */
 
 /* pencil */
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="00 Daily Scratchpad"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="00 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "Daily Scratchpad";
 }
 
 /* inbox tray */
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 16 12 14 15 10 15 8 12 2 12'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 16 12 14 15 10 15 8 12 2 12'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="01 Inbox"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="01 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "Inbox";
 }
 
 /* hammer */
-.nav-folder-title[data-path="03 WiP"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9'/%3E%3Cpath d='m18 15 4-4'/%3E%3Cpath d='m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9'/%3E%3Cpath d='m18 15 4-4'/%3E%3Cpath d='m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="03 WiP"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="03 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "WiP";
 }
 
 /* sprout */
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="04 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "Inner World";
 }
 
 /* package */
-.nav-folder-title[data-path="05 Assets"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7.5 4.27 9 5.15'/%3E%3Cpath d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3Cpath d='M12 22V12'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7.5 4.27 9 5.15'/%3E%3Cpath d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3Cpath d='M12 22V12'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="05 Assets"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="05 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "Assets";
 }
 
 /* bot */
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 8V4H8'/%3E%3Crect width='16' height='12' x='4' y='8' rx='2'/%3E%3Cpath d='M2 14h2'/%3E%3Cpath d='M20 14h2'/%3E%3Cpath d='M15 13v2'/%3E%3Cpath d='M9 13v2'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 8V4H8'/%3E%3Crect width='16' height='12' x='4' y='8' rx='2'/%3E%3Cpath d='M2 14h2'/%3E%3Cpath d='M20 14h2'/%3E%3Cpath d='M15 13v2'/%3E%3Cpath d='M9 13v2'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="06 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "AI Team";
 }
 
@@ -218,17 +254,84 @@
   opacity: 1;
 }
 
-/* --- Inner World subcategories: icon + colored name, no block --- */
 
-.nav-folder-title[data-path="04 Inner World/Contacts"] { --room-color: #7a99a1; }
-.theme-light .nav-folder-title[data-path="04 Inner World/Contacts"] { --room-color: #4e6b73; }
-.nav-folder-title[data-path="04 Inner World/Contacts"] .nav-folder-title-content {
-  font-size: 0;
+/* --- the family floor: every folder inside a room, named or not ----
+   Rules below this point NAME a folder to give it its own glyph. That
+   enumeration is deliberate (a glyph is an editorial choice, and CSS
+   cannot invent one) but it must never be the only thing standing
+   between a folder and no styling at all. So the family treatment is
+   DERIVED from the room prefix, which is the part of a path that does
+   not change when the room is renamed, and a folder with no glyph of
+   its own falls through to the room colour and a plain folder mark.
+   Under-specified, never naked. Equal specificity throughout, so the
+   named rules further down simply come later and win.
+   Date-nested trees (/2026/08) are excluded: dates are data, not rooms.
+   -------------------------------------------------------------------- */
+
+.nav-folder-title[data-path^="00 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #c2a35c; }
+.theme-light .nav-folder-title[data-path^="00 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #7f662f; }
+.nav-folder-title[data-path^="01 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #c2765a; }
+.theme-light .nav-folder-title[data-path^="01 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #9e4526; }
+.nav-folder-title[data-path^="02 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #ff5a2d; }
+.theme-light .nav-folder-title[data-path^="02 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #b3401f; }
+.nav-folder-title[data-path^="03 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #7a99a1; }
+.theme-light .nav-folder-title[data-path^="03 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #4e6b73; }
+.nav-folder-title[data-path^="04 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #7d9a7f; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #5e7a60; }
+.nav-folder-title[data-path^="05 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="05 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #7c5570; }
+.nav-folder-title[data-path^="06 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #565e7e; }
+
+.nav-folder-title[data-path^="00 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="01 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="02 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="03 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="04 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="05 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content,
+.nav-folder-title[data-path^="06 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content {
+  font-size: var(--nav-item-size, 14px);
+  color: var(--room-color);
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/Contacts"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="00 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="01 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="02 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="03 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="04 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="05 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before,
+.nav-folder-title[data-path^="06 "][data-path*="/"]:not(:where([data-path*="/20"])) .nav-folder-title-content::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  margin-right: 6px;
+  background-color: var(--room-color);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E");
+}
+
+/* --- Inner World subcategories: icon + colored name, no block --- */
+
+.nav-folder-title[data-path^="04 "][data-path$="/Contacts"] { --room-color: #7a99a1; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Contacts"] { --room-color: #4e6b73; }
+.nav-folder-title[data-path^="04 "][data-path$="/Contacts"] .nav-folder-title-content {
+  font-size: var(--nav-item-size, 14px);
+  color: var(--room-color);
+  line-height: var(--nav-item-line-height, 1.4);
+  display: flex;
+  align-items: center;
+}
+.nav-folder-title[data-path^="04 "][data-path$="/Contacts"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -245,21 +348,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/Contacts"] .nav-folder-title-content::after {
-  content: "Contacts";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Journal"] { --room-color: #c2a35c; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Journal"] { --room-color: #7f662f; }
+.nav-folder-title[data-path^="04 "][data-path$="/Journal"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/Journal"] { --room-color: #c2a35c; }
-.theme-light .nav-folder-title[data-path="04 Inner World/Journal"] { --room-color: #7f662f; }
-.nav-folder-title[data-path="04 Inner World/Journal"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/Journal"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Journal"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -276,21 +375,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4'/%3E%3Cpath d='M2 6h4'/%3E%3Cpath d='M2 10h4'/%3E%3Cpath d='M2 14h4'/%3E%3Cpath d='M2 18h4'/%3E%3Cpath d='M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4'/%3E%3Cpath d='M2 6h4'/%3E%3Cpath d='M2 10h4'/%3E%3Cpath d='M2 14h4'/%3E%3Cpath d='M2 18h4'/%3E%3Cpath d='M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/Journal"] .nav-folder-title-content::after {
-  content: "Journal";
+
+.nav-folder-title[data-path^="04 "][data-path$="/My Life"] { --room-color: #7d9a7f; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/My Life"] { --room-color: #5e7a60; }
+.nav-folder-title[data-path^="04 "][data-path$="/My Life"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life"] { --room-color: #7d9a7f; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life"] { --room-color: #5e7a60; }
-.nav-folder-title[data-path="04 Inner World/My Life"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/My Life"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -307,21 +402,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life"] .nav-folder-title-content::after {
-  content: "My Life";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Goals"] { --room-color: #c2765a; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Goals"] { --room-color: #9e4526; }
+.nav-folder-title[data-path^="04 "][data-path$="/Goals"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life/Goals"] { --room-color: #c2765a; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life/Goals"] { --room-color: #9e4526; }
-.nav-folder-title[data-path="04 Inner World/My Life/Goals"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Goals"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Goals"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -338,21 +429,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Goals"] .nav-folder-title-content::after {
-  content: "Goals";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Habits"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Habits"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="04 "][data-path$="/Habits"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life/Habits"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life/Habits"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="04 Inner World/My Life/Habits"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Habits"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Habits"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -369,21 +456,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m17 2 4 4-4 4'/%3E%3Cpath d='M3 11v-1a4 4 0 0 1 4-4h14'/%3E%3Cpath d='m7 22-4-4 4-4'/%3E%3Cpath d='M21 13v1a4 4 0 0 1-4 4H3'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m17 2 4 4-4 4'/%3E%3Cpath d='M3 11v-1a4 4 0 0 1 4-4h14'/%3E%3Cpath d='m7 22-4-4 4-4'/%3E%3Cpath d='M21 13v1a4 4 0 0 1-4 4H3'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Habits"] .nav-folder-title-content::after {
-  content: "Habits";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Key Elements"] { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Key Elements"] { --room-color: #7c5570; }
+.nav-folder-title[data-path^="04 "][data-path$="/Key Elements"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life/Key Elements"] { --room-color: #a87795; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life/Key Elements"] { --room-color: #7c5570; }
-.nav-folder-title[data-path="04 Inner World/My Life/Key Elements"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Key Elements"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Key Elements"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -400,21 +483,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' x2='21' y1='22' y2='22'/%3E%3Cline x1='6' x2='6' y1='18' y2='11'/%3E%3Cline x1='10' x2='10' y1='18' y2='11'/%3E%3Cline x1='14' x2='14' y1='18' y2='11'/%3E%3Cline x1='18' x2='18' y1='18' y2='11'/%3E%3Cpolygon points='12 2 20 7 4 7'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' x2='21' y1='22' y2='22'/%3E%3Cline x1='6' x2='6' y1='18' y2='11'/%3E%3Cline x1='10' x2='10' y1='18' y2='11'/%3E%3Cline x1='14' x2='14' y1='18' y2='11'/%3E%3Cline x1='18' x2='18' y1='18' y2='11'/%3E%3Cpolygon points='12 2 20 7 4 7'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Key Elements"] .nav-folder-title-content::after {
-  content: "Key Elements";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Projects"] { --room-color: #7a99a1; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Projects"] { --room-color: #4e6b73; }
+.nav-folder-title[data-path^="04 "][data-path$="/Projects"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life/Projects"] { --room-color: #7a99a1; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life/Projects"] { --room-color: #4e6b73; }
-.nav-folder-title[data-path="04 Inner World/My Life/Projects"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Projects"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Projects"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -431,21 +510,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3Cpath d='M8 10v4'/%3E%3Cpath d='M12 10v2'/%3E%3Cpath d='M16 10v6'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3Cpath d='M8 10v4'/%3E%3Cpath d='M12 10v2'/%3E%3Cpath d='M16 10v6'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Projects"] .nav-folder-title-content::after {
-  content: "Projects";
+
+.nav-folder-title[data-path^="04 "][data-path$="/Topics"] { --room-color: #c2a35c; }
+.theme-light .nav-folder-title[data-path^="04 "][data-path$="/Topics"] { --room-color: #7f662f; }
+.nav-folder-title[data-path^="04 "][data-path$="/Topics"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="04 Inner World/My Life/Topics"] { --room-color: #c2a35c; }
-.theme-light .nav-folder-title[data-path="04 Inner World/My Life/Topics"] { --room-color: #7f662f; }
-.nav-folder-title[data-path="04 Inner World/My Life/Topics"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Topics"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="04 "][data-path$="/Topics"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -462,23 +537,19 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 6 4 14'/%3E%3Cpath d='M12 6v14'/%3E%3Cpath d='M8 8v12'/%3E%3Cpath d='M4 4v16'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 6 4 14'/%3E%3Cpath d='M12 6v14'/%3E%3Cpath d='M8 8v12'/%3E%3Cpath d='M4 4v16'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="04 Inner World/My Life/Topics"] .nav-folder-title-content::after {
-  content: "Topics";
-  font-size: var(--nav-item-size, 14px);
-  color: var(--room-color);
-}
 
 /* --- Inbox, Assets, AI Team subfolders: family-colored icons --- */
 
-.nav-folder-title[data-path="01 Inbox/Outer World"] { --room-color: #c2765a; }
-.theme-light .nav-folder-title[data-path="01 Inbox/Outer World"] { --room-color: #9e4526; }
-.nav-folder-title[data-path="01 Inbox/Outer World"] .nav-folder-title-content {
-  font-size: 0;
+.nav-folder-title[data-path^="01 "][data-path$="/Outer World"] { --room-color: #c2765a; }
+.theme-light .nav-folder-title[data-path^="01 "][data-path$="/Outer World"] { --room-color: #9e4526; }
+.nav-folder-title[data-path^="01 "][data-path$="/Outer World"] .nav-folder-title-content {
+  font-size: var(--nav-item-size, 14px);
+  color: var(--room-color);
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="01 Inbox/Outer World"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="01 "][data-path$="/Outer World"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -495,21 +566,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="01 Inbox/Outer World"] .nav-folder-title-content::after {
-  content: "Outer World";
+
+.nav-folder-title[data-path^="01 "][data-path$="/Scanner Inbox"] { --room-color: #c2765a; }
+.theme-light .nav-folder-title[data-path^="01 "][data-path$="/Scanner Inbox"] { --room-color: #9e4526; }
+.nav-folder-title[data-path^="01 "][data-path$="/Scanner Inbox"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="01 Inbox/Scanner Inbox"] { --room-color: #c2765a; }
-.theme-light .nav-folder-title[data-path="01 Inbox/Scanner Inbox"] { --room-color: #9e4526; }
-.nav-folder-title[data-path="01 Inbox/Scanner Inbox"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="01 Inbox/Scanner Inbox"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="01 "][data-path$="/Scanner Inbox"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -526,21 +593,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7V5a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M17 3h2a2 2 0 0 1 2 2v2'/%3E%3Cpath d='M21 17v2a2 2 0 0 1-2 2h-2'/%3E%3Cpath d='M7 21H5a2 2 0 0 1-2-2v-2'/%3E%3Cpath d='M7 12h10'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7V5a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M17 3h2a2 2 0 0 1 2 2v2'/%3E%3Cpath d='M21 17v2a2 2 0 0 1-2 2h-2'/%3E%3Cpath d='M7 21H5a2 2 0 0 1-2-2v-2'/%3E%3Cpath d='M7 12h10'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="01 Inbox/Scanner Inbox"] .nav-folder-title-content::after {
-  content: "Scanner Inbox";
+
+.nav-folder-title[data-path^="05 "][data-path$="/Images"] { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="05 "][data-path$="/Images"] { --room-color: #7c5570; }
+.nav-folder-title[data-path^="05 "][data-path$="/Images"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="05 Assets/Images"] { --room-color: #a87795; }
-.theme-light .nav-folder-title[data-path="05 Assets/Images"] { --room-color: #7c5570; }
-.nav-folder-title[data-path="05 Assets/Images"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="05 Assets/Images"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="05 "][data-path$="/Images"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -557,21 +620,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2' ry='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2' ry='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="05 Assets/Images"] .nav-folder-title-content::after {
-  content: "Images";
+
+.nav-folder-title[data-path^="05 "][data-path$="/Audio"] { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="05 "][data-path$="/Audio"] { --room-color: #7c5570; }
+.nav-folder-title[data-path^="05 "][data-path$="/Audio"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="05 Assets/Audio"] { --room-color: #a87795; }
-.theme-light .nav-folder-title[data-path="05 Assets/Audio"] { --room-color: #7c5570; }
-.nav-folder-title[data-path="05 Assets/Audio"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="05 Assets/Audio"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="05 "][data-path$="/Audio"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -588,21 +647,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="05 Assets/Audio"] .nav-folder-title-content::after {
-  content: "Audio";
+
+.nav-folder-title[data-path^="05 "][data-path$="/Documents"] { --room-color: #a87795; }
+.theme-light .nav-folder-title[data-path^="05 "][data-path$="/Documents"] { --room-color: #7c5570; }
+.nav-folder-title[data-path^="05 "][data-path$="/Documents"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="05 Assets/Documents"] { --room-color: #a87795; }
-.theme-light .nav-folder-title[data-path="05 Assets/Documents"] { --room-color: #7c5570; }
-.nav-folder-title[data-path="05 Assets/Documents"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="05 Assets/Documents"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="05 "][data-path$="/Documents"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -619,21 +674,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/%3E%3Cpath d='M14 2v4a2 2 0 0 0 2 2h4'/%3E%3Cpath d='M10 9H8'/%3E%3Cpath d='M16 13H8'/%3E%3Cpath d='M16 17H8'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/%3E%3Cpath d='M14 2v4a2 2 0 0 0 2 2h4'/%3E%3Cpath d='M10 9H8'/%3E%3Cpath d='M16 13H8'/%3E%3Cpath d='M16 17H8'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="05 Assets/Documents"] .nav-folder-title-content::after {
-  content: "Documents";
+
+.nav-folder-title[data-path^="06 "][data-path$="/AI Team Knowledge"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/AI Team Knowledge"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/AI Team Knowledge"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/AI Team Knowledge"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -650,21 +701,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge"] .nav-folder-title-content::after {
-  content: "AI Team Knowledge";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Agents"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Agents"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Agents"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/Agents"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/Agents"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/Agents"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/Agents"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Agents"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -681,21 +728,25 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/Agents"] .nav-folder-title-content::after {
-  content: "Agents";
-  font-size: var(--nav-item-size, 14px);
-  color: var(--room-color);
+
+/* messages-square: the conversations, kept. Read, never processed. */
+.nav-folder-title[data-path^="06 "][data-path$="/AI Sessions"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/AI Sessions"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/AI Sessions"] .nav-folder-title-content::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z'/%3E%3Cpath d='M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z'/%3E%3Cpath d='M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1'/%3E%3C/svg%3E");
 }
 
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Workstreams"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Workstreams"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Workstreams"] .nav-folder-title-content {
-  font-size: 0;
+.nav-folder-title[data-path^="06 "][data-path$="/Workstreams"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Workstreams"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Workstreams"] .nav-folder-title-content {
+  font-size: var(--nav-item-size, 14px);
+  color: var(--room-color);
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Workstreams"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Workstreams"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -712,21 +763,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='8' x='3' y='3' rx='2'/%3E%3Cpath d='M7 11v4a2 2 0 0 0 2 2h4'/%3E%3Crect width='8' height='8' x='13' y='13' rx='2'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='8' x='3' y='3' rx='2'/%3E%3Cpath d='M7 11v4a2 2 0 0 0 2 2h4'/%3E%3Crect width='8' height='8' x='13' y='13' rx='2'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Workstreams"] .nav-folder-title-content::after {
-  content: "Workstreams";
+
+.nav-folder-title[data-path^="06 "][data-path$="/SOPs"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/SOPs"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/SOPs"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/SOPs"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/SOPs"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/SOPs"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/SOPs"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/SOPs"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -743,21 +790,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M12 11h4'/%3E%3Cpath d='M12 16h4'/%3E%3Cpath d='M8 11h.01'/%3E%3Cpath d='M8 16h.01'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='8' height='4' x='8' y='2' rx='1' ry='1'/%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M12 11h4'/%3E%3Cpath d='M12 16h4'/%3E%3Cpath d='M8 11h.01'/%3E%3Cpath d='M8 16h.01'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/SOPs"] .nav-folder-title-content::after {
-  content: "SOPs";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Guidelines"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Guidelines"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Guidelines"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Guidelines"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Guidelines"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Guidelines"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Guidelines"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Guidelines"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -774,21 +817,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v8l3-3 3 3V2'/%3E%3Cpath d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v8l3-3 3 3V2'/%3E%3Cpath d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Guidelines"] .nav-folder-title-content::after {
-  content: "Guidelines";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Scripts"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Scripts"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Scripts"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Scripts"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Scripts"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Scripts"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Scripts"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Scripts"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -805,21 +844,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Scripts"] .nav-folder-title-content::after {
-  content: "Scripts";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Tasks"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Tasks"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Tasks"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Tasks"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Tasks"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Tasks"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Tasks"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Tasks"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -836,21 +871,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 11 3 3L22 4'/%3E%3Cpath d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 11 3 3L22 4'/%3E%3Cpath d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Tasks"] .nav-folder-title-content::after {
-  content: "Tasks";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Session Logs"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Session Logs"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Session Logs"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Session Logs"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Session Logs"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Session Logs"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Session Logs"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Session Logs"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -867,21 +898,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3Cpath d='M12 7v5l4 2'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3Cpath d='M12 7v5l4 2'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Session Logs"] .nav-folder-title-content::after {
-  content: "Session Logs";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Avatars"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Avatars"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Avatars"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Avatars"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Avatars"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Avatars"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Avatars"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Avatars"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -898,21 +925,17 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Avatars"] .nav-folder-title-content::after {
-  content: "Avatars";
+
+.nav-folder-title[data-path^="06 "][data-path$="/Brand"] { --room-color: #8087a6; }
+.theme-light .nav-folder-title[data-path^="06 "][data-path$="/Brand"] { --room-color: #565e7e; }
+.nav-folder-title[data-path^="06 "][data-path$="/Brand"] .nav-folder-title-content {
   font-size: var(--nav-item-size, 14px);
   color: var(--room-color);
-}
-
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Brand"] { --room-color: #8087a6; }
-.theme-light .nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Brand"] { --room-color: #565e7e; }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Brand"] .nav-folder-title-content {
-  font-size: 0;
   line-height: var(--nav-item-line-height, 1.4);
   display: flex;
   align-items: center;
 }
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Brand"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="06 "][data-path$="/Brand"] .nav-folder-title-content::before {
   content: "";
   display: inline-block;
   width: 14px;
@@ -928,11 +951,6 @@
   mask-size: contain;
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z'/%3E%3C/svg%3E");
-}
-.nav-folder-title[data-path="06 AI Team/AI Team Knowledge/Brand"] .nav-folder-title-content::after {
-  content: "Brand";
-  font-size: var(--nav-item-size, 14px);
-  color: var(--room-color);
 }
 
 
@@ -957,10 +975,10 @@
 }
 
 /* calendar-range: the planner (an app surface among the rooms) */
-.nav-folder-title[data-path="02 Planner"] .nav-folder-title-content::before {
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-title-content::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M17 14h-6'/%3E%3Cpath d='M13 18H7'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M17 14h-6'/%3E%3Cpath d='M13 18H7'/%3E%3C/svg%3E");
 }
-.nav-folder-title[data-path="02 Planner"] .nav-folder-title-content::after {
+.nav-folder-title[data-path^="02 "]:not(:where([data-path*="/"])) .nav-folder-title-content::after {
   content: "Planner";
 }

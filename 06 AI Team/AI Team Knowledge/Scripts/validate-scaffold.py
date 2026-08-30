@@ -7,6 +7,9 @@ Checks (all deterministic, per GL-001 and GL-004):
   3. Daily Scratchpads are named YYYY-MM-DD.md.
   4. Journal entries sit in YYYY/MM/ and are named YYYY-MM-DD_<slug>.md.
   5. Session logs and done/cancelled tasks sit in YYYY/MM/.
+  6. Every folder inside a room resolves a colour and a glyph from
+     the icor-rooms snippet, so a new folder can never ship as bare
+     text in the file tree the way "AI Sessions" did (2026-08-30).
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 """
 import re, sys
@@ -116,6 +119,66 @@ for area in ("Session Logs", "Tasks/done", "Tasks/cancelled"):
             rel = f.relative_to(base)
             if len(rel.parts) != 3:
                 fails.append(f"{area} entry not in YYYY/MM/: {rel}")
+
+# --- 6. no folder inside a room renders unstyled -----------------------
+# Every selector in icor-rooms.css that targets the file tree reduces to
+# predicates on one string, the folder's data-path, so a match can be
+# decided exactly here without a browser. The snippet derives the family
+# treatment from the room prefix and enumerates only glyphs, so this
+# check fails when a room exists that the derived floor does not cover,
+# or when a named rule has drifted off the folder it was written for.
+snippet = ROOT / ".obsidian/snippets/icor-rooms.css"
+if snippet.is_file():
+    css = re.sub(r"/\*.*?\*/", "", snippet.read_text(encoding="utf-8"), flags=re.S)
+    ATTR = re.compile(r'\[data-path(\^|\$|\*)?="([^"]*)"\]')
+
+    def hit(path, op, val):
+        return (path.startswith(val) if op == "^" else
+                path.endswith(val)   if op == "$" else
+                val in path          if op == "*" else path == val)
+
+    def selector_matches(sel, path):
+        head = sel.split(" .nav-folder-title-content")[0]
+        for m in re.finditer(r":not\(:where\((\[data-path[^\]]*\])\)\)", head):
+            op, val = ATTR.match(m.group(1)).groups()
+            if hit(path, op, val):
+                return False
+        bare = re.sub(r":not\(:where\([^)]*\)\)", "", head)
+        return all(hit(path, op, val) for op, val in ATTR.findall(bare))
+
+    rules = [(sel.strip(), body)
+             for sel_text, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+             for sel in sel_text.split(",")
+             if ".nav-folder-title[" in sel]
+
+    def resolves(path):
+        colour = glyph = False
+        for sel, body in rules:
+            if not selector_matches(sel, path):
+                continue
+            if "--room-color:" in body:
+                colour = True
+            if "::before" in sel and "mask-image:" in body:
+                glyph = True
+        return colour, glyph
+
+    rooms = sorted(d.name for d in ROOT.iterdir()
+                   if d.is_dir() and re.fullmatch(r"\d\d .+", d.name))
+    for room in rooms:
+        for d in (ROOT / room).rglob("*"):
+            rel = str(d.relative_to(ROOT))
+            if not d.is_dir() or d.name.startswith("."):
+                continue
+            if re.search(r"/20\d\d(/|$)", rel):   # date-nested: data, not rooms
+                continue
+            colour, glyph = resolves(rel)
+            if not (colour and glyph):
+                missing = " and ".join(
+                    x for x, ok in (("colour", colour), ("glyph", glyph)) if not ok)
+                fails.append(
+                    f"folder renders unstyled in the file tree (no {missing} "
+                    f"from icor-rooms.css): {rel}")
+
 
 if fails:
     for msg in fails:
