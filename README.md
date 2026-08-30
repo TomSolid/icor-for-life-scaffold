@@ -16,6 +16,10 @@ outer world through tool connections (email, calendar, social
 schedulers, YouTube, and more). Knowledge management keeps the work
 flowing; getting the work done is the point.
 
+**Beta release.** This vault works and is in daily use, but you will
+find rough edges. If something looks off, open an issue on this repo
+and it gets fixed fast.
+
 ## The rooms
 
 Six knowledge rooms plus the Planner, the one machine-tended app
