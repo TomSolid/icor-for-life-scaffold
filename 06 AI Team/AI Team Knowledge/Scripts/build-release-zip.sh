@@ -244,17 +244,52 @@ while IFS= read -r f; do
     .obsidian/workspace.json) ;;
     *) echo "BLOCKED workspace at an unexpected path: ${f#$STAGE/}"; fail=1; continue ;;
   esac
-  if grep -qE '/(Users|home)/' "$f"; then
-    echo "BLOCKED workspace carries an absolute home path: ${f#$STAGE/}"; fail=1
-  fi
   if ! python3 - "$f" <<'PYCHK'
-import json, sys
+import json, re, sys
+
+# ONE STRUCTURAL RULE, not a list of remembered carriers.
+#
+# The first version of this check tested lastOpenFiles and a unix home path,
+# and a review found both gaps immediately: a workspace can hold a personal
+# note OPEN in a leaf while lastOpenFiles reads README.md, and a search pane
+# keeps whatever the author last typed. A string test can only refuse the
+# carrier somebody thought of, so this walks the parsed document instead and
+# refuses anything that is not the one file we ship.
 d = json.load(open(sys.argv[1]))
-last = d.get('lastOpenFiles', [])
-sys.exit(0 if last in ([], ['README.md']) else 1)
+ALLOWED_FILE = 'README.md'
+UNIX_HOME = re.compile(r'/(Users|home)/')
+WIN_HOME = 'users'  # matched case-insensitively against a drive-letter path below
+bad = []
+
+def walk(node, path='$'):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == 'file' and isinstance(v, str) and v != ALLOWED_FILE:
+                bad.append(f'{path}.file names {v!r}')
+            elif k == 'searchQuery' and isinstance(v, str) and v.strip():
+                bad.append(f'{path}.searchQuery is not empty')
+            elif k == 'lastOpenFiles' and isinstance(v, list):
+                for item in v:
+                    if item != ALLOWED_FILE:
+                        bad.append(f'lastOpenFiles names {item!r}')
+            else:
+                walk(v, f'{path}.{k}')
+    elif isinstance(node, list):
+        for n, item in enumerate(node):
+            walk(item, f'{path}[{n}]')
+    elif isinstance(node, str):
+        low = node.lower()
+        drive = len(node) > 2 and node[1] == ':' and (chr(92) in node or '/' in node)
+        if UNIX_HOME.search(node) or (drive and WIN_HOME in low):
+            bad.append(f'{path} carries an absolute home path')
+
+walk(d)
+for b in bad:
+    print(f'    {b}', file=sys.stderr)
+sys.exit(1 if bad else 0)
 PYCHK
   then
-    echo "BLOCKED workspace lastOpenFiles names something other than README.md"; fail=1
+    echo "BLOCKED workspace carries state that is not the shipped README: ${f#$STAGE/}"; fail=1
   fi
 done < <(find "$STAGE" -name "workspace.json" -type f)
 # 2. data.json is allowed ONLY for the bundled community plugins
