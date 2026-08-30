@@ -222,7 +222,41 @@ echo "==> secret scan (the gate)"
 # 1. Files that must never exist in a release
 while IFS= read -r f; do
   echo "BLOCKED file: $f"; fail=1
-done < <(find "$STAGE" \( -name ".env" -o -name "*.env" -o -name "workspace.json" -o -name "workspace-mobile.json" \) -type f)
+done < <(find "$STAGE" \( -name ".env" -o -name "*.env" -o -name "workspace-mobile.json" \) -type f)
+
+# 1b. THE FIRST-OPEN WORKSPACE, and why it is the one exception.
+#
+# A vault with no workspace opens on whatever Obsidian last felt like, which
+# in practice was the terminal plugin's changelog: a member's first sight of
+# the product was a third party's release notes. So the scaffold ships ONE
+# curated workspace whose only job is to open README.md.
+#
+# workspace.json is otherwise personal state and stays banned. It records
+# every recently opened file and can carry absolute paths out of the author's
+# machine, which is exactly what the blanket rule above existed to stop. The
+# exception is therefore narrow AND checked, not narrow and trusted:
+#   - exactly one path may exist, the vault-root .obsidian/workspace.json
+#   - it may not contain an absolute home path
+#   - lastOpenFiles may name README.md and nothing else
+# A workspace that fails any of those is a leak, and the build stops.
+while IFS= read -r f; do
+  case "${f#$STAGE/}" in
+    .obsidian/workspace.json) ;;
+    *) echo "BLOCKED workspace at an unexpected path: ${f#$STAGE/}"; fail=1; continue ;;
+  esac
+  if grep -qE '/(Users|home)/' "$f"; then
+    echo "BLOCKED workspace carries an absolute home path: ${f#$STAGE/}"; fail=1
+  fi
+  if ! python3 - "$f" <<'PYCHK'
+import json, sys
+d = json.load(open(sys.argv[1]))
+last = d.get('lastOpenFiles', [])
+sys.exit(0 if last in ([], ['README.md']) else 1)
+PYCHK
+  then
+    echo "BLOCKED workspace lastOpenFiles names something other than README.md"; fail=1
+  fi
+done < <(find "$STAGE" -name "workspace.json" -type f)
 # 2. data.json is allowed ONLY for the bundled community plugins
 while IFS= read -r f; do
   case "$f" in

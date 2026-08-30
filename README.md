@@ -1,5 +1,15 @@
 # ICOR for Life Scaffold
 
+## Start here: the tour
+
+A walkthrough of this vault: what each room is for, how the AI Team
+works with you, and how to get your first session running.
+
+![Watch the ICOR for Life Obsidian Edition tour](https://youtu.be/GLO1voinujQ)
+
+If the player does not appear, open it here:
+https://youtu.be/GLO1voinujQ
+
 The ICOR for Life Scaffold is the folder half of **ICOR for Life**, the
 implementation layer of the ICOR Journey. It is a plain markdown vault:
 open it in Obsidian for the interface, point your AI (Claude Code or any
