@@ -164,14 +164,37 @@ if snippet.is_file():
 
     rooms = sorted(d.name for d in ROOT.iterdir()
                    if d.is_dir() and re.fullmatch(r"\d\d .+", d.name))
+    # SCOPE IS DERIVED FROM THE FLOOR, NEVER RESTATED.
+    #
+    # This used to carry its own `/20\d\d(/|$)` regex to skip date-nested
+    # data folders, which was a second, hand-maintained copy of a rule the CSS
+    # already states as `:not(:where([data-path*="/20"]))`. The two disagreed
+    # at exactly one folder shape: the chat plugin's session folders are named
+    # `2026-08-30_1312_...`, so `/2026` is followed by `-`, which the CSS
+    # excludes and this regex did not match. Every vault that had held one
+    # conversation failed this check.
+    #
+    # The standing rule, so the two can never disagree again: THE CSS IS THE
+    # AUTHORITY. It cannot express "path segment", so its approximation IS the
+    # rule, and this check may only ever be LOOSER than the CSS, never
+    # stricter. `selector_matches` already parses the `:not()` correctly, so
+    # `colour` below is the floor's own answer and there is nothing left to
+    # restate.
+    #
+    # Two clauses, and the first is why the check keeps its purpose. A room
+    # folder is ALWAYS in scope, so a new `07 ` room nobody styled still
+    # fails. The room itself was previously never evaluated at all - `rglob`
+    # yields descendants only - so an unstyled room was caught indirectly
+    # through its children, and dropping the regex without adding the room
+    # itself would have quietly retired the check's main job.
     for room in rooms:
-        for d in (ROOT / room).rglob("*"):
+        for d in [ROOT / room, *(ROOT / room).rglob("*")]:
             rel = str(d.relative_to(ROOT))
             if not d.is_dir() or d.name.startswith("."):
                 continue
-            if re.search(r"/20\d\d(/|$)", rel):   # date-nested: data, not rooms
-                continue
             colour, glyph = resolves(rel)
+            if "/" in rel and not colour:
+                continue   # a descendant the floor declined; so does this check
             if not (colour and glyph):
                 missing = " and ".join(
                     x for x, ok in (("colour", colour), ("glyph", glyph)) if not ok)

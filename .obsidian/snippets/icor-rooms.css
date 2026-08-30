@@ -266,6 +266,26 @@
    Under-specified, never naked. Equal specificity throughout, so the
    named rules further down simply come later and win.
    Date-nested trees (/2026/08) are excluded: dates are data, not rooms.
+
+   CROSS-REPO CONTRACT, and it is a real dependency rather than a
+   coincidence. `[data-path*="/20"]` is a substring test, because CSS
+   cannot express "path segment". It therefore excludes ANY path segment
+   starting with `20`, which is what makes it cover the ICOR AI Chat
+   plugin's session folders: that plugin names them
+   `2026-08-30_1312_<slug>_<id>`, so the segment begins `20` and the
+   exclusion catches it.
+
+   IF THAT NAMING EVER CHANGES - `session-2026-...`, say - this rule
+   stops excluding them, every one of those folders renders as an
+   unstyled room, and `validate-scaffold.py` check 6 starts failing in
+   every user's vault with nothing pointing back at the rename. The
+   plugin carries the matching comment at the point it builds the name.
+   Change one end, change both.
+
+   The validator does NOT restate this exclusion. It reads this file and
+   derives scope from the answer, so the check can only ever be LOOSER
+   than the CSS, never stricter. A hand-copied regex here is exactly the
+   defect that broke it once.
    -------------------------------------------------------------------- */
 
 .nav-folder-title[data-path^="00 "][data-path*="/"]:not(:where([data-path*="/20"])) { --room-color: #c2a35c; }
