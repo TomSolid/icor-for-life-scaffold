@@ -1,0 +1,121 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": true,
+  "colorGroups": [
+    {
+      "query": "path:\"04 Inner World/My Life/Goals\"",
+      "color": {
+        "a": 1,
+        "rgb": 12744282
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/My Life/Habits\"",
+      "color": {
+        "a": 1,
+        "rgb": 8423334
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/My Life/Key Elements\"",
+      "color": {
+        "a": 1,
+        "rgb": 11040661
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/My Life/Projects\"",
+      "color": {
+        "a": 1,
+        "rgb": 8034721
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/My Life/Topics\"",
+      "color": {
+        "a": 1,
+        "rgb": 12755804
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/Contacts\"",
+      "color": {
+        "a": 1,
+        "rgb": 8034721
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/Journal\"",
+      "color": {
+        "a": 1,
+        "rgb": 12755804
+      }
+    },
+    {
+      "query": "path:\"04 Inner World/My Life\"",
+      "color": {
+        "a": 1,
+        "rgb": 8231551
+      }
+    },
+    {
+      "query": "path:\"00 Daily Scratchpad\"",
+      "color": {
+        "a": 1,
+        "rgb": 12755804
+      }
+    },
+    {
+      "query": "path:\"01 INBOX\"",
+      "color": {
+        "a": 1,
+        "rgb": 12744282
+      }
+    },
+    {
+      "query": "path:\"03 WiP\"",
+      "color": {
+        "a": 1,
+        "rgb": 8034721
+      }
+    },
+    {
+      "query": "path:\"04 Inner World\"",
+      "color": {
+        "a": 1,
+        "rgb": 8231551
+      }
+    },
+    {
+      "query": "path:\"05 Assets\"",
+      "color": {
+        "a": 1,
+        "rgb": 11040661
+      }
+    },
+    {
+      "query": "path:\"06 AI Team\"",
+      "color": {
+        "a": 1,
+        "rgb": 8423334
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.52,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 3.490985530570219,
+  "close": false
+}

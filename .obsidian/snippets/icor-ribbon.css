@@ -1,0 +1,30 @@
+/* @settings
+name: ICOR for Life
+id: icor-for-life-ribbon
+settings:
+  - id: icor-keep-ribbon
+    title: Keep the thin left ribbon
+    description: Shows Obsidian's ribbon again (for users who want other plugins' ribbon icons).
+    type: class-toggle
+*/
+
+/* The thin left ribbon is retired: its actions live in the top row
+ * (terminal, settings), the explorer toolbar (daily note, unique note,
+ * canvas, graph), and the myICOR folder-tree button.
+ *
+ * To bring the ribbon back: toggle THIS SNIPPET off under Appearance ->
+ * CSS snippets, or flip the toggle above if Style Settings is
+ * installed. Other plugins' ribbon icons work normally once visible. */
+
+body:not(.icor-keep-ribbon) .workspace-ribbon.mod-left {
+  display: none !important;
+}
+
+/* Obsidian insets the top-left tab header by
+ * calc(80px - ribbon width) to clear the macOS traffic lights - a sum
+ * that assumes the ribbon still occupies its column. With the ribbon
+ * hidden, restore the full inset so the sidebar toggle never slides
+ * under the window buttons. (Fullscreen keeps Obsidian's own 0px.) */
+body:not(.icor-keep-ribbon).mod-macos.is-frameless:not(.is-fullscreen) {
+  --frame-left-space: 80px;
+}
