@@ -25,9 +25,9 @@
 #
 # Why gate 4 exists. Three times a correct version number sat on top of the
 # wrong bytes, and each time a person caught it, not a check:
-#   - icor-planner's manifest read 0.6.1 while the newest release was 0.4.2.
-#   - inkline shipped tag 1.2.4 and a main that differed by 2,037 bytes of
-#     CSS, both called 1.2.4, while the theme was live in the community
+#   - a plugin's manifest read 0.6.1 while its newest release was 0.4.2.
+#   - the theme shipped tag 1.2.4 and a main that differed by 2,037 bytes
+#     of CSS, both called 1.2.4, while it was live in the community
 #     directory. Every version number agreed. Only the bytes disagreed.
 #   - a test vault held a folder labelled 0.1.0 whose bytes were not 0.1.0.
 # This script stages five of the six artifacts with `git archive main`, so
@@ -67,11 +67,11 @@ git --git-dir "$SCAFFOLD_GIT" archive origin/main | tar -x -C "$STAGE"
 
 # local repo name | github remote | destination in the vault | kind
 declare -a SPECS=(
-  "icor-planner|icor-planner|.obsidian/plugins/icor-planner|plugin"
-  "icor-focus|icor-focus|.obsidian/plugins/icor-focus|plugin"
-  "icor-diagrams|icor-diagrams|.obsidian/plugins/icor-diagrams|plugin"
-  "myicor-connect|myicor-connect|.obsidian/plugins/myicor-connect|plugin"
-  "inkline|inkline-obsidian|.obsidian/themes/myICOR INKLINE|theme"
+  "icor-for-life-planner|icor-for-life-planner|.obsidian/plugins/icor-for-life-planner|plugin"
+  "icor-for-life-focus|icor-for-life-focus|.obsidian/plugins/icor-for-life-focus|plugin"
+  "icor-for-life-diagrams|icor-for-life-diagrams|.obsidian/plugins/icor-for-life-diagrams|plugin"
+  "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
+  "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life INKLINE|theme"
 )
 
 echo "==> adding first-party plugins and theme from their repos"
@@ -100,9 +100,9 @@ for spec in "${SPECS[@]}"; do
   git --git-dir "$HOME/.icor-git/$repo.git" archive origin/main | tar -x -C "$STAGE/$dest"
 done
 
-# icor-chat is a full source repo that does NOT track its build output, and
-# its dev worktree may hold an in-flight build that never shipped. The zip
-# therefore stages icor-chat entirely from its LATEST GitHub release: docs
+# The chat plugin is a full source repo that does NOT track its build output,
+# and its dev worktree may hold an in-flight build that never shipped. The zip
+# therefore stages it entirely from its LATEST GitHub release: docs
 # from the release tag, bundle from the release assets - the certified
 # artifact by construction, independent of any dev state.
 #
@@ -110,31 +110,32 @@ done
 # mirror that cannot reach origin stages whatever it happens to hold, under
 # the name of a tag it may not have; that is the stale-mirror defect the
 # five specs above already refuse, and this artifact is no different.
-echo "==> adding icor-chat (from its latest GitHub release)"
-CHAT_DEST="$STAGE/.obsidian/plugins/icor-chat"
+echo "==> adding the chat plugin (from its latest GitHub release)"
+CHAT_REMOTE="icor-for-life-chat"
+CHAT_DEST="$STAGE/.obsidian/plugins/$CHAT_REMOTE"
 mkdir -p "$CHAT_DEST"
-CHAT_TAG="$(gh release view --repo myICOR/icor-chat --json tagName --jq .tagName)"
+CHAT_TAG="$(gh release view --repo "myICOR/$CHAT_REMOTE" --json tagName --jq .tagName)"
 if [ -z "$CHAT_TAG" ]; then
-  echo "BLOCKED: myICOR/icor-chat has no published release to stage from" >&2
+  echo "BLOCKED: myICOR/$CHAT_REMOTE has no published release to stage from" >&2
   exit 1
 fi
-if ! git --git-dir "$HOME/.icor-git/icor-chat.git" fetch --quiet --tags --force origin \
+if ! git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" fetch --quiet --tags --force origin \
      "+refs/heads/main:refs/remotes/origin/main"; then
-  echo "BLOCKED: cannot refresh the icor-chat mirror from origin" >&2
+  echo "BLOCKED: cannot refresh the $CHAT_REMOTE mirror from origin" >&2
   exit 1
 fi
 # The tag has to exist in the mirror after that fetch. Without this check a
 # missing tag reaches `git archive` as an unresolved rev, and the failure
 # reads like a build error rather than what it is: staging a release the
 # mirror has never seen.
-if ! git --git-dir "$HOME/.icor-git/icor-chat.git" rev-parse -q --verify "refs/tags/$CHAT_TAG" >/dev/null; then
-  echo "BLOCKED: icor-chat mirror has no tag $CHAT_TAG after fetching origin" >&2
+if ! git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" rev-parse -q --verify "refs/tags/$CHAT_TAG" >/dev/null; then
+  echo "BLOCKED: the $CHAT_REMOTE mirror has no tag $CHAT_TAG after fetching origin" >&2
   exit 1
 fi
-git --git-dir "$HOME/.icor-git/icor-chat.git" archive "$CHAT_TAG" -- \
+git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" archive "$CHAT_TAG" -- \
   manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/provenance.md SECURITY.md \
   | tar -x -C "$CHAT_DEST"
-gh release download "$CHAT_TAG" --repo myICOR/icor-chat \
+gh release download "$CHAT_TAG" --repo "myICOR/$CHAT_REMOTE" \
   --pattern main.js --pattern styles.css --dir "$CHAT_DEST" --clobber
 
 fail=0
@@ -143,9 +144,9 @@ fail=0
 # 0. THE RESIDUE GATE
 #
 # This script is our build tooling. It names our local mirror layout, our
-# output directory and the id of a plugin we no longer ship. None of that is
-# any use to a member, and all of it is a map of our internals. It stays in
-# the repo, where it belongs, and it is dropped from the staged tree here.
+# output directory and our GitHub org. None of that is any use to a member,
+# and all of it is a map of our internals. It stays in the repo, where it
+# belongs, and it is dropped from the staged tree here.
 #
 # Removal on its own would be silent filtering: rename the file and the
 # filter stops matching, and the build still goes green. So removal is done
@@ -197,7 +198,6 @@ done
 # Now the part that does not know the filename.
 declare -a RESIDUE_PATTERNS=(
   "[.]icor-git"
-  "icor-ai-chat"
   "HOME/Desktop"
   "YishenTu"
   "claudian"
@@ -246,7 +246,7 @@ done < <(find "$STAGE" -name ".npmrc" -type f)
 # 3. Content patterns that look like live credentials
 if grep -rInE "(pk_[0-9]+_[A-Z0-9]{20,}|xoxb-|BEGIN [A-Z ]*PRIVATE KEY|LEXOFFICE_API_KEY=|app_password|smtp_pass)" "$STAGE" 2>/dev/null \
      | grep -v "Scripts/run-red-tests.py" \
-     | grep -v "plugins/icor-chat/main.js"; then
+     | grep -v "plugins/$CHAT_REMOTE/main.js"; then
   echo "BLOCKED: credential-like content found (see matches above)"; fail=1
 fi
 
@@ -257,7 +257,7 @@ fi
 # of that repo's latest published release, and every required asset must be
 # byte-identical to the asset published under that tag.
 #
-# This is the clause that catches the inkline shape. Comparing version
+# This is the clause that catches the theme shape. Comparing version
 # NUMBERS passes when a repo re-uses a number over changed bytes; only the
 # digest comparison fails. Note that four of these are staged from `git
 # archive main`, so this compares main's bytes against what the world can
@@ -325,7 +325,7 @@ for spec in "${SPECS[@]}"; do
     verify_artifact "$remote" "$remote" "$STAGE/$dest" "main.js manifest.json styles.css"
   fi
 done
-verify_artifact "icor-chat" "icor-chat" "$CHAT_DEST" "main.js manifest.json styles.css"
+verify_artifact "$CHAT_REMOTE" "$CHAT_REMOTE" "$CHAT_DEST" "main.js manifest.json styles.css"
 
 # 5. The enabled-plugin list and the staged plugin folders must agree.
 #    Enabling a plugin the zip does not ship, or shipping one the vault does
@@ -342,12 +342,24 @@ present = {d for d in os.listdir(sys.argv[2])
            if os.path.isfile(os.path.join(sys.argv[2], d, "manifest.json"))}
 # Third-party plugins are vendored into the repo and are not our concern here;
 # the coherence rule is enforced over the first-party set only.
-ours = {"icor-planner", "icor-focus", "icor-diagrams", "myicor-connect",
-        "icor-ai-chat", "icor-chat"}
+ours = {"icor-for-life-planner", "icor-for-life-focus", "icor-for-life-diagrams",
+        "icor-for-life-connect", "icor-for-life-chat"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
     print(f"the zip stages {p!r} but community-plugins.json does not enable it")
+
+# THE INVENTORY ASSERTION. The two rules above are set differences over the
+# first-party set, so a plugin folder under a name that is not in `ours` is
+# invisible to them: a folder left behind by a rename ships, enabled or not,
+# and every check above stays green. This one names the complete expected
+# tree instead, so anything extra or missing is a failure by construction
+# rather than by remembering to add it to a list.
+expected = ours | {"terminal", "obsidian-outliner"}
+for p in sorted(present - expected):
+    print(f"the zip stages an unexpected plugin folder {p!r}")
+for p in sorted(expected - present):
+    print(f"the zip is missing the plugin folder {p!r}")
 PY
 )"
   if [ -n "$COHERENCE" ]; then

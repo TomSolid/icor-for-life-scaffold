@@ -3,12 +3,12 @@
 
 | Artifact | License | You MAY | You may NOT |
 |---|---|---|---|
-| INKLINE theme (`inkline-obsidian`) | CC BY-NC-ND 4.0 (embedded fonts: SIL OFL 1.1, separately) | Use in your own vaults (incl. via the community theme store), modify your own copy for personal use, share unchanged copies noncommercially with attribution | Sell it or bundle it into any paid product or service, publish modified or derivative versions, redistribute the embedded font files by themselves |
-| icor-planner plugin | ICOR for Life Source-Available License (Code) v1.0 | Install and run in your own vaults, read the source, modify for personal use, keep your copies forever | Redistribute or publish (original or modified), use commercially, offer to others as a product/service |
-| icor-focus plugin | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| icor-diagrams plugin | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| icor-chat plugin | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
-| myicor-connect plugin | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
+| INKLINE theme (`ICOR for Life INKLINE`) | CC BY-NC-ND 4.0 (embedded fonts: SIL OFL 1.1, separately) | Use in your own vaults (incl. via the community theme store), modify your own copy for personal use, share unchanged copies noncommercially with attribution | Sell it or bundle it into any paid product or service, publish modified or derivative versions, redistribute the embedded font files by themselves |
+| ICOR Planner plugin (`icor-for-life-planner`) | ICOR for Life Source-Available License (Code) v1.0 | Install and run in your own vaults, read the source, modify for personal use, keep your copies forever | Redistribute or publish (original or modified), use commercially, offer to others as a product/service |
+| ICOR Focus plugin (`icor-for-life-focus`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
+| ICOR Diagrams plugin (`icor-for-life-diagrams`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
+| ICOR AI Chat plugin (`icor-for-life-chat`) | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
+| myICOR Connect plugin (`icor-for-life-connect`) | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
 | Scaffold content (structure, templates, AI-team files, prose) | ICOR for Life Source-Available License (Content) v1.0 | Use as your personal vault, adapt and extend your own copy without limit, quote brief excerpts with attribution, apply the ICOR Journey method freely | Publish or share the vault, adapted versions, or substantial parts; build commercial products, courses, or templates from the files |
 | Terminal plugin (bundled, unmodified) | AGPL-3.0 (its own authors) | Everything the AGPL-3.0 allows | N/A - see THIRD-PARTY-NOTICES.md for license text and source |
 | Outliner plugin (bundled, unmodified) | MIT (its own authors) | Everything MIT allows - keep its notice | N/A - see THIRD-PARTY-NOTICES.md |

@@ -6,26 +6,26 @@
 
 
 # ICOR Planner is its own git repository (and its data.json holds API keys)
-.obsidian/plugins/icor-planner/
+.obsidian/plugins/icor-for-life-planner/
 
 # Plugin and theme code lives in its own repos on the myICOR org
-# (myicor-connect also keeps its OAuth token store out of git there)
-.obsidian/plugins/myicor-connect/
-.obsidian/themes/myICOR INKLINE/
+# (Connect also keeps its OAuth token store out of git there)
+.obsidian/plugins/icor-for-life-connect/
+.obsidian/themes/ICOR for Life INKLINE/
 
 # myICOR Connect token store (hard rule 9: secrets never reach git)
-.obsidian/plugins/myicor-connect/data.json
+.obsidian/plugins/icor-for-life-connect/data.json
 
 # ICOR Focus is its own git repository (data.json holds the local opens log)
-.obsidian/plugins/icor-focus/
+.obsidian/plugins/icor-for-life-focus/
 
 # ICOR Diagrams is its own git repository
-.obsidian/plugins/icor-diagrams/
+.obsidian/plugins/icor-for-life-diagrams/
 
 # Live personal data syncs into these paths - never tracked, never shipped
 02 Planner/*/
 00 Daily Scratchpad/2026-*.md
 00 Daily Scratchpad/2027-*.md
 
-# ICOR Chat is its own git repository (data.json holds chat/session state)
-.obsidian/plugins/icor-chat/
+# ICOR AI Chat is its own git repository (data.json holds chat/session state)
+.obsidian/plugins/icor-for-life-chat/
