@@ -3,7 +3,6 @@
   "nativeMenus": true,
   "enabledCssSnippets": [
     "icor-rooms",
-    "icor-ribbon",
     "icor-logo"
   ],
   "translucency": false,
