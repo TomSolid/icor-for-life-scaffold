@@ -976,10 +976,12 @@
 
 /* ------------------------------------------------------------------ *
  * Bottom of the left column: the vault-switcher row is hidden so the
- * myICOR button sits at the very bottom. Both functions this row used
- * to carry now live at the FOOT OF THE LEFT RAIL, where the myICOR
- * Connect plugin puts them: the settings gear as a rounded square, and
- * the vault switcher as a circle. Settings is also still Cmd+,.
+ * myICOR button sits at the very bottom. Neither function it carried is
+ * deleted by this hide, and both routes are MEASURED rather than
+ * assumed. Settings: the gear myICOR Connect puts in the top-right row
+ * (attachTopButtons), and Cmd+,. Vault switching: Obsidian registers
+ * `app:switch-vault` and `app:open-another-vault` as ordinary palette
+ * commands, checked against the app bundle on 2026-08-30.
  *
  * Decision, 2026-08-30: a settings entry in two places means one of
  * them is wrong, so the panel-corner entry is the one that goes.
@@ -993,13 +995,13 @@
  * THE FILE-TREE TOOLBAR IS REDUCED TO FILE-TREE ACTIONS.
  *
  * Decision, 2026-08-30, and it is a decision rather than a fact, so it
- * is dated: this row used to be a destination for things that had been
- * pushed out of the hidden ribbon. The ribbon is back, those things
- * went home to it, and what is left here is judged on one question -
- * is this an action ON THE FILE TREE?
+ * is dated: this row had become the destination for everything homeless,
+ * and what is left is judged on one question - is this an action ON THE
+ * FILE TREE, or is it the only visible way into a plugin?
  *
  * Hidden: New note and New folder. Rooms and folders are the AI Team's
  * job (ask Larry), and a note is created from the room it belongs to.
+ * Both keep a palette route, which is what makes the hide a relocation.
  *
  * Kept: change sort order, and collapse all. Sort is kept because this
  * button is its ONLY route - Obsidian registers eight file-explorer
@@ -1007,8 +1009,14 @@
  * remove the function from the vault rather than relocate it. Measured
  * against the app bundle on 2026-08-30, not assumed.
  *
- * The CONTAINER is deliberately not hidden. It is the slot the two
- * surviving controls live in, and the theme styles it.
+ * Also here, and NOT hidden: the Focus map launcher and the AI Team
+ * robot. The left ribbon is hidden by `icor-ribbon.css`, so this row is
+ * the only place either plugin has a visible entry point. That is the
+ * same only-route rule the sort button is kept under, one layer up: a
+ * plugin whose icon lives only on a hidden surface has no icon.
+ *
+ * The CONTAINER is deliberately not hidden. It is the slot these
+ * controls live in, and the theme styles it.
  *
  * This hide stays in the SCAFFOLD and never moves into the theme: what
  * Obsidian shows is a product decision, and a community user who
