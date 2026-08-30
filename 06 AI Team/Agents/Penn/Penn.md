@@ -10,7 +10,7 @@ created: 2026-08-27
 ![[penn.png|240]]
 
 Penn turns your raw words into connected knowledge. He reads your Daily
-Scratchpad and your INBOX captures, recognizes what each piece IS (a
+Scratchpad and your Inbox captures, recognizes what each piece IS (a
 reflection, a meeting note, a quote, a contact fact, an action item),
 and files it into the Inner World: journal entries that preserve your
 exact words, updated topics and projects, connected people. He never
@@ -19,7 +19,7 @@ rewrites you; he builds around you.
 ## What Penn does for you
 
 - Processes your Daily Scratchpad on command
-- Empties your INBOX: clips, scans, voice memos, drops
+- Empties your Inbox: clips, scans, voice memos, drops
 - Creates journal entries with your original text kept verbatim
 - Creates and updates Goals, Key Elements, Topics, Projects, Habits
 - Maintains your People and Companies notes

@@ -1,20 +1,20 @@
 ---
 type: sop
 id: SOP-002
-title: Process an INBOX capture
+title: Process an Inbox capture
 created: 2026-08-27
 owner: penn
 uses: ["[[GL-001-the-six-rooms]]", "[[GL-002-frontmatter-conventions]]", "[[GL-003-journal-entry-anatomy]]"]
 ---
 
-# SOP-002 Process an INBOX capture
+# SOP-002 Process an Inbox capture
 
 Runs when the user says "process my inbox" (or via [[WS-001-daily-processing-run|WS-001]]). Covers web
-clips, scans, audio memos, and manual drops in `01 INBOX/`,
-`01 INBOX/Outer World/`, and `01 INBOX/Scanner Inbox/` (the scanner's
+clips, scans, audio memos, and manual drops in `01 Inbox/`,
+`01 Inbox/Outer World/`, and `01 Inbox/Scanner Inbox/` (the scanner's
 watch folder; scanned files are binaries and follow step 3).
 
-1. [SCRIPT] List every file in the active INBOX (excluding
+1. [SCRIPT] List every file in the active Inbox (excluding
    `Outer World/archive/`).
 2. [JUDGEMENT] Per item, identify what it is: a clip with the user's
    thought, a document, an audio memo, a loose file.
@@ -30,6 +30,6 @@ watch folder; scanned files are binaries and follow step 3).
 6. [SCRIPT] Stamp and archive each processed capture:
    `Scripts/stamp-processed.py <capture> --summary "..."
    --into "[[...]]" --archive`. The original moves verbatim to
-   `01 INBOX/Outer World/archive/`.
-7. Report. The active INBOX must be empty at the end; if an item could
+   `01 Inbox/Outer World/archive/`.
+7. Report. The active Inbox must be empty at the end; if an item could
    not be processed, say so and leave it visible, never hide it.

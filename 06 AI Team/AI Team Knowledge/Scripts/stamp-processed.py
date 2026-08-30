@@ -9,8 +9,8 @@ Rules enforced here, not in prose:
   - refuses to run twice on the same note (processed already true)
   - refuses an empty summary or zero --into links
   - never touches the note body; only the frontmatter block
-  - --archive moves a capture into 01 INBOX/Outer World/archive/ and refuses
-    to archive anything that is not inside 01 INBOX/Outer World/
+  - --archive moves a capture into 01 Inbox/Outer World/archive/ and refuses
+    to archive anything that is not inside 01 Inbox/Outer World/
 """
 import argparse, sys
 from pathlib import Path
@@ -50,8 +50,8 @@ note.write_text(new, encoding="utf-8")
 
 if a.archive:
     parts = [p.name for p in note.parents]
-    if "Outer World" not in parts or "01 INBOX" not in parts:
-        sys.exit("FAIL --archive only applies to notes inside 01 INBOX/Outer World/")
+    if "Outer World" not in parts or "01 Inbox" not in parts:
+        sys.exit("FAIL --archive only applies to notes inside 01 Inbox/Outer World/")
     ow = next(p for p in note.parents if p.name == "Outer World")
     dest = ow / "archive" / note.name
     if dest.exists():

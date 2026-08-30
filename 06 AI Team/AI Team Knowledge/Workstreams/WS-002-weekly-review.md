@@ -15,7 +15,7 @@ forward.
 ```mermaid
 flowchart TD
     A["Review tasks: open, in-progress, aging"] --> B["Rule on stale WiP folders"]
-    B --> C["Sweep INBOX and scratchpad leftovers"]
+    B --> C["Sweep Inbox and scratchpad leftovers"]
     C --> D["Recap the week's journal entries"]
     D --> E["User names priorities, Larry records them"]
 ```
@@ -23,7 +23,7 @@ flowchart TD
 1. Tasks: everything in open/ and in-progress/, aging flagged.
 2. WiP: folders untouched for 30+ days; per folder the user rules
    finish, archive, or keep.
-3. INBOX and Scratchpads: any unprocessed leftovers from the week.
+3. Inbox and Scratchpads: any unprocessed leftovers from the week.
 4. Journal: the week's entries as a two-minute narrated recap
    (headlines only, links provided).
 5. Forward: the user names the week's priorities; Larry records them in

@@ -16,8 +16,8 @@ ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().pare
 fails = []
 
 REQUIRED = [
-    "01 INBOX/Outer World/archive",
-    "01 INBOX/Scanner Inbox",
+    "01 Inbox/Outer World/archive",
+    "01 Inbox/Scanner Inbox",
     "00 Daily Scratchpad",
     "05 Assets/Images", "05 Assets/Audio", "05 Assets/Documents",
     "04 Inner World/Contacts/People", "04 Inner World/Contacts/Companies",
@@ -37,6 +37,7 @@ REQUIRED = [
     "06 AI Team/AI Team Knowledge/Tasks/cancelled",
     "06 AI Team/AI Team Knowledge/Session Logs",
     "06 AI Team/Agents",
+    "06 AI Team/AI Sessions",
 ]
 for rel in REQUIRED:
     if not (ROOT / rel).is_dir():

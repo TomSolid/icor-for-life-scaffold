@@ -16,7 +16,7 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
    folder name, at any level. The folder tree and the methodology are
    two parallel narratives; mixing them confuses both.
 2. The six top-level rooms are fixed and number-prefixed for sort
-   order: 00 Daily Scratchpad, 01 INBOX, 03 WiP, 04 Inner World,
+   order: 00 Daily Scratchpad, 01 Inbox, 03 WiP, 04 Inner World,
    05 Assets, 06 AI Team. Users may add rooms; agents may not.
 3. Date-nested shapes are `YYYY/MM/` (Journal, Session Logs,
    Tasks/done, Tasks/cancelled).

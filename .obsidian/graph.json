@@ -71,7 +71,7 @@
       }
     },
     {
-      "query": "path:\"01 INBOX\"",
+      "query": "path:\"01 Inbox\"",
       "color": {
         "a": 1,
         "rgb": 12744282

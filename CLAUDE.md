@@ -79,9 +79,9 @@ offer costs one sentence, the diagram often IS the answer.
 1. **The user's original text is sacred.** Never edit, rewrite, or delete
    what the user wrote in a Daily Scratchpad, a capture, or the Original
    Text section of a journal entry. AI expands AROUND it, never inside it.
-2. **The active INBOX empties.** Processed outer-world captures are
+2. **The active Inbox empties.** Processed outer-world captures are
    stamped (`processed: true` + summary + wikilinks) and moved to
-   `01 INBOX/Outer World/archive/`, never deleted.
+   `01 Inbox/Outer World/archive/`, never deleted.
 3. **Daily Scratchpads are never deleted or moved.** Processing stamps
    their frontmatter and extracts; the note stays where it is. This
    covers both shapes in the room: daily notes (`YYYY-MM-DD.md`) and
@@ -121,7 +121,7 @@ offer costs one sentence, the diagram often IS the answer.
 
 | Room | Job |
 | --- | --- |
-| `01 INBOX/` | anything handed to the team; empties on processing |
+| `01 Inbox/` | anything handed to the team; empties on processing |
 | `00 Daily Scratchpad/` | the user's raw daily notes; persistent, stamped when processed |
 | `05 Assets/` | binary files only (Images, Audio, Documents) |
 | `04 Inner World/` | processed knowledge: Contacts, Journal, My Life |
@@ -140,7 +140,7 @@ Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-001-the-six-rooms]].
    this structure ([[WS-004-import-and-convert-external-knowledge|WS-004]]). Never skip the offers on a fresh vault.
 1. Read your AGENT.md.
 2. Walk `Tasks/open/` and `Tasks/in-progress/`.
-3. Check the active `01 INBOX/` and today's Daily Scratchpad for unprocessed
+3. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
    material; offer to process, never process silently.
 
 ## Session close ritual

@@ -23,7 +23,7 @@ surface among them.
 
 | Room | Concept |
 | --- | --- |
-| `01 INBOX/` | The hand-over point. Anything you give to the AI Team lands here and gets processed out. Outer-world captures (web clips, scans, voice memos) arrive in `Outer World/` and survive, stamped, in its `archive/`. |
+| `01 Inbox/` | The hand-over point. Anything you give to the AI Team lands here and gets processed out. Outer-world captures (web clips, scans, voice memos) arrive in `Outer World/` and survive, stamped, in its `archive/`. |
 | `02 Planner/` | Your real task list, synced. One note per open item from Todoist, ClickUp, flagged email, and calendar, machine-tended by the ICOR Planner plugin. The team plans and executes from here. |
 | `00 Daily Scratchpad/` | Your post-it. One note per day, written by you, deliberately messy. Never deleted. The team extracts from it on your command. |
 | `05 Assets/` | The binary shelf: images, audio, documents. Notes embed them; no knowledge lives here. |

@@ -17,7 +17,7 @@ import argparse, datetime, os, shutil, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-ROOMS = ("00 Daily Scratchpad", "01 INBOX", "03 WiP", "04 Inner World",
+ROOMS = ("00 Daily Scratchpad", "01 Inbox", "03 WiP", "04 Inner World",
          "05 Assets", "06 AI Team")
 
 ap = argparse.ArgumentParser()

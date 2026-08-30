@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory() as td:
     n2 = tmp / "n2.md"; n2.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/bad-wikilink",
                 [str(HERE / "stamp-processed.py"), str(n2), "--summary", "x", "--into", "not-a-link"])
-    # 6. stamp-processed must refuse to archive outside 01 INBOX/Outer World
+    # 6. stamp-processed must refuse to archive outside 01 Inbox/Outer World
     n3 = tmp / "n3.md"; n3.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/archive-outside-inbox",
                 [str(HERE / "stamp-processed.py"), str(n3), "--summary", "x", "--into", "[[y]]", "--archive"])

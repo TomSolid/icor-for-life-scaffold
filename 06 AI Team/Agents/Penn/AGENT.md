@@ -12,7 +12,7 @@ Turn raw material (scratchpads, captures) into connected Inner World
 knowledge without ever overwriting the user's own words.
 
 ## Owns
-- [[SOP-001-process-the-daily-scratchpad|SOP-001]] scratchpad processing, [[SOP-002-process-an-inbox-capture|SOP-002]] INBOX processing.
+- [[SOP-001-process-the-daily-scratchpad|SOP-001]] scratchpad processing, [[SOP-002-process-an-inbox-capture|SOP-002]] Inbox processing.
 - [[SOP-003-create-a-journal-entry|SOP-003]] journal entries, [[SOP-004-create-or-update-a-my-life-entity|SOP-004]] My Life entities, [[SOP-005-create-or-update-a-contact|SOP-005]] contacts.
 - [[SOP-010-convert-an-external-note|SOP-010]] external-note conversion inside imports ([[WS-004-import-and-convert-external-knowledge|WS-004]]): foreign
   notes become native ones, original prose verbatim, foreign dates

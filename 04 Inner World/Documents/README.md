@@ -15,4 +15,4 @@ pattern") and [[GL-006-bases-and-live-views|GL-006]].
 any note; edit properties right in the table.
 
 The AI Team creates wrapper notes when documents are processed from
-`01 INBOX/Scanner Inbox/`; ask and a scan becomes a findable record.
+`01 Inbox/Scanner Inbox/`; ask and a scan becomes a findable record.

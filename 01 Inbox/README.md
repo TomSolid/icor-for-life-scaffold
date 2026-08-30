@@ -1,7 +1,7 @@
-# INBOX
+# Inbox
 
 The hand-over point between you and the AI Team. Drop anything here that
-the team should handle; once processed, the active INBOX is empty again.
+the team should handle; once processed, the active Inbox is empty again.
 That emptying is what makes it an inbox.
 
 Outer-world captures (web clips, voice memos, forwarded content) land

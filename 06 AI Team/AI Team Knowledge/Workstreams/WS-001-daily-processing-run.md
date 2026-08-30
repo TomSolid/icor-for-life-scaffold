@@ -14,15 +14,15 @@ automation. One pass over both capture doors.
 
 ```mermaid
 flowchart TD
-    A["Larry announces what is waiting"] --> B["Penn empties the INBOX"]
+    A["Larry announces what is waiting"] --> B["Penn empties the Inbox"]
     B --> C["Penn processes the scratchpad"]
     C --> D["Action items become tasks along the way"]
     D --> E["Larry reports and lists the new tasks last"]
 ```
 
 1. Larry announces what is waiting: unprocessed scratchpad sections,
-   INBOX item count.
-2. Penn runs [[SOP-002-process-an-inbox-capture|SOP-002]] (INBOX captures) until the active INBOX is empty.
+   Inbox item count.
+2. Penn runs [[SOP-002-process-an-inbox-capture|SOP-002]] (Inbox captures) until the active Inbox is empty.
 3. Penn runs [[SOP-001-process-the-daily-scratchpad|SOP-001]] (today's scratchpad, plus any earlier unprocessed
    days the user confirms).
 4. Larry reports: what was created, what was updated, what needs the

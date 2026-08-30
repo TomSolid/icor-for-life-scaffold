@@ -16,7 +16,7 @@ I think this is perfect to build my knowledge system in Obsidian.
 ## Expansion
 
 This entry was created while processing the example capture in
-01 INBOX/Outer World (an Obsidian video clip). It demonstrates the full
+01 Inbox/Outer World (an Obsidian video clip). It demonstrates the full
 loop: the thought above is the user's exact words, the capture survives
 verbatim in the archive with backlinks here, and the [[Knowledge
 Management]] topic gained its first connection.

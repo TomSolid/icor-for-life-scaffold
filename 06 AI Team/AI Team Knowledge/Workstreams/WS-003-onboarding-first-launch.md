@@ -53,7 +53,7 @@ flowchart TD
    1. `README.md` - what this folder is.
    2. `00 Daily Scratchpad/README.md` - where raw thought lands; the
       new-note button drops timestamped quick captures here.
-   3. `01 INBOX/README.md` - anything handed to the team; it empties.
+   3. `01 Inbox/README.md` - anything handed to the team; it empties.
    4. `04 Inner World/README.md` - processed knowledge: Journal,
       My Life, Contacts.
    5. `06 AI Team/Agents/agent-index.md` - the team roster and who to
