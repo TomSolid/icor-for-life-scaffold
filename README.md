@@ -17,8 +17,8 @@ schedulers, YouTube, and more). Knowledge management keeps the work
 flowing; getting the work done is the point.
 
 **Beta release.** This vault works and is in daily use, but you will
-find rough edges. If something looks off, open an issue on this repo
-and it gets fixed fast.
+find rough edges. If something looks off, post it in the myICOR
+community and it gets fixed fast.
 
 ## The rooms
 
