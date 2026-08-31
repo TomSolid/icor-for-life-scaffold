@@ -51,13 +51,29 @@ surface among them.
    and enable plugins" so the bundled Terminal and Outliner plugins
    activate (see `THIRD-PARTY-NOTICES.md`). Then run Settings ->
    Community plugins -> Check for updates to get their latest
-   versions. It opens in the INKLINE
-   theme, and the `icor-rooms` snippet shows the rooms with icons
-   and colors (the 00-06 prefixes only exist for sort order).
+   versions. It opens in the ICOR for Life - INKLINE theme, which
+   draws the rooms with icons and colors (the 00-06 prefixes only
+   exist for sort order) and the banner above the folder tree.
 2. Open a terminal here and start your AI. It reads `CLAUDE.md` and
    becomes Larry, your orchestrator.
 3. Write into today's Daily Scratchpad, then tell Larry:
    "process my scratchpad".
+
+## Updating from an earlier download
+
+**If your vault has `icor-rooms.css`, `icor-logo.css` or `icor-ribbon.css`
+in `.obsidian/snippets/`, delete those three files.**
+
+They moved into the theme in INKLINE 1.4.0. Copying a newer download over an
+older vault adds files but never removes them, so the old copies stay behind
+and keep applying on top of the theme's own. Two of the three are harmless
+duplicates. `icor-ribbon.css` is not: it hides the ribbon with `!important`
+and no setting can outrank it, so the theme's "Hide the left ribbon" switch
+will look broken until the file is gone.
+
+Everything those three did still happens. The theme does it now, and
+`icor-scaffold.css` (which the new download brings) turns on the two pieces
+the theme leaves off by default.
 
 ## Extending it
 

@@ -2,9 +2,7 @@
   "cssTheme": "ICOR for Life - INKLINE",
   "nativeMenus": true,
   "enabledCssSnippets": [
-    "icor-rooms",
-    "icor-ribbon",
-    "icor-logo"
+    "icor-scaffold"
   ],
   "translucency": false,
   "theme": "obsidian"
