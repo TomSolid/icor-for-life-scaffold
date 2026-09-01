@@ -29,3 +29,6 @@
 
 # ICOR AI Chat is its own git repository (data.json holds chat/session state)
 .obsidian/plugins/icor-for-life-chat/
+
+# ICOR Scaffold Check is its own git repository (data.json may hold a GitHub token)
+.obsidian/plugins/icor-for-life-scaffold-check/

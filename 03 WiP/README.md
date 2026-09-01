@@ -13,7 +13,7 @@ on any device.
 Two exits when the work is done: results that are knowledge migrate into
 the Inner World (or ship externally), and the working folder retires to
 `_archive/`. WiP is temporary by design; nothing is stored here long
-term. Lifecycle: [[SOP-006-start-work-and-archive-a-wip-folder]].
+term. Lifecycle: [[SOP-1006-start-work-and-archive-a-wip-folder]].
 
 ## Learn the concept
 

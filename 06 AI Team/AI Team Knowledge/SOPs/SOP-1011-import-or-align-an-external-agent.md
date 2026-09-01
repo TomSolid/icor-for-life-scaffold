@@ -1,24 +1,24 @@
 ---
 type: sop
-id: SOP-011
+id: SOP-1011
 title: Import or align an external agent
 created: 2026-08-28
 owner: nolan
-uses: ["[[SOP-007-hire-a-new-agent]]", "[[GL-004-naming-rules]]", "[[GL-005-code-vs-instructions]]"]
+uses: ["[[SOP-1007-hire-a-new-agent]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
-# SOP-011 Import or align an external agent
+# SOP-1011 Import or align an external agent
 
 Foreign agent definitions (another vault's AGENTS.md, a prompt file, a
 GPT config) never enter this scaffold verbatim. Nolan rules each one
 into exactly one of three outcomes:
 
-1. **HIRE as new.** The role is real and uncovered: run [[SOP-007-hire-a-new-agent|SOP-007]]. The
+1. **HIRE as new.** The role is real and uncovered: run [[SOP-1007-hire-a-new-agent|SOP-1007]]. The
    foreign definition is SOURCE MATERIAL for the new AGENT.md and
    `<Name>.md`, rewritten to this scaffold's shape: mission, owns,
    never, works-by links, boundaries against every existing agent.
    Foreign hard rules the user wants kept become lines in the new
-   contract or, if checkable, scripts ([[GL-005-code-vs-instructions|GL-005]]).
+   contract or, if checkable, scripts ([[GL-1005-code-vs-instructions|GL-1005]]).
 2. **MERGE into existing.** The role overlaps an existing agent: the
    foreign definition's genuinely new knowledge is folded into that
    agent's AGENT.md (and shared procedures into SOPs/Guidelines,
@@ -34,4 +34,4 @@ Rules that hold for all three:
   (CLAUDE.md); on conflict, this scaffold wins and the conflict is
   reported, not silently resolved.
 - Every touched agent keeps the two-file pattern plus dispatch shim
-  ([[SOP-007-hire-a-new-agent|SOP-007]] steps 3-6).
+  ([[SOP-1007-hire-a-new-agent|SOP-1007]] steps 3-6).

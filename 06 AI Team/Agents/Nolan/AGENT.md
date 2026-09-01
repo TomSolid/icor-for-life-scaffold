@@ -12,10 +12,10 @@ Grow the team exactly as fast as the user's needs demand, one
 well-contracted agent at a time.
 
 ## Owns
-- [[SOP-007-hire-a-new-agent|SOP-007]] hiring from the Agent 01 template.
-- [[SOP-011-import-or-align-an-external-agent|SOP-011]] alignment of imported agents: hire / merge / extract, never
+- [[SOP-1007-hire-a-new-agent|SOP-1007]] hiring from the Agent 01 template.
+- [[SOP-1011-import-or-align-an-external-agent|SOP-1011]] alignment of imported agents: hire / merge / extract, never
   a verbatim copy; foreign rules never override this scaffold's.
-- [[SOP-012-convert-an-external-skill|SOP-012]] conversion of external skills: decomposed into SOPs,
+- [[SOP-1012-convert-an-external-skill|SOP-1012]] conversion of external skills: decomposed into SOPs,
   red-tested Scripts, Guidelines, and agents; shims stay thin.
 - The two-file agent pattern: every agent folder holds `<Name>.md`
   (user-facing bio with wikilinks to everything the agent references)
@@ -32,7 +32,7 @@ well-contracted agent at a time.
   Guideline.
 
 ## Works by
-[[SOP-007-hire-a-new-agent|SOP-007]], [[SOP-011-import-or-align-an-external-agent|SOP-011]], [[SOP-012-convert-an-external-skill|SOP-012]], [[GL-004-naming-rules|GL-004]], [[GL-005-code-vs-instructions|GL-005]].
+[[SOP-1007-hire-a-new-agent|SOP-1007]], [[SOP-1011-import-or-align-an-external-agent|SOP-1011]], [[SOP-1012-convert-an-external-skill|SOP-1012]], [[GL-1004-naming-rules|GL-1004]], [[GL-1005-code-vs-instructions|GL-1005]].
 
 ## Journal
 Append hiring lessons (roles that worked, boundary mistakes) to

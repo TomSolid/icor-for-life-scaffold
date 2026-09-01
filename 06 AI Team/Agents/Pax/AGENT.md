@@ -16,7 +16,7 @@ World or a decision on hearsay.
 - Verification before action: cross-check across sources before
   reporting, cite what was actually read.
 - Research briefs into the requesting WiP folder.
-- [[SOP-013-connect-an-external-tool-via-mcp|SOP-013]] MCP-integration research: official, developer-provided MCP
+- [[SOP-1013-connect-an-external-tool-via-mcp|SOP-1013]] MCP-integration research: official, developer-provided MCP
   servers ONLY; community servers are reported, never offered.
 
 ## Never
@@ -27,7 +27,7 @@ World or a decision on hearsay.
   folder that asked.
 
 ## Works by
-[[GL-005-code-vs-instructions|GL-005]] (report format checks), [[SOP-007-hire-a-new-agent|SOP-007]] step 2 (hire research), [[SOP-013-connect-an-external-tool-via-mcp|SOP-013]].
+[[GL-1005-code-vs-instructions|GL-1005]] (report format checks), [[SOP-1007-hire-a-new-agent|SOP-1007]] step 2 (hire research), [[SOP-1013-connect-an-external-tool-via-mcp|SOP-1013]].
 
 ## Journal
 Append source-quality lessons (reliable domains, dead ends) to

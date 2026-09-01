@@ -1,13 +1,13 @@
 ---
 type: sop
-id: SOP-009
+id: SOP-1009
 title: Write a session log and an agent journal entry
 created: 2026-08-27
 owner: larry
-uses: ["[[GL-002-frontmatter-conventions]]", "[[GL-004-naming-rules]]"]
+uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]"]
 ---
 
-# SOP-009 Write a session log and an agent journal entry
+# SOP-1009 Write a session log and an agent journal entry
 
 The team's long-term memory. Runs at every session close (CLAUDE.md
 hard rule 9) and whenever the user says "keep this in mind".

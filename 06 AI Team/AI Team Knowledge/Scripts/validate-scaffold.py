@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the ICOR for Life Scaffold structure and naming rules.
 
-Checks (all deterministic, per GL-001 and GL-004):
+Checks (all deterministic, per GL-1001 and GL-1004):
   1. The six rooms and their required subfolders exist.
   2. No folder at any level is named after an ICOR stage.
   3. Daily Scratchpads are named YYYY-MM-DD.md.
@@ -49,7 +49,7 @@ for rel in REQUIRED:
 BANNED = {"input", "control", "output", "refine"}
 for p in ROOT.rglob("*"):
     if p.is_dir() and not p.name.startswith(".") and p.name.lower() in BANNED:
-        fails.append(f"ICOR stage name used as folder (GL-004): {p.relative_to(ROOT)}")
+        fails.append(f"ICOR stage name used as folder (GL-1004): {p.relative_to(ROOT)}")
 
 sp = ROOT / "00 Daily Scratchpad"
 if sp.is_dir():
@@ -92,7 +92,7 @@ if projects.is_dir():
         front = fm(f)
         m = re.search(r"^goal:\s*(.+)$", front, re.M)
         if not m or "[[" not in m.group(1):
-            fails.append(f"project without a goal wikilink (GL-002: no project without a goal): {f.name}")
+            fails.append(f"project without a goal wikilink (GL-1002: no project without a goal): {f.name}")
 
 goals_dir = ROOT / "04 Inner World/My Life/Goals"
 if goals_dir.is_dir():

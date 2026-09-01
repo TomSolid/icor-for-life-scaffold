@@ -1,19 +1,19 @@
 ---
 type: sop
-id: SOP-013
+id: SOP-1013
 title: Connect an external tool via MCP
 created: 2026-08-28
 owner: pax
-uses: ["[[GL-005-code-vs-instructions]]"]
+uses: ["[[GL-1005-code-vs-instructions]]"]
 ---
 
-# SOP-013 Connect an external tool via MCP
+# SOP-1013 Connect an external tool via MCP
 
 Gives the team live access to the user's real tools (email, calendar,
 task manager, project management). Research by Pax, approval by the
 user, wiring by code.
 
-1. [JUDGEMENT] The user names the tool (from the [[WS-003-onboarding-first-launch|WS-003]] interview or
+1. [JUDGEMENT] The user names the tool (from the [[WS-1003-onboarding-first-launch|WS-1003]] interview or
    any time later). Larry routes to Pax.
 2. **Pax researches the integration.** Hard constraint: **only
    official MCP servers, provided by the tool's own developer.**

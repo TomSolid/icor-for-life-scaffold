@@ -1,15 +1,15 @@
 ---
 type: sop
-id: SOP-002
+id: SOP-1002
 title: Process an Inbox capture
 created: 2026-08-27
 owner: penn
-uses: ["[[GL-001-the-six-rooms]]", "[[GL-002-frontmatter-conventions]]", "[[GL-003-journal-entry-anatomy]]"]
+uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]"]
 ---
 
-# SOP-002 Process an Inbox capture
+# SOP-1002 Process an Inbox capture
 
-Runs when the user says "process my inbox" (or via [[WS-001-daily-processing-run|WS-001]]). Covers web
+Runs when the user says "process my inbox" (or via [[WS-1001-daily-processing-run|WS-1001]]). Covers web
 clips, scans, audio memos, and manual drops in `01 Inbox/`,
 `01 Inbox/Outer World/`, and `01 Inbox/Scanner Inbox/` (the scanner's
 watch folder; scanned files are binaries and follow step 3).

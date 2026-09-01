@@ -9,7 +9,7 @@ The five ICOR life concepts, one folder each:
   task execution lives in your external PM tool (linked in frontmatter).
 - `Habits/` - recurring behaviors you track.
 
-One note per entity, created from [[SOP-004-create-or-update-a-my-life-entity|SOP-004]]. Everything connects via
+One note per entity, created from [[SOP-1004-create-or-update-a-my-life-entity|SOP-1004]]. Everything connects via
 frontmatter properties and wikilinks; Obsidian Bases can read them as
 live tables.
 

@@ -1,11 +1,11 @@
 ---
 type: guideline
-id: GL-002
+id: GL-1002
 title: Frontmatter conventions
 created: 2026-08-27
 ---
 
-# GL-002 Frontmatter conventions
+# GL-1002 Frontmatter conventions
 
 Frontmatter properties ARE the relations in this scaffold. Wikilinks in
 frontmatter connect entities; Obsidian Bases read them as live tables.
@@ -52,7 +52,7 @@ binary is never the metadata-bearing record. Every document gets TWO
 files:
 
 - the binary itself in `05 Assets/Documents/` (the shelf, per
-  [[GL-001-the-six-rooms|GL-001]]);
+  [[GL-1001-the-six-rooms|GL-1001]]);
 - one markdown WRAPPER NOTE in `04 Inner World/Documents/`
   (`type: document`), holding all structured metadata in frontmatter
   and linking the binary via `source_file`.
@@ -70,7 +70,7 @@ files (a mass backfill is a known Obsidian indexer killer).
 ## Progress reports (ruling 2026-08-29)
 
 Work in `03 WiP/` that runs past one session or one step carries one
-`progress-report.md` in its folder ([[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]]).
+`progress-report.md` in its folder ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]).
 
 - `status` is `live` while the work runs and `closed` when the folder
   goes to `_archive/`.
@@ -118,7 +118,7 @@ by prose instruction. The body of the stamped note is never edited.
 
 Growth assignment reflections from the user's app.myicor.com account sync
 into `04 Inner World/ICOR Journey Notes/`, one note per reflection, written
-by the myICOR Connect plugin (code, per [[GL-005-code-vs-instructions]]).
+by the myICOR Connect plugin (code, per [[GL-1005-code-vs-instructions]]).
 
 - `myicor_id` is the sync key. The sync is CREATE-ONLY: a note whose
   `myicor_id` already exists locally is never touched again, so the user
@@ -133,7 +133,7 @@ by the myICOR Connect plugin (code, per [[GL-005-code-vs-instructions]]).
 
 Open tasks from external tools (Todoist, ClickUp, starred email) sync into
 `02 Planner/<Source>/`, one note per item, written by the ICOR Planner
-plugin (code, per [[GL-005-code-vs-instructions]]). Google Calendar events
+plugin (code, per [[GL-1005-code-vs-instructions]]). Google Calendar events
 render on the board but never become notes.
 
 - `type: planner-item`. `source` + `external_id` form the sync key; the

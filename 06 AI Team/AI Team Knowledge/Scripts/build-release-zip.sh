@@ -72,6 +72,7 @@ declare -a SPECS=(
   "icor-for-life-diagrams|icor-for-life-diagrams|.obsidian/plugins/icor-for-life-diagrams|plugin"
   "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
   "icor-for-life-interface|icor-for-life-interface|.obsidian/plugins/icor-for-life-interface|plugin"
+  "icor-for-life-scaffold-check|icor-for-life-scaffold-check|.obsidian/plugins/icor-for-life-scaffold-check|plugin"
   "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life - INKLINE|theme"
 )
 
@@ -218,6 +219,39 @@ for pat in "${RESIDUE_PATTERNS[@]}"; do
   fi
 done
 [ "$fail" -eq 0 ] && echo "    no residue in the staged tree"
+
+# ---------------------------------------------------------------------------
+# 0b. THE VERSION GATE
+#
+# The staged tree carries its own version folder, .icor-for-life/, and the
+# Scaffold Check plugin in every member's vault trusts manifest.json to
+# describe exactly the bytes that shipped. A manifest built before the last
+# commit describes a tree nobody downloaded, and the plugin would then tell a
+# member their untouched file "changed upstream". So the builder's --check
+# runs against the STAGED tree, not the dev checkout: stale manifest, missing
+# VERSION, or a removed file the changelog does not explain, and the build
+# stops. It needs the git history for the removals, so it runs from the
+# mirror with the staged tree as its work tree.
+# ---------------------------------------------------------------------------
+echo "==> version gate (.icor-for-life/manifest.json describes the staged tree)"
+if [ ! -f "$STAGE/.icor-for-life/VERSION" ] || [ ! -f "$STAGE/.icor-for-life/manifest.json" ]; then
+  echo "BLOCKED version: .icor-for-life/VERSION or manifest.json is missing from the staged tree"; fail=1
+else
+  # The builder needs `git ls-files` and the tag history, and a bare mirror
+  # has neither an index nor a work tree. So: a throwaway clone of the mirror
+  # checked out at the exact sha the tree was staged from. Same bytes as
+  # $STAGE, plus the history the removal list is derived from.
+  VCHECK="$(mktemp -d /tmp/icor-version-gate.XXXXXX)"
+  if git clone -q "$SCAFFOLD_GIT" "$VCHECK" 2>/dev/null \
+     && git -C "$VCHECK" checkout -q "$scaffold_staged" 2>/dev/null; then
+    if ! python3 "$VCHECK/06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py" --check; then
+      echo "BLOCKED version: the staged manifest does not describe the staged tree (see FAIL lines above)"; fail=1
+    fi
+  else
+    echo "BLOCKED version: cannot clone the scaffold mirror at $scaffold_staged to verify the manifest"; fail=1
+  fi
+  rm -rf "$VCHECK"
+fi
 
 echo "==> secret scan (the gate)"
 # 1. Files that must never exist in a release
@@ -413,7 +447,8 @@ present = {d for d in os.listdir(sys.argv[2])
 # Third-party plugins are vendored into the repo and are not our concern here;
 # the coherence rule is enforced over the first-party set only.
 ours = {"icor-for-life-planner", "icor-for-life-focus", "icor-for-life-diagrams",
-        "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface"}
+        "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
+        "icor-for-life-scaffold-check"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):

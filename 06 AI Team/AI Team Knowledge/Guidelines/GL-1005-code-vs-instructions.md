@@ -1,12 +1,12 @@
 ---
 type: guideline
-id: GL-005
+id: GL-1005
 title: Code vs instructions - the law
 created: 2026-08-27
 source: "myICOR article: Code Without Becoming a Coder"
 ---
 
-# GL-005 Code vs instructions: the law
+# GL-1005 Code vs instructions: the law
 
 > **Code for anything a machine could tell you got wrong. Instructions
 > only for what a machine could not.**

@@ -29,12 +29,12 @@ skill I found".
 
 ## Nolan works with
 
-- [[SOP-007-hire-a-new-agent]]
-- [[GL-004-naming-rules]]
-- [[GL-005-code-vs-instructions]]
+- [[SOP-1007-hire-a-new-agent]]
+- [[GL-1004-naming-rules]]
+- [[GL-1005-code-vs-instructions]]
 - [[agent-index]]
-- [[SOP-011-import-or-align-an-external-agent]]
-- [[SOP-012-convert-an-external-skill]]
+- [[SOP-1011-import-or-align-an-external-agent]]
+- [[SOP-1012-convert-an-external-skill]]
 
 ## Under the hood
 

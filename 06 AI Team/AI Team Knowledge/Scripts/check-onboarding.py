@@ -44,5 +44,5 @@ print(json.dumps(signals))
 if signals["marker"]:
     print("OK onboarded")
     sys.exit(0)
-print("FRESH not onboarded: run the onboarding workstream (WS-003)")
+print("FRESH not onboarded: run the onboarding workstream (WS-1003)")
 sys.exit(2)

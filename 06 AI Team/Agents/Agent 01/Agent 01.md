@@ -12,7 +12,7 @@ created: 2026-08-27
 06 AI Team/AI Team Knowledge/Avatars/<name>.png (lowercase) and embed
 it here. -->
 
-<!-- User-facing bio template ([[SOP-007-hire-a-new-agent|SOP-007]]). Copy this file to
+<!-- User-facing bio template ([[SOP-1007-hire-a-new-agent|SOP-1007]]). Copy this file to
 Agents/<Name>/<Name>.md and replace every <angle-bracket> field. This
 file is FOR THE USER: plain language, no system-prompt mechanics. Every
 SOP, Workstream, and Guideline the agent works by gets a wikilink below,

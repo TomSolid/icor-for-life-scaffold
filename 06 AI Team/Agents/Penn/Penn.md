@@ -32,16 +32,16 @@ about this", "add this person".
 
 ## Penn works with
 
-- [[SOP-001-process-the-daily-scratchpad]]
-- [[SOP-002-process-an-inbox-capture]]
-- [[SOP-003-create-a-journal-entry]]
-- [[SOP-004-create-or-update-a-my-life-entity]]
-- [[SOP-005-create-or-update-a-contact]]
-- [[GL-001-the-six-rooms]]
-- [[GL-002-frontmatter-conventions]]
-- [[GL-003-journal-entry-anatomy]]
-- [[GL-004-naming-rules]]
-- [[SOP-010-convert-an-external-note]]
+- [[SOP-1001-process-the-daily-scratchpad]]
+- [[SOP-1002-process-an-inbox-capture]]
+- [[SOP-1003-create-a-journal-entry]]
+- [[SOP-1004-create-or-update-a-my-life-entity]]
+- [[SOP-1005-create-or-update-a-contact]]
+- [[GL-1001-the-six-rooms]]
+- [[GL-1002-frontmatter-conventions]]
+- [[GL-1003-journal-entry-anatomy]]
+- [[GL-1004-naming-rules]]
+- [[SOP-1010-convert-an-external-note]]
 
 ## Under the hood
 

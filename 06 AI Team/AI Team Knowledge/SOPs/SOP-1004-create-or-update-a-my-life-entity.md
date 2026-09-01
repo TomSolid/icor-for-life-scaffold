@@ -1,13 +1,13 @@
 ---
 type: sop
-id: SOP-004
+id: SOP-1004
 title: Create or update a My Life entity
 created: 2026-08-27
 owner: penn
-uses: ["[[GL-002-frontmatter-conventions]]", "[[GL-004-naming-rules]]"]
+uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]"]
 ---
 
-# SOP-004 Create or update a My Life entity
+# SOP-1004 Create or update a My Life entity
 
 Covers Goals, Key Elements, Topics, Projects, Habits.
 
@@ -18,7 +18,7 @@ Covers Goals, Key Elements, Topics, Projects, Habits.
 2. [SCRIPT-CHECKED] Search the folder for an existing note (also by
    alias) before creating; one entity, one note, forever.
 3. Create: natural-title filename in the matching folder, frontmatter
-   per [[GL-002-frontmatter-conventions|GL-002]], a short body describing what it is, wikilinks to related
+   per [[GL-1002-frontmatter-conventions|GL-1002]], a short body describing what it is, wikilinks to related
    entities. Projects get their external PM links (ClickUp, Asana) in
    `external_links`; the scaffold never tracks their tasks.
 4. **Goals** start with `status: not-achieved`. When the user reports
@@ -26,7 +26,7 @@ Covers Goals, Key Elements, Topics, Projects, Habits.
    the moment.
 5. **Projects need a goal, always.** Before creating a project, ask
    which goal it serves and set the `goal` wikilink. No fitting goal:
-   create the goal first (SOP-004 on itself, one question). Set
+   create the goal first (SOP-1004 on itself, one question). Set
    `start_date` at creation; set `end_date` and the final status when
    it closes. A project without a goal fails validation, by design:
    if the user cannot name the goal, that is a conversation, not a

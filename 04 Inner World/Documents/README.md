@@ -7,8 +7,8 @@ linked via `source_file`.
 
 Why two files? A PDF cannot carry properties. The note can - so the
 note is the record and the binary is the attachment, per
-[[GL-002-frontmatter-conventions|GL-002]] ("the wrapper-note
-pattern") and [[GL-006-bases-and-live-views|GL-006]].
+[[GL-1002-frontmatter-conventions|GL-1002]] ("the wrapper-note
+pattern") and [[GL-1006-bases-and-live-views|GL-1006]].
 
 `Documents.base` in this folder shows everything as a sortable table
 (and as cards once a document has a `preview_image`). Open it like

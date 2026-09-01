@@ -1,19 +1,19 @@
 ---
 type: workstream
-id: WS-003
+id: WS-1003
 title: Onboarding on first launch
 created: 2026-08-28
 owner: larry
-uses: ["[[SOP-008-track-work-across-sessions]]", "[[SOP-009-write-a-session-log-and-agent-journal]]", "[[SOP-013-connect-an-external-tool-via-mcp]]", "[[WS-004-import-and-convert-external-knowledge]]", "[[GL-001-the-six-rooms]]"]
+uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[SOP-1013-connect-an-external-tool-via-mcp]]", "[[WS-1004-import-and-convert-external-knowledge]]", "[[GL-1001-the-six-rooms]]"]
 ---
 
-# WS-003 Onboarding on first launch
+# WS-1003 Onboarding on first launch
 
 Runs when `Scripts/check-onboarding.py` reports FRESH at session start
 (CLAUDE.md ritual step 0). Larry leads; nothing here runs silently.
 
 **Hard rule for every scoping and team ruling in this workstream, and
-at the WS-004 plan gate it routes into:** active work, projects, and
+at the WS-1004 plan gate it routes into:** active work, projects, and
 business content are FIRST-CLASS import content, never "optional
 bulk"; scope options characterize work folders by what they are (the
 user's actual work), never by their size. Any ruling about team
@@ -29,7 +29,7 @@ flowchart TD
     B -->|"tour skipped"| D["Walk the rooms in one screen"]
     C --> E["Offer the import of existing knowledge"]
     D --> E
-    E -->|"yes"| F["Run WS-004 import and convert"]
+    E -->|"yes"| F["Run WS-1004 import and convert"]
     E -->|"no or later"| G["The offer stands"]
     F --> H["Name, then tool-stack interview and connections"]
     G --> H
@@ -69,7 +69,7 @@ flowchart TD
    official Obsidian CLI (Obsidian 1.12+) so tours and future
    sessions can open files in new tabs cleanly. Recommend once, never
    nag.
-3. [JUDGEMENT] Walk the six rooms in one screen (the [[GL-001-the-six-rooms|GL-001]] table, not
+3. [JUDGEMENT] Walk the six rooms in one screen (the [[GL-1001-the-six-rooms|GL-1001]] table, not
    a lecture) for anyone who skipped the tour. Point at the example
    notes (tagged `example`) and offer to delete them once the user
    has real content.
@@ -81,8 +81,8 @@ flowchart TD
    these rules, and wiring it up so it all aligns."
    A user request like "import my Inner World and the AI team into
    this scaffold, converted to the new structure" routes straight into
-   [[WS-004-import-and-convert-external-knowledge|WS-004]].
-5. If yes: run [[WS-004-import-and-convert-external-knowledge|WS-004]] (import and convert). If no or later: say the
+   [[WS-1004-import-and-convert-external-knowledge|WS-1004]].
+5. If yes: run [[WS-1004-import-and-convert-external-knowledge|WS-1004]] (import and convert). If no or later: say the
    offer stands, any time.
 6. [JUDGEMENT] Ask what the user wants to be called, then run the
    **tool-stack interview**, one question per category:
@@ -93,12 +93,12 @@ flowchart TD
    For each named tool, OFFER the live connection: "I can send Pax to
    research the official MCP integration for <tool>, so the team can
    read your real data. Official, developer-provided servers only."
-   Each accepted tool runs [[SOP-013-connect-an-external-tool-via-mcp|SOP-013]] (Pax research -> user approval ->
+   Each accepted tool runs [[SOP-1013-connect-an-external-tool-via-mcp|SOP-1013]] (Pax research -> user approval ->
    scripted wiring -> user fills `.env` themselves). Tools without an
    official MCP stay linked-only, and the user hears that plainly.
    Record the stack and the choices in the session log, never any
    keys.
 7. [SCRIPT] `check-onboarding.py --complete` writes the marker (the
    script refuses to write it twice).
-8. [[SOP-009-write-a-session-log-and-agent-journal|SOP-009]]: session log for the onboarding, including what was offered
+8. [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]: session log for the onboarding, including what was offered
    and what the user chose.

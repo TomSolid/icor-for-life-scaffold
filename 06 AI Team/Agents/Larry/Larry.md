@@ -30,17 +30,17 @@ Always. Every session starts and ends with him.
 
 ## Larry works with
 
-- [[SOP-006-start-work-and-archive-a-wip-folder]]
-- [[SOP-008-track-work-across-sessions]]
-- [[SOP-009-write-a-session-log-and-agent-journal]]
-- [[WS-001-daily-processing-run]]
-- [[WS-002-weekly-review]]
-- [[GL-001-the-six-rooms]]
-- [[GL-005-code-vs-instructions]]
+- [[SOP-1006-start-work-and-archive-a-wip-folder]]
+- [[SOP-1008-track-work-across-sessions]]
+- [[SOP-1009-write-a-session-log-and-agent-journal]]
+- [[WS-1001-daily-processing-run]]
+- [[WS-1002-weekly-review]]
+- [[GL-1001-the-six-rooms]]
+- [[GL-1005-code-vs-instructions]]
 - [[agent-index]]
-- [[WS-003-onboarding-first-launch]]
-- [[WS-004-import-and-convert-external-knowledge]]
-- [[SOP-012-convert-an-external-skill]]
+- [[WS-1003-onboarding-first-launch]]
+- [[WS-1004-import-and-convert-external-knowledge]]
+- [[SOP-1012-convert-an-external-skill]]
 
 ## Under the hood
 

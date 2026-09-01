@@ -1,19 +1,19 @@
 ---
 type: sop
-id: SOP-007
+id: SOP-1007
 title: Hire a new agent from the Agent 01 template
 created: 2026-08-27
 owner: nolan
-uses: ["[[GL-004-naming-rules]]", "[[GL-005-code-vs-instructions]]"]
+uses: ["[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
-# SOP-007 Hire a new agent from the Agent 01 template
+# SOP-1007 Hire a new agent from the Agent 01 template
 
 When the user needs a role no current agent covers, the answer is never
 "no"; it is this procedure.
 
 **Evidence rule for every hire, drop, or defer ruling** (here and when
-[[SOP-011-import-or-align-an-external-agent|SOP-011]] rules on
+[[SOP-1011-import-or-align-an-external-agent|SOP-1011]] rules on
 imported agents): judge against the SOURCE material and the user's
 stated working life, never against the current vault contents. A
 fresh vault has no business surface by definition; that is not

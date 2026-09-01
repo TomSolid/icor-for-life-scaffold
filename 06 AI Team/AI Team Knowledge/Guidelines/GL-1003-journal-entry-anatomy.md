@@ -1,18 +1,18 @@
 ---
 type: guideline
-id: GL-003
+id: GL-1003
 title: Journal entry anatomy
 created: 2026-08-27
 ---
 
-# GL-003 Journal entry anatomy
+# GL-1003 Journal entry anatomy
 
 A journal entry is created ON PURPOSE. It is never a side effect. It
 lives at `04 Inner World/Journal/YYYY/MM/YYYY-MM-DD_<slug>.md`.
 
 ## The four parts, in order
 
-1. **Frontmatter** per [[GL-002-frontmatter-conventions|GL-002]] (`type: journal`).
+1. **Frontmatter** per [[GL-1002-frontmatter-conventions|GL-1002]] (`type: journal`).
 2. **Original Text** - the user's exact words, verbatim, under the
    heading `## Original Text`. This section is sacred: never edited,
    never paraphrased, never deleted. One thing is what the AI makes of
@@ -29,6 +29,6 @@ lives at `04 Inner World/Journal/YYYY/MM/YYYY-MM-DD_<slug>.md`.
 
 - The slug is 3-6 words, lowercase, hyphenated, content-bearing.
 - If the entry came from a scratchpad or capture, the source note gets
-  the processed stamp pointing here ([[GL-002-frontmatter-conventions|GL-002]]), giving backlinks both ways.
+  the processed stamp pointing here ([[GL-1002-frontmatter-conventions|GL-1002]]), giving backlinks both ways.
 - An entry about a person also updates nothing inside the person's note;
   the person's note holds properties, the journal holds the story.

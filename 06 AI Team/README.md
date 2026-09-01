@@ -20,7 +20,7 @@ rooms, cleanly separated from your knowledge.
 
 Knowledge lives OUTSIDE the agents so several agents can share one
 procedure. The operating law: code for anything a machine could check,
-instructions only for judgement ([[GL-005-code-vs-instructions|GL-005]]).
+instructions only for judgement ([[GL-1005-code-vs-instructions|GL-1005]]).
 
 ## Authoring rules
 

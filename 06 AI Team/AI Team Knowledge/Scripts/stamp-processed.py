@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stamp a scratchpad or capture as processed (GL-002), optionally archive.
+"""Stamp a scratchpad or capture as processed (GL-1002), optionally archive.
 
 Usage:
   stamp-processed.py <note.md> --summary "2 journal entries" \

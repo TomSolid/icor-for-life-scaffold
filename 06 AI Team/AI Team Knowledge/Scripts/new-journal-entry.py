@@ -6,7 +6,7 @@ Usage:
       --category insight --original "the user's exact words"
 
 Deterministic parts owned here: path (YYYY/MM/), filename, frontmatter
-skeleton per GL-002, the Original Text section written verbatim.
+skeleton per GL-1002, the Original Text section written verbatim.
 Judgement parts NOT here: the expansion and the connections; the model
 adds those to the created file afterwards.
 """

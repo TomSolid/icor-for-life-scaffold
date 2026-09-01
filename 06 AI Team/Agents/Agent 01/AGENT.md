@@ -7,7 +7,7 @@ created: 2026-08-27
 
 # <Name> - <Role in three words>
 
-<!-- This is the hiring template ([[SOP-007-hire-a-new-agent|SOP-007]]). Copy this folder to
+<!-- This is the hiring template ([[SOP-1007-hire-a-new-agent|SOP-1007]]). Copy this folder to
 Agents/<Name>/, then replace every <angle-bracket> field. Delete these
 comments. An AGENT.md is a job contract, not a prompt: it says what the
 agent owns, what it must never do, and which shared knowledge it works
@@ -27,7 +27,7 @@ copied in here. -->
 - <The user-protecting rules: what this agent must refuse or confirm.>
 
 ## Works by
-<Links to the SOPs, Workstreams, Guidelines this agent follows. [[GL-005-code-vs-instructions|GL-005]]
+<Links to the SOPs, Workstreams, Guidelines this agent follows. [[GL-1005-code-vs-instructions|GL-1005]]
 always applies: deterministic steps go through Scripts/.>
 
 ## Journal

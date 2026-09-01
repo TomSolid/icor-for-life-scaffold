@@ -1,11 +1,11 @@
 ---
 type: guideline
-id: GL-001
+id: GL-1001
 title: The six rooms - what belongs where
 created: 2026-08-27
 ---
 
-# GL-001 The six rooms: what belongs where
+# GL-1001 The six rooms: what belongs where
 
 The scaffold has seven top-level rooms and each answers one question. If
 you cannot say which question a new item answers, it is probably two
@@ -45,4 +45,4 @@ Guidelines, or Scripts in AI Team Knowledge.
 - Nothing in Inner World is ever a copy; one fact lives in one note,
   everything else links to it.
 - No folder may be named after an ICOR stage (Input, Control, Output,
-  Refine). See [[GL-004-naming-rules|GL-004]].
+  Refine). See [[GL-1004-naming-rules|GL-1004]].

@@ -5,7 +5,7 @@ Usage: import-inventory.py <source-path>
 
 Deterministic only: counts, shapes, frontmatter keys. The MAPPING of
 this material into the six rooms is judgement and stays with the model
-(WS-004). Detects known source shapes:
+(WS-1004). Detects known source shapes:
   - mypka   (INPUT/CONTROL/OUTPUT/REFINE folders)
   - obsidian-vault (.obsidian folder)
   - markdown-folder (plain .md tree)

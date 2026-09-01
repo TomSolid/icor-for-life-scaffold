@@ -1,13 +1,13 @@
 ---
 type: sop
-id: SOP-008
+id: SOP-1008
 title: Track work across sessions
 created: 2026-08-27
 owner: larry
-uses: ["[[GL-002-frontmatter-conventions]]", "[[GL-004-naming-rules]]", "[[GL-005-code-vs-instructions]]"]
+uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
-# SOP-008 Track work across sessions
+# SOP-1008 Track work across sessions
 
 Tasks are the team's continuity between sessions. They live in
 `AI Team Knowledge/Tasks/{open,in-progress,done,cancelled}`.

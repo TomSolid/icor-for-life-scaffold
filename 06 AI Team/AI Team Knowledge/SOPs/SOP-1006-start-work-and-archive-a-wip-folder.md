@@ -1,16 +1,16 @@
 ---
 type: sop
-id: SOP-006
+id: SOP-1006
 title: Start, work, and archive a WiP folder
 created: 2026-08-27
 owner: larry
-uses: ["[[GL-001-the-six-rooms]]", "[[GL-002-frontmatter-conventions]]", "[[GL-004-naming-rules]]"]
+uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]"]
 ---
 
-# SOP-006 Start, work, and archive a WiP folder
+# SOP-1006 Start, work, and archive a WiP folder
 
 1. [SCRIPT-CHECKED] On "let's work on X": create
-   `03 WiP/YYYY-MM-DD-<slug>/` ([[GL-004-naming-rules|GL-004]] naming). One folder per piece of
+   `03 WiP/YYYY-MM-DD-<slug>/` ([[GL-1004-naming-rules|GL-1004]] naming). One folder per piece of
    work; everything the work produces lives inside it.
 2. Larry routes the work to the owning agent(s) per the agent index;
    drafts and iterations stay in the folder.
@@ -18,11 +18,11 @@ uses: ["[[GL-001-the-six-rooms]]", "[[GL-002-frontmatter-conventions]]", "[[GL-0
    progress report in its folder (below). The team creates it unasked.
 4. On "done / ship it":
    [JUDGEMENT] decide what the results ARE: knowledge (migrate into the
-   Inner World via [[SOP-003-create-a-journal-entry|SOP-003]]/004/005), an external deliverable (hand it
+   Inner World via [[SOP-1003-create-a-journal-entry|SOP-1003]]/004/005), an external deliverable (hand it
    over and note where it went), or scrap.
    [SCRIPT-CHECKED] move the whole working folder to `03 WiP/_archive/`.
 5. A WiP folder older than 30 days with no changes is raised in the
-   weekly review ([[WS-002-weekly-review|WS-002]]), never archived silently.
+   weekly review ([[WS-1002-weekly-review|WS-1002]]), never archived silently.
 
 ## The progress report
 

@@ -30,9 +30,9 @@ instead of inventing around them.
 
 ## Pax works with
 
-- [[SOP-007-hire-a-new-agent]] (step 2, the hire research)
-- [[SOP-013-connect-an-external-tool-via-mcp]]
-- [[GL-005-code-vs-instructions]]
+- [[SOP-1007-hire-a-new-agent]] (step 2, the hire research)
+- [[SOP-1013-connect-an-external-tool-via-mcp]]
+- [[GL-1005-code-vs-instructions]]
 
 ## Under the hood
 

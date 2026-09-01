@@ -78,6 +78,16 @@ it under Settings, ICOR for Life - Interface. If you downloaded a copy between
 2026-08-31 and 2026-09-01 you may also have `icor-scaffold.css`; delete that
 too, the plugin replaced it.
 
+From 1.5.0 you do not have to know any of that by heart. The vault carries
+its own version in `.icor-for-life/` (a `VERSION`, a `CHANGELOG.md` that
+names every file a version removed or moved and where it went, and a
+`manifest.json` for machines), and the **ICOR for Life - Scaffold Check**
+plugin reads the latest manifest and tells you what is missing, what changed
+upstream since your download, what you edited yourself, and which files the
+scaffold has since removed that are still sitting in your vault, each with
+the changelog line that explains it. It is read-only: it writes a report, and
+you or your AI make the changes.
+
 ## Extending it
 
 The rooms are the core. Add your own collections (quotes, recipes,

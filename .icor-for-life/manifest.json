@@ -1,0 +1,998 @@
+{
+  "schema": 1,
+  "name": "ICOR for Life Scaffold",
+  "version": "1.5.0",
+  "built": "2026-09-01T11:28:03Z",
+  "commit": "eb989dd",
+  "theme": "ICOR for Life - INKLINE",
+  "rooms": [
+    "01 Inbox/Outer World/archive",
+    "01 Inbox/Scanner Inbox",
+    "00 Daily Scratchpad",
+    "05 Assets/Images",
+    "05 Assets/Audio",
+    "05 Assets/Documents",
+    "04 Inner World/Contacts/People",
+    "04 Inner World/Contacts/Companies",
+    "04 Inner World/Journal",
+    "04 Inner World/Documents",
+    "04 Inner World/My Life/Goals",
+    "04 Inner World/My Life/Key Elements",
+    "04 Inner World/My Life/Topics",
+    "04 Inner World/My Life/Projects",
+    "04 Inner World/My Life/Habits",
+    "03 WiP/_archive",
+    "06 AI Team/AI Team Knowledge/Workstreams",
+    "06 AI Team/AI Team Knowledge/SOPs",
+    "06 AI Team/AI Team Knowledge/Guidelines",
+    "06 AI Team/AI Team Knowledge/Scripts",
+    "06 AI Team/AI Team Knowledge/Tasks/open",
+    "06 AI Team/AI Team Knowledge/Tasks/in-progress",
+    "06 AI Team/AI Team Knowledge/Tasks/done",
+    "06 AI Team/AI Team Knowledge/Tasks/cancelled",
+    "06 AI Team/AI Team Knowledge/Session Logs",
+    "06 AI Team/Agents",
+    "06 AI Team/AI Sessions"
+  ],
+  "plugins": [
+    "icor-for-life-chat",
+    "icor-for-life-connect",
+    "icor-for-life-diagrams",
+    "icor-for-life-focus",
+    "icor-for-life-interface",
+    "icor-for-life-planner",
+    "icor-for-life-scaffold-check"
+  ],
+  "snippets": [],
+  "files": [
+    {
+      "path": ".claude/agents/nolan.md",
+      "sha256": "b35efb6fad23322c8511b4ab613e09dd7536fdc45fb780222d09a1b3c9ec7710",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/agents/pax.md",
+      "sha256": "b936ba88a3413efb5854bd6ad7e38a6eb6fcae9e13d7a4a5eebf3833a735d85d",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/agents/penn.md",
+      "sha256": "8a03a6182488bd248fc5d30a49ffa4a10a685fe91a46869abf4e3011ec38fb93",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/skills/import-skill/SKILL.md",
+      "sha256": "4204548e102b18c3349b33c7ecdf9c6162e4eaedf44b52afecfec81f7b4d1867",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".obsidian/app.json",
+      "sha256": "4ba774add05d021eedf038c4f9cbf97e9de3bc646ec210d4e6974af0115d5470",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/appearance.json",
+      "sha256": "a3cf5c14b0eb792c0fb669694e42d8e95c92f9a4a48243a4a16b10195aea608d",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/community-plugins.json",
+      "sha256": "5d745b5ae984b06e31372778a8000952ad180275dd2d379a6792c59dec725f51",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/core-plugins.json",
+      "sha256": "4fe85af92fdee0ef231b8260500c3ed6d713108ea1a68cb48402353282600621",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/daily-notes.json",
+      "sha256": "acc7c39460f65b9ebede812a18160506d07a738fe963581c137a772e1ca6b443",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/graph.json",
+      "sha256": "8109c19cfc016a96eef05f99d873fd7180f0b37f48345a90bb02593375bc1913",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/obsidian-outliner/LICENSE",
+      "sha256": "e5c5729389713a8c0164302faae6db8911a82083309579a88c2c2ff020e52550",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/obsidian-outliner/main.js",
+      "sha256": "b12610946e133aca69886ba1b16f5386c5db8dbc123ea33aad1a9fb69bcfc100",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/obsidian-outliner/manifest.json",
+      "sha256": "277a8887eb959cc7a4ae047608421153b359bdf451c2d66caab91c35ca98b93f",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/obsidian-outliner/styles.css",
+      "sha256": "7922a264883894e69f22c37f549744f7d46d1de926fc802aa4e94c75cd2fbceb",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/terminal/LICENSE.txt",
+      "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/terminal/main.js",
+      "sha256": "b8d3ff003b4b301121993efd359aa1d344c899ef7c9fe302c493d56b96dd5454",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/terminal/manifest.json",
+      "sha256": "d5b85dcc749f628024ac8a66dc3d10e69d1153fc1353935ff1c87bdb1a5032f8",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/terminal/styles.css",
+      "sha256": "715a7d8fb4d7157ba968c909b111d03fd6c24853accf1dcfa9ed43fdd83aca0e",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/webviewer.json",
+      "sha256": "26e457f53a584f007c6c647043857e94b10589d121f3ed67842d44a0009aaa37",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/zk-prefixer.json",
+      "sha256": "91f3d16eea7a4a0cddcb995df0454457d8b0810d012002259d5ef0556daabf0f",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": "00 Daily Scratchpad/README.md",
+      "sha256": "e55db7a357b1b0d164346fd2990e7649bde72167254c6598873955a3aeb67e64",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "01 Inbox/Outer World/README.md",
+      "sha256": "9cb77915b12fbe63d0dbbed72b534c303e7fe5b7664933b45302b55be9e22caf",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "01 Inbox/Outer World/archive/2026-08-27-obsidian-video-clip.md",
+      "sha256": "d3a47ffc5cff1be4ce3c47796d3215da9487c822ae25d9b21d1f44c317b1a198",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "01 Inbox/README.md",
+      "sha256": "27f621e7237c8a68b89309c40853f92dbf87c90f2b34d92fa84e3f14a7ce94bf",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "02 Planner/README.md",
+      "sha256": "369d4b7f8594418eefc40e510db32c320551f03572a4e2be62dbd7c485ad92de",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "03 WiP/README.md",
+      "sha256": "7004568411ad2f5fd0bf3b1e3e65d07cd86804a7d996f49d4076524e08a5430f",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Contacts/Companies/Acme Corp.md",
+      "sha256": "87bb298533f15536d1d1ca696b1aa70b26a4d98cdee64683aedf4f54e6a72236",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/Contacts/Companies/Companies.base",
+      "sha256": "bc830930ab8900ba37473f361cbe15faff2adc921afa910f2fcb03a6a5ac60c8",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Contacts/People/Alex Rivera.md",
+      "sha256": "3c3f66202b94ffd63acc43de6dbe57c3a3d668e54ac15e7c5befcb96110796d6",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/Contacts/People/People.base",
+      "sha256": "6d2fafb0f3cc916146b69294ddae8b20d8932a893ea1b68b2ac8586318f69ff9",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Documents/Documents.base",
+      "sha256": "6dd0abc72caf1e853f02de3083c482da4e7646bc4d170a5c922e5b2855643f44",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Documents/Example Invoice.md",
+      "sha256": "51e948ac2f8019fdf19a980c3be83b384821dfa27416fcf22a8ab06ac5acd55f",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/Documents/README.md",
+      "sha256": "e31c0c5c602a8ac59fcc4d68463fd1bcc1b564a1951104efe6824d456816439e",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/ICOR Journey Notes/README.md",
+      "sha256": "56e25f9ad1854fb677093ecde396e13e692f4f25adf6339a42cc38faff82b7b8",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Journal/2026/08/2026-08-27_perfect-for-my-knowledge-system.md",
+      "sha256": "96e145e6b91732161d22dfa1d61ffaae4d7ec04918a1f350b5e8ccb47a8f2479",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/Journal/README.md",
+      "sha256": "a214f89e4ccd8f30a178c450021d231180043ccb87c529fcbae9e43e8a8e5dfc",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/My Life/Goals/Enjoy real family time.md",
+      "sha256": "c8bddbcb2caab98519e594c07e153e4801ea0e5b31e38db515faafd20d880fec",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Goals/Run a marathon.md",
+      "sha256": "66156501252308abc6d1672ca488ec52a09ec9211c7971f7378347a55dcfff22",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Habits/Daily Scratchpad writing.md",
+      "sha256": "6a418315a3771c40d32f22906f7850587dfdf91fd76d37ec79f4aa50bbf73f1f",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Key Elements/Health.md",
+      "sha256": "48e9b5a20627918d04bf6346119cef6cb3f5503a611cf922d9c334ddeff09f38",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Projects/Spain Holidays.md",
+      "sha256": "1488c6fc9cb6a7ef4a06df698f7ac7854694b3f6201fd20fa6d8356b5db36d66",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Projects/Train for the spring marathon.md",
+      "sha256": "d0fe1a5bf7c2338a45895f71b8985840436f740eb0a636101d7576e6a68ad883",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/README.md",
+      "sha256": "3577acfd1d4cf1c5ca57d32b865d60d6da5dd31e91fab2b35e2d7ca2bea9de9f",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/My Life/Topics/Knowledge Management.md",
+      "sha256": "8c2d3ba24d07c3b2f2c381dab40694467fa9a4c671ffea2c0e387ccf411bf1b3",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/README.md",
+      "sha256": "343e2a4e61f5da9919fb6fe063f8f71a2ea5d5f5fe61c846f3abf5c30c75de04",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "05 Assets/Documents/Example Invoice.pdf",
+      "sha256": "a8fd38a291257d8a2400b58029c28b5a90d1691480105cc2d1bf695aefb1c849",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "05 Assets/README.md",
+      "sha256": "2d084341a84f5fe2007ea3b9d06d02cf509dec4d5bf81293bddae8a099075966",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Sessions/README.md",
+      "sha256": "97e94c5d4819efb90374a83565562538d3dbf8719f1538fbe891171836cab716",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/larry.png",
+      "sha256": "50ea925f37f8259e62fbfc12aa77a74e836a2701ea518e17a9fe724535ec2ea6",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/nolan.png",
+      "sha256": "0ce3347d6567eca64f0fef1db4d7e303710cafb40ebfc8ebb954729554f65dea",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/pax.png",
+      "sha256": "017188c9fee63571f0c6d6bfc10f6b9febe98bf71c22e86fbdefff2316ba1aeb",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/penn.png",
+      "sha256": "8f073b8aeda70492639defc44600a4350a4205ab1d4f875b1aa569b6c23616b2",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/README.md",
+      "sha256": "5c371b5f3910f6ec622c45cbe449dc9695e8c33b80435113b222fd07af604ce6",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/icor-for-life-banner-dark-transparent.png",
+      "sha256": "c9bd0dd5d840f79ec30b32ca28c1fa2a4bc73ac3cd242a45302ff574764162cb",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/icor-for-life-banner-dark.png",
+      "sha256": "a38ce20073d9744c816f3c2e8854b57b5ffe495231c93b634120512b061854e5",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/icor-for-life-banner-light-transparent.png",
+      "sha256": "5c03bb03cfd449a72865aef94ff75fe2a06e6dda2042eae67256688a53f91a38",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/icor-for-life-banner-light.png",
+      "sha256": "7585cf4e0a1088ae83083c1228cffc759a90bc8506c5242f951fc4516b9b3728",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/myicor-app-icon-ink.png",
+      "sha256": "573051b73e7d51282bb35f029aeaaf79953188547179946b769984b61a248f32",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/myicor-app-icon-paper.png",
+      "sha256": "eb299d0ba08952d64cee8d8f0511119e6f40c02fb544fa0e6a52f284d30b2378",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/myicor-mark-ink.svg",
+      "sha256": "1c264fb20171f4cd56f8c3e42fd62be033482717559e3874fd90b5ca61468a14",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Brand/myicor-mark-paper.svg",
+      "sha256": "b5a88f3a56fdff65c725bd7b9aea408d1075f84e6ed34b129c4c693a47e5efa8",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
+      "sha256": "a0dd73143df44174a345a9b5ff9bba21695c5395e35be59bb5c7b3d7a8582c5f",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
+      "sha256": "e549c67d9d3d544ab43331ac32fe555be242041634617ebcd350e11ee6ffa378",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1003-journal-entry-anatomy.md",
+      "sha256": "13a19ad2d7ad892166703303c67633b9ee609a1ba66805c1091c1edf265f263a",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1004-naming-rules.md",
+      "sha256": "88e6055be480490f42c8a343dd88e6232456df150984edf2de785481591e9cdc",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1005-code-vs-instructions.md",
+      "sha256": "5e79df44f58ff8bc6502290673bc7e7a3e06218dd8370b2e8202ef67b1c0d8c1",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1006-bases-and-live-views.md",
+      "sha256": "895f2f33ec60863832bbc2cf39cf05bc4f08fe25eb2d56c59d8c96c2a51f7aee",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1001-process-the-daily-scratchpad.md",
+      "sha256": "fd831aa337d6da704dc4f305fb329fdfb4b9019487a1dbcbf5e91aac19fdd081",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1002-process-an-inbox-capture.md",
+      "sha256": "3a4cc77e3d7bc9c14005f06b0a608a2f0b1b3a583de80413130ef6d16cda0fec",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1003-create-a-journal-entry.md",
+      "sha256": "c27b5bbc40367d11d9c32f9cdba77e03851949cf478322338a975dc950874c7b",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1004-create-or-update-a-my-life-entity.md",
+      "sha256": "d79d9adbd6ec397fc208fc7a073cd79a023ac65dc495c4c6a57380fa4a4990ae",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1005-create-or-update-a-contact.md",
+      "sha256": "85399b08fc0dc7687a686c34fa79b67ba9adc4adc7df6657ac66d841d48d8307",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1006-start-work-and-archive-a-wip-folder.md",
+      "sha256": "534e8fd7a259f3f5cac68b82fc2c4e5a592a2388fb544209eb309147f525b31e",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
+      "sha256": "309f3cf057c29404b19b32d9188de384e1ff2c0bf9579776d4715b3c20f71f33",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1008-track-work-across-sessions.md",
+      "sha256": "c135bb01680ef7a48e2c4e877f9944f75818506192f52172b7cabff73ae601d8",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1009-write-a-session-log-and-agent-journal.md",
+      "sha256": "e8cdde148c828482fc8962e791b4be58219d11f7150a857f648ec46cc7ea5e05",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1010-convert-an-external-note.md",
+      "sha256": "fc184adba763ee6af29a7fb2a38e9fd95cfa745990ca492be30c0575da822987",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
+      "sha256": "a6437826140b0a3848b277e913bf058d6ad02779ee6ea0a9695f348ce8a3e854",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1012-convert-an-external-skill.md",
+      "sha256": "108ff6004e0a1fd25bbd4e0a65dd105740adc988c906e1b2a57bff2c19aacc29",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1013-connect-an-external-tool-via-mcp.md",
+      "sha256": "08b2486f827309dbe96e4a4d7b043174c7ae60fbb3fdc1f49ae50a9b40d94df6",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/add-mcp-server.py",
+      "sha256": "859e8488fae7e218db524135ba13d7f0002966f17c2e53cf7a25fe4d9e23e8e3",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh",
+      "sha256": "0f1322608008606689a1a943bca3ee326b5ebd5dee2c13a1dcc5ea1e8e4c55ef",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py",
+      "sha256": "f8e6b5ba8b77ccd6dcd5579f5de9e6e4d565b1d3c5193b080624ca868cf4c0ad",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/check-bases.py",
+      "sha256": "8b63fa0e50930e9b300aa9b37d3f975fea8c3894effbb96096d26c20db70a284",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/check-onboarding.py",
+      "sha256": "afcb6ae5c923ce151e1152e5684646b7e7d8d1550b66e7fed969615434520031",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/import-file.py",
+      "sha256": "0282b3c64a86a2770934484f46646330aedb22cc1927516df02e68626004fd5b",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/import-inventory.py",
+      "sha256": "feaca78d7d9fc6e85f0dd2abc87815883752ab61c8130f6ae9b1419a1eff73b8",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
+      "sha256": "6772ca5f5970bbd312c506dd25b6779df083fa6f65b9da81a14abe9f3b9dcc5d",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-journal-entry.py",
+      "sha256": "a2d152c0ffe21111aca6ce4a33f12c077207ce3d39c70035e8945ed47d8e0579",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-progress-report.py",
+      "sha256": "7e69288b20b5b7a550bed825e3b2736398975dc729d0d9865ecfb35b21ffceb9",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-session-log.py",
+      "sha256": "5fbf245fdef1ec4b34c9d0497320d97ae9ec73237a8ffe2a6b280e08466cb142",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-task.py",
+      "sha256": "a2a44c792ad26e565fb70dfec8b0d5d7aa11ff1200b31b7729a3b5ef17f00bca",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/open-in-obsidian.py",
+      "sha256": "6149dff695118754a1a93f46e63543cd2641f231e2934254be0bb1a32c5d25c0",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
+      "sha256": "0c481da3c46f3106f55fd2f5162031ccc05b3395fea4f163c6a3e86203862ec5",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
+      "sha256": "95accff7118847b9115ef2c5775efb97e16437b4370b31f1e621105170e000dd",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
+      "sha256": "3eb07319abd3961db0bff24bc119f30589fa32cae374fca24063de85dad35e91",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1001-daily-processing-run.md",
+      "sha256": "b3bdd8d059a8205b8be387b6314844ab91c8f349849785b7d94a20aac8ac5ab9",
+      "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1002-weekly-review.md",
+      "sha256": "86ea8655432a3020356f68dc3160ec775841db5e5e0195b416376ad7fe9faa8d",
+      "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md",
+      "sha256": "f618c2c03d962f3bd4cd3766a6a011ccfd353d8038acbf7817710d5460cc0a08",
+      "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1004-import-and-convert-external-knowledge.md",
+      "sha256": "4a35ce99c44fa2bda2186e92d355c26365a697593e91c15a6140b2e1deaeb245",
+      "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Agent 01/AGENT.md",
+      "sha256": "df39f17ff6ad90a7fd075747c8bb870532c54deb69372a37bec14931083a9bec",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Agent 01/Agent 01.md",
+      "sha256": "028cc84e67d00dcba9723615894172792289a5da5aeb5e6cc43f6801a06924f5",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Larry/AGENT.md",
+      "sha256": "42886c2788e1902605b1bce3198fc371e970f7472432799fc1e8b23fb513613f",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Larry/Larry.md",
+      "sha256": "b2ff7463c7a437a51d8c160ea6a7544a170a297221531fc3a5bae7dc1810118a",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Larry/SOUL.md",
+      "sha256": "c21b47633044b2840a3f4c50ad5675cf5b6a29aa68521d9ebd8278d87e3a26ee",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Nolan/AGENT.md",
+      "sha256": "1f41dd4d127a571c3eb67de324ac493f44df1c04a49f977e346e5a968347edeb",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Nolan/Nolan.md",
+      "sha256": "db7b99c4b1f2c82f2c8bcaddce0f4134fcce52f1cfbe09122f623e24fcbb08a5",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Pax/AGENT.md",
+      "sha256": "60c7f7384096db595bbfbf705079ec99f22d81251d2ba624ef8a44b116cd3965",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Pax/Pax.md",
+      "sha256": "04341addea2b15987f06ab164200a0de686ea65dadacfd25e07f5cb2c9ca8550",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Penn/AGENT.md",
+      "sha256": "ed5b12326786d3d189201809158ef15df995f8d546762dac6d0009dac17b3647",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Penn/Penn.md",
+      "sha256": "67bf69a8a3ec415201c3d8131666181192a722146762cc9ab1d9b3c6759890e7",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/agent-index.md",
+      "sha256": "32293ddca26d8fcd1cbf4723233571b587ebe36da6fe7fcd7d5006d7a2f29ba8",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/README.md",
+      "sha256": "af86bfb75a7baca4ccee7322de25226425d2cee5c28913644a60cff31a3c7cfd",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "bceb2841a48dfd8a659dfaa841c6831d5323228fa9c389b2ed60bb5e4fb42c33",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "LICENSE.md",
+      "sha256": "786a2a0f52b982ea10d55766e45579f73554571e1c6cb2259e9e0d767293bc17",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "README.md",
+      "sha256": "9377447087ec0ef87ec21cc6c79644b58c30ddd1148f8c4c7095edaefa8c288f",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "sha256": "f261113197f623ad2773c3b92563af85bbfbedacb9489e55c4cd71c9d156fd79",
+      "kind": "doc",
+      "example": false
+    }
+  ],
+  "bases": [
+    {
+      "path": "04 Inner World/Contacts/Companies/Companies.base",
+      "folders": [
+        "04 Inner World/Contacts/Companies"
+      ]
+    },
+    {
+      "path": "04 Inner World/Contacts/People/People.base",
+      "folders": [
+        "04 Inner World/Contacts/People"
+      ]
+    },
+    {
+      "path": "04 Inner World/Documents/Documents.base",
+      "folders": [
+        "04 Inner World/Documents"
+      ]
+    }
+  ],
+  "history": [
+    {
+      "version": "1.5.0",
+      "date": "2026-09-01",
+      "removed": [
+        {
+          "path": ".obsidian/snippets/icor-logo.css",
+          "sha256": "9cece49a711177f2c3b838e6762c130c9b75b22f15adda4f72b1d66002128c92",
+          "note": "moved into the ICOR for Life - Interface plugin (the two rules that need the file tree)"
+        },
+        {
+          "path": ".obsidian/snippets/icor-ribbon.css",
+          "sha256": "d58f010164d3bc6fe979f6239d89503152dd0b160b052e3c11eda07ada18039b",
+          "note": "moved into the ICOR for Life - INKLINE theme"
+        },
+        {
+          "path": ".obsidian/snippets/icor-rooms.css",
+          "sha256": "da71096b8ee5928b245ef3340a0b315e227e70534fefd45a9478f98ce331d51f",
+          "note": "moved into the ICOR for Life - INKLINE theme (room colours and glyphs keyed on the room number)"
+        },
+        {
+          "path": ".obsidian/snippets/icor-scaffold.css",
+          "sha256": "7489304dce9e9d8e6dc9e887bfc6ccca03d83601737d53543ee144e7f95b32cc",
+          "note": "existed for one day, 2026-08-31, as the interim home of the two file-tree rules, and was replaced by the ICOR for Life - Interface plugin. Only a copy downloaded that day has it; delete it.",
+          "transient": true
+        }
+      ],
+      "renamed": [
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-001-the-six-rooms.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
+          "from_sha256": "4604e3bca4cfb57bc7810e3ac00c083487de378896a92397e8b48d22e0d5389d"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-002-frontmatter-conventions.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
+          "from_sha256": "c49e73122e7be3e0348006cc41f18b3e570ab046487abfa872e74b2f2bdb43b9"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-003-journal-entry-anatomy.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1003-journal-entry-anatomy.md",
+          "from_sha256": "55584a05387a0f738b2937ff5f8464bcaad7aef2c34014cf6fca99343a895d52"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-004-naming-rules.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1004-naming-rules.md",
+          "from_sha256": "505cd8a174dbd64d1e9ad20b33e7f63f5ae1f7eec099ca7c11eb3d4eff5eb052"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-005-code-vs-instructions.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1005-code-vs-instructions.md",
+          "from_sha256": "8f2095b73d7d8b7de0ee133fb5aec5876f25a1273ebe174a2c685eff99994a9c"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Guidelines/GL-006-bases-and-live-views.md",
+          "to": "06 AI Team/AI Team Knowledge/Guidelines/GL-1006-bases-and-live-views.md",
+          "from_sha256": "f1a572bdf4725a3b88cbfe02412e7cac83d82e165bfbc153935805d714da70d4"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-001-process-the-daily-scratchpad.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1001-process-the-daily-scratchpad.md",
+          "from_sha256": "ad3f6badb12e4d47a656592a03c73a7627561997d4120a6c0ee201e41d8fc01e"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-002-process-an-inbox-capture.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1002-process-an-inbox-capture.md",
+          "from_sha256": "a9bcf629fd6a3d753177da5f30109c448e2defe82b6a7e3f4f22e60cf410a4f3"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-003-create-a-journal-entry.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1003-create-a-journal-entry.md",
+          "from_sha256": "ffe85164e8f2a5c0486018ece84168a326a994506199fd2844b346dcef3d1000"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-004-create-or-update-a-my-life-entity.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1004-create-or-update-a-my-life-entity.md",
+          "from_sha256": "5b7324520963659cdb5a928a8231de289fa183b36edf0274b7a9a9b0b34b1950"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-005-create-or-update-a-contact.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1005-create-or-update-a-contact.md",
+          "from_sha256": "fefc3aee4a1b1d05cf2a5f00964aa0aa133bba26a7eb20efb9d5948dad3b40e6"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-006-start-work-and-archive-a-wip-folder.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1006-start-work-and-archive-a-wip-folder.md",
+          "from_sha256": "70567e5468ecaf54e4d8a1d7338ade41944bfa04c08be7a71b1bf29397f34e8e"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-007-hire-a-new-agent.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
+          "from_sha256": "40327cb5aa8c594ff0c3db4fa78a92d545612ee287a60059a264fe0b73f260a5"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-008-track-work-across-sessions.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1008-track-work-across-sessions.md",
+          "from_sha256": "137b612ad286855f0947d2a9087976c7f166ce726ba789b6455707e961b724c4"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-009-write-a-session-log-and-agent-journal.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1009-write-a-session-log-and-agent-journal.md",
+          "from_sha256": "b0c9634cfc6a8e7a1dd7c58f1cf997005d523364d93d4ed12ddec0add911eb68"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-010-convert-an-external-note.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1010-convert-an-external-note.md",
+          "from_sha256": "17bb850b3a1aa823c29551b72973e71533d9490edbdbc151e4b04b980917befe"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-011-import-or-align-an-external-agent.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
+          "from_sha256": "cac35f450c31c3f07420659ffa6dd06b6e73200bf318b49612214bdc79aab7bb"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-012-convert-an-external-skill.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1012-convert-an-external-skill.md",
+          "from_sha256": "a23c0ff7943540da3977ec3e09bfe7ad0dfed95f2ec400f346e40f3186675141"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/SOPs/SOP-013-connect-an-external-tool-via-mcp.md",
+          "to": "06 AI Team/AI Team Knowledge/SOPs/SOP-1013-connect-an-external-tool-via-mcp.md",
+          "from_sha256": "93933c2bee9ba02cf7098237d16a4be07bd45f9e40e414946be0c13a7bff3d35"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Workstreams/WS-001-daily-processing-run.md",
+          "to": "06 AI Team/AI Team Knowledge/Workstreams/WS-1001-daily-processing-run.md",
+          "from_sha256": "a069f8da33e7590a1679c7f0b596e8849c8f4744ade374046be4a718ac1a7c9f"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Workstreams/WS-002-weekly-review.md",
+          "to": "06 AI Team/AI Team Knowledge/Workstreams/WS-1002-weekly-review.md",
+          "from_sha256": "d555abcabaf90d04264e6f18e68c49c3fd585a93e832f2118838f0d4cb2f0a7d"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Workstreams/WS-003-onboarding-first-launch.md",
+          "to": "06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md",
+          "from_sha256": "48ce8fba92728a5c7ff35a29e2dbef674eb5b762e57b12533d61ab7d3a73984c"
+        },
+        {
+          "from": "06 AI Team/AI Team Knowledge/Workstreams/WS-004-import-and-convert-external-knowledge.md",
+          "to": "06 AI Team/AI Team Knowledge/Workstreams/WS-1004-import-and-convert-external-knowledge.md",
+          "from_sha256": "3e3666637dd6612557619d434c1fef4f56aebaf4d28f846f8be052bd8044f4c6"
+        }
+      ],
+      "added": [
+        ".icor-for-life/CHANGELOG.md",
+        ".icor-for-life/README.md",
+        ".icor-for-life/VERSION",
+        ".icor-for-life/manifest.json",
+        "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py"
+      ]
+    },
+    {
+      "version": "1.4.2",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".obsidian/workspace.json"
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
+    {
+      "version": "1.3.1",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-08-30",
+      "removed": [],
+      "renamed": [
+        {
+          "from": "01 INBOX/Outer World/README.md",
+          "to": "01 Inbox/Outer World/README.md",
+          "from_sha256": "9cb77915b12fbe63d0dbbed72b534c303e7fe5b7664933b45302b55be9e22caf"
+        },
+        {
+          "from": "01 INBOX/Outer World/archive/2026-08-27-obsidian-video-clip.md",
+          "to": "01 Inbox/Outer World/archive/2026-08-27-obsidian-video-clip.md",
+          "from_sha256": "d3a47ffc5cff1be4ce3c47796d3215da9487c822ae25d9b21d1f44c317b1a198"
+        },
+        {
+          "from": "01 INBOX/README.md",
+          "to": "01 Inbox/README.md",
+          "from_sha256": "a18f1ec1bc8569eb30abdd25c13c05c61bcb1a6d12ec6b4b71f249e9df476279"
+        },
+        {
+          "from": "01 INBOX/Scanner Inbox/.gitkeep",
+          "to": "01 Inbox/Scanner Inbox/.gitkeep",
+          "from_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "added": [
+        "06 AI Team/AI Sessions/README.md"
+      ]
+    }
+  ]
+}

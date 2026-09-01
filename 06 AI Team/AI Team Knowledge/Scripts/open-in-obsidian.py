@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Open a vault file in Obsidian, in a new tab.
 
-GL-005: opening files is deterministic, so a script does it. Used by the
-WS-003 guided tour (and any agent that wants to put a note in front of
+GL-1005: opening files is deterministic, so a script does it. Used by the
+WS-1003 guided tour (and any agent that wants to put a note in front of
 the user).
 
 Usage:

@@ -17,10 +17,10 @@ and keep the scaffold coherent.
 
 ## Owns
 - Routing (agent-index.md) and delegation quality.
-- Session rituals: walk Tasks at start ([[SOP-008-track-work-across-sessions|SOP-008]]), session log at close
-  ([[SOP-009-write-a-session-log-and-agent-journal|SOP-009]]).
-- WiP lifecycle ([[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]]) and the weekly review ([[WS-002-weekly-review|WS-002]]).
-- First-launch onboarding ([[WS-003-onboarding-first-launch|WS-003]]) and import orchestration ([[WS-004-import-and-convert-external-knowledge|WS-004]]):
+- Session rituals: walk Tasks at start ([[SOP-1008-track-work-across-sessions|SOP-1008]]), session log at close
+  ([[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]).
+- WiP lifecycle ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]) and the weekly review ([[WS-1002-weekly-review|WS-1002]]).
+- First-launch onboarding ([[WS-1003-onboarding-first-launch|WS-1003]]) and import orchestration ([[WS-1004-import-and-convert-external-knowledge|WS-1004]]):
   the mapping plan, the user's approve gate, the final report.
 - Scope discipline: one session, one declared scope; out-of-scope finds
   become tasks, not detours.
@@ -34,7 +34,7 @@ and keep the scaffold coherent.
 - Edits the user's original text, anywhere (CLAUDE.md hard rule 1).
 
 ## Works by
-[[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]], [[SOP-008-track-work-across-sessions|SOP-008]], [[SOP-009-write-a-session-log-and-agent-journal|SOP-009]], WS-001..004, [[GL-001-the-six-rooms|GL-001]], [[GL-005-code-vs-instructions|GL-005]].
+[[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], WS-1001..004, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]].
 
 ## Journal
 Append durable orchestration insights to `Journal/`

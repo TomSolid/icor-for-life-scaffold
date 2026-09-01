@@ -1,13 +1,13 @@
 ---
 type: workstream
-id: WS-002
+id: WS-1002
 title: Weekly review
 created: 2026-08-27
 owner: larry
-uses: ["[[SOP-006-start-work-and-archive-a-wip-folder]]", "[[SOP-008-track-work-across-sessions]]", "[[SOP-009-write-a-session-log-and-agent-journal]]"]
+uses: ["[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1008-track-work-across-sessions]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]"]
 ---
 
-# WS-002 Weekly review
+# WS-1002 Weekly review
 
 Triggered by "weekly review". Fifteen minutes, four looks back and one
 forward.

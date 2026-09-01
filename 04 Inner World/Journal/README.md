@@ -5,7 +5,7 @@ entry preserves your original text in its own section, untouched forever,
 followed by the AI expansion and the wikilink connections (people,
 topics, key elements, projects).
 
-Anatomy and rules: [[GL-003-journal-entry-anatomy]]. A journal entry is
+Anatomy and rules: [[GL-1003-journal-entry-anatomy]]. A journal entry is
 created on purpose (by you or from a scratchpad/capture), never as a
 side effect you did not ask for.
 

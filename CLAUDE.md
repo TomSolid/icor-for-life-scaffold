@@ -27,7 +27,7 @@ for what a machine could not.** Deterministic steps (naming, filing,
 dates, moving, checking) run through the scripts in
 `06 AI Team/AI Team Knowledge/Scripts/`. Judgement steps (what something
 means, where it belongs, what to write) are yours. Full rule:
-`06 AI Team/AI Team Knowledge/Guidelines/[[GL-005-code-vs-instructions]].
+`06 AI Team/AI Team Knowledge/Guidelines/[[GL-1005-code-vs-instructions]].
 
 ## The workplace principle
 
@@ -88,11 +88,11 @@ offer costs one sentence, the diagram often IS the answer.
    quick captures (`YYYY-MM-DD-HHmmss.md`, created by the Unique-note button
    and auto-named by the myICOR Connect plugin).
 4. **No invented frontmatter fields.** Fields live in
-   [[GL-002-frontmatter-conventions]]. Need a new field? Update the
+   [[GL-1002-frontmatter-conventions]]. Need a new field? Update the
    guideline first, then use it. The same holds for the live tables
    over those fields: `.base` files are stamped by
    `Scripts/new-base.py` and never hand-written, one per collection
-   ([[GL-006-bases-and-live-views]]).
+   ([[GL-1006-bases-and-live-views]]).
 5. **No ICOR stage names as folder names** (no Input, Control, Output,
    Refine). The six rooms are fixed. **Folders are the AI Team's job:**
    the vault hides the new-folder button, so when the user needs a new
@@ -108,7 +108,7 @@ offer costs one sentence, the diagram often IS the answer.
    `progress-report.md`** in its `03 WiP/` folder, created unasked and
    updated at every milestone: a mermaid diagram first, then short
    lines, so the user glances instead of reading
-   ([[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]]).
+   ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]).
 9. **Every session ends with a session log** in
    `06 AI Team/AI Team Knowledge/Session Logs/YYYY/MM/`.
 10. **Secrets live only in `.env`.** Never ask the user to paste an API
@@ -128,16 +128,16 @@ offer costs one sentence, the diagram often IS the answer.
 | `03 WiP/` | active work in dated folders; finished work goes to `_archive/` |
 | `06 AI Team/` | agent contracts, SOPs, Workstreams, Guidelines, Scripts, Tasks, Session Logs |
 
-Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-001-the-six-rooms]].
+Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-1001-the-six-rooms]].
 
 ## Session start ritual
 
 0. Run `06 AI Team/AI Team Knowledge/Scripts/check-onboarding.py`. If
-   it reports FRESH, run the onboarding workstream ([[WS-003-onboarding-first-launch|WS-003]]): greet,
+   it reports FRESH, run the onboarding workstream ([[WS-1003-onboarding-first-launch|WS-1003]]): greet,
    OFFER THE GUIDED TOUR (each stop opened live in Obsidian via
    `Scripts/open-in-obsidian.py`), and PROACTIVELY offer to import
    existing knowledge and AI teams from other sources, converted to
-   this structure ([[WS-004-import-and-convert-external-knowledge|WS-004]]). Never skip the offers on a fresh vault.
+   this structure ([[WS-1004-import-and-convert-external-knowledge|WS-1004]]). Never skip the offers on a fresh vault.
 1. Read your AGENT.md.
 2. Walk `Tasks/open/` and `Tasks/in-progress/`.
 3. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
@@ -146,5 +146,5 @@ Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-001-the-six-rooms]].
 ## Session close ritual
 
 1. Capture unfinished work as tasks.
-2. Write the session log ([[SOP-009-write-a-session-log-and-agent-journal|SOP-009]]).
+2. Write the session log ([[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]).
 3. Agents append durable insights to their own `Journal/`.

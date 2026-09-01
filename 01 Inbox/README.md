@@ -11,7 +11,7 @@ your scanner's watch folder here). After processing they are stamped in frontmat
 them) and moved to `Outer World/archive/`, where the original stays
 verbatim forever.
 
-Processing runs per [[SOP-002-process-an-inbox-capture]].
+Processing runs per [[SOP-1002-process-an-inbox-capture]].
 
 ## Learn the concept
 

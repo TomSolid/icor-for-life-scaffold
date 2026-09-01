@@ -1,13 +1,13 @@
 ---
 type: workstream
-id: WS-004
+id: WS-1004
 title: Import and convert external knowledge
 created: 2026-08-28
 owner: larry
-uses: ["[[SOP-001-process-the-daily-scratchpad]]", "[[SOP-003-create-a-journal-entry]]", "[[SOP-004-create-or-update-a-my-life-entity]]", "[[SOP-005-create-or-update-a-contact]]", "[[SOP-006-start-work-and-archive-a-wip-folder]]", "[[SOP-010-convert-an-external-note]]", "[[SOP-011-import-or-align-an-external-agent]]", "[[SOP-012-convert-an-external-skill]]", "[[GL-002-frontmatter-conventions]]", "[[GL-003-journal-entry-anatomy]]", "[[GL-004-naming-rules]]", "[[GL-005-code-vs-instructions]]"]
+uses: ["[[SOP-1001-process-the-daily-scratchpad]]", "[[SOP-1003-create-a-journal-entry]]", "[[SOP-1004-create-or-update-a-my-life-entity]]", "[[SOP-1005-create-or-update-a-contact]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1010-convert-an-external-note]]", "[[SOP-1011-import-or-align-an-external-agent]]", "[[SOP-1012-convert-an-external-skill]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
-# WS-004 Import and convert external knowledge
+# WS-1004 Import and convert external knowledge
 
 Turns an outside knowledge source (old vault, myPKA folder, exported
 notes, foreign agent definitions) into native scaffold content. The
@@ -44,27 +44,27 @@ flowchart TD
    user's working life.
 2. [SCRIPT-CHECKED] Create the working folder
    `03 WiP/YYYY-MM-DD-import-<source-slug>/` with `manifest.md`
-   ([[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]]). Every imported file gets a manifest line.
-3. **Content conversion (Penn).** Per approved mapping, [[SOP-010-convert-an-external-note|SOP-010]]
-   converts each note: scaffold frontmatter ([[GL-002-frontmatter-conventions|GL-002]]), naming ([[GL-004-naming-rules|GL-004]]),
-   right room ([[GL-001-the-six-rooms|GL-001]]), wikilinks re-pointed. Binary files ->
+   ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]). Every imported file gets a manifest line.
+3. **Content conversion (Penn).** Per approved mapping, [[SOP-1010-convert-an-external-note|SOP-1010]]
+   converts each note: scaffold frontmatter ([[GL-1002-frontmatter-conventions|GL-1002]]), naming ([[GL-1004-naming-rules|GL-1004]]),
+   right room ([[GL-1001-the-six-rooms|GL-1001]]), wikilinks re-pointed. Binary files ->
    `05 Assets` via `Scripts/import-file.py`, which enforces room
    placement and never overwrites.
 4. **Agent alignment (Nolan).** Foreign agent definitions NEVER land
-   as-is. [[SOP-011-import-or-align-an-external-agent|SOP-011]] rules each one: hire as a new agent through the
+   as-is. [[SOP-1011-import-or-align-an-external-agent|SOP-1011]] rules each one: hire as a new agent through the
    Agent 01 template, merge into an existing agent, or extract its
    knowledge into SOPs/Guidelines and drop the shell.
 5. **Skill conversion (Nolan).** Skill packages (SKILL.md, prompt
-   recipes, toolkits) are decomposed per [[SOP-012-convert-an-external-skill|SOP-012]]: procedures to SOPs,
+   recipes, toolkits) are decomposed per [[SOP-1012-convert-an-external-skill|SOP-1012]]: procedures to SOPs,
    code to red-tested Scripts, reference to Guidelines, roles through
-   [[SOP-011-import-or-align-an-external-agent|SOP-011]], plus a thin `.claude/skills/` shim only when the skill
+   [[SOP-1011-import-or-align-an-external-agent|SOP-1011]], plus a thin `.claude/skills/` shim only when the skill
    must stay invocable by name.
 6. **Verification.** [SCRIPT] `Scripts/validate-scaffold.py` must exit
    0. [JUDGEMENT] Spot-check three converted notes with the user:
    original vs converted, links working.
 7. **Report.** Counts per room, agents hired/merged, what was left
    behind and why. Manifest stays in the WiP folder; the folder
-   archives when the user accepts the import ([[SOP-006-start-work-and-archive-a-wip-folder|SOP-006]]).
+   archives when the user accepts the import ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]).
 
 The source is NEVER modified or deleted. An import is a copy plus a
 conversion; the user retires the original on their own schedule.

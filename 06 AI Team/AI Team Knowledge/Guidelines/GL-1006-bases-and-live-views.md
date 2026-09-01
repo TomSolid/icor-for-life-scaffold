@@ -1,12 +1,12 @@
 ---
 type: guideline
-id: GL-006
+id: GL-1006
 title: Bases and live views - when a collection earns a table
 created: 2026-08-29
-uses: ["[[GL-002-frontmatter-conventions]]", "[[GL-005-code-vs-instructions]]"]
+uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
-# GL-006 Bases and live views: when a collection earns a table
+# GL-1006 Bases and live views: when a collection earns a table
 
 Obsidian Bases (`.base` files) render live, editable tables and card
 galleries over the frontmatter the notes already carry. This guideline
@@ -50,7 +50,7 @@ Bases and the Scripts/ folder are not substitutes:
   structurally cannot do - joins across collections, aggregation
   beyond one grouped property, full-text search over bodies, or any
   query that must run headless without Obsidian open. Per
-  [[GL-005-code-vs-instructions|GL-005]], agents answer those with
+  [[GL-1005-code-vs-instructions|GL-1005]], agents answer those with
   Python over the frontmatter on disk.
 - **No SQLite mirror exists in this scaffold, and none is warranted
   yet.** At scaffold scale (hundreds of notes) scripts over
@@ -65,9 +65,9 @@ Bases and the Scripts/ folder are not substitutes:
    hand.** The script stamps a house-shaped `.base` from a declared
    registry (entity type -> folder, columns, views), refuses unknown
    types, and refuses to overwrite. A hand-written `.base` drifts
-   from [[GL-002-frontmatter-conventions|GL-002]] silently.
-2. **Every column is a GL-002-declared field.** Need a new column?
-   Update GL-002 first, then the registry, then re-stamp. Never the
+   from [[GL-1002-frontmatter-conventions|GL-1002]] silently.
+2. **Every column is a GL-1002-declared field.** Need a new column?
+   Update GL-1002 first, then the registry, then re-stamp. Never the
    other way around.
 3. **One collection, one Base, living INSIDE the folder it views**
    (`People/People.base`). Two `.base` files answering for the same
@@ -83,5 +83,5 @@ Bases and the Scripts/ folder are not substitutes:
 Document rows are WRAPPER NOTES, never binaries: a PDF cannot carry
 frontmatter, so each scan gets a `type: document` note in
 `04 Inner World/Documents/` linking its binary via `source_file`.
-Canonical shape and fields: [[GL-002-frontmatter-conventions|GL-002]]
+Canonical shape and fields: [[GL-1002-frontmatter-conventions|GL-1002]]
 section "Documents: the wrapper-note pattern".
