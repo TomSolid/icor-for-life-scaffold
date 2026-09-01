@@ -11,6 +11,7 @@
 | ICOR Diagrams plugin (`icor-for-life-diagrams`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
 | ICOR AI Chat plugin (`icor-for-life-chat`) | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
 | myICOR Connect plugin (`icor-for-life-connect`) | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
+| ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | ICOR for Life Source-Available License (Code) v1.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
 | Scaffold content (structure, templates, AI-team files, prose) | ICOR for Life Source-Available License (Content) v1.0 | Use as your personal vault, adapt and extend your own copy without limit, quote brief excerpts with attribution, apply the ICOR Journey method freely | Publish or share the vault, adapted versions, or substantial parts; build commercial products, courses, or templates from the files |
 | Terminal plugin (bundled, unmodified) | AGPL-3.0 (its own authors) | Everything the AGPL-3.0 allows | N/A - see THIRD-PARTY-NOTICES.md for license text and source |
 | Outliner plugin (bundled, unmodified) | MIT (its own authors) | Everything MIT allows - keep its notice | N/A - see THIRD-PARTY-NOTICES.md |
@@ -23,7 +24,7 @@ active; updates require an active membership. Trademarks ("myICOR", "ICOR",
 ## The scaffold content license
 
 Everything in this vault outside `.obsidian/` is covered by the license
-below. The theme and the five ICOR plugins live in their own repositories
+below. The theme and the ICOR plugins live in their own repositories
 and each carries its own `LICENSE` file (summarized in the table above).
 Third-party components bundled inside those plugins are listed in
 `THIRD-PARTY-NOTICES.md`.

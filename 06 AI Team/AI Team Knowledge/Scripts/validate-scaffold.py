@@ -30,6 +30,7 @@ REQUIRED = [
     "04 Inner World/My Life/Topics", "04 Inner World/My Life/Projects",
     "04 Inner World/My Life/Habits",
     "03 WiP/_archive",
+    "07 Databases",
     "06 AI Team/AI Team Knowledge/Workstreams",
     "06 AI Team/AI Team Knowledge/SOPs",
     "06 AI Team/AI Team Knowledge/Guidelines",

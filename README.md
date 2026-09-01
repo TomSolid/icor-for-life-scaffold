@@ -32,8 +32,9 @@ community and it gets fixed fast.
 
 ## The rooms
 
-Six knowledge rooms plus the Planner, the one machine-tended app
-surface among them.
+Six knowledge rooms plus two machine-facing surfaces: the Planner,
+machine-tended, and the Databases room, the shelf for the data notes
+cannot hold.
 
 | Room | Concept |
 | --- | --- |
@@ -44,6 +45,7 @@ surface among them.
 | `04 Inner World/` | Everything that went through you: Contacts, Journal, and My Life (Goals, Key Elements, Topics, Projects, Habits). |
 | `03 WiP/` | The workbench. One dated folder per piece of work; finished folders retire to `_archive/`. |
 | `06 AI Team/` | The staff quarters: agent contracts, shared knowledge (SOPs, Workstreams, Guidelines, Scripts), task tracking, and session logs. |
+| `07 Databases/` | The data shelf. SQLite databases with no markdown source (health archives, logs, analytics stores). Opened read-only by the ICOR for Life - SQLite Viewer plugin: browse, query, and build dashboards, on every device. Ships empty. |
 
 ## First steps
 
@@ -115,7 +117,7 @@ journey lives here:
 > content is licensed under the ICOR for Life Source-Available License
 > (Content) - see the root [[LICENSE]] file for the full terms and for the
 > per-part summary (the INKLINE theme is CC BY-NC-ND 4.0, with its embedded
-> fonts under SIL OFL 1.1; the five ICOR plugins are source-available; the
+> fonts under SIL OFL 1.1; the ICOR plugins are source-available; the
 > two bundled community plugins keep their own open-source licenses, listed
 > in [[THIRD-PARTY-NOTICES]]). Contributions are accepted under the
 > contribution clause in each license.

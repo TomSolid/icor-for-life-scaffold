@@ -10,9 +10,37 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## 1.5.0
+## 1.6.0
 
 Unreleased. The version this manifest describes.
+
+### Added: the 07 Databases room
+
+The vault gains its eighth room, `07 Databases/`, the shelf for real
+SQLite databases that have no markdown source: health archives, logs,
+analytics stores. It ships empty except for its `README.md`; whatever
+lands there is the member's own. One test decides what belongs: does
+anything in the vault regenerate the database? Yes means it is a mirror
+of the notes and does not belong (Bases and Obsidian search query the
+notes directly); no means it is a source, and this is its home.
+
+The room is owned by the **ICOR for Life - SQLite Viewer** plugin
+(`icor-for-life-sqlite-viewer`), which opens every database read-only:
+table browser, query console, dashboards built without SQL, on desktop,
+phone and tablet (big databases render on the phone from a
+desktop-computed cache). The plugin joins the expected suite in
+`community-plugins.json`, the license table in `LICENSE.md`, and the
+component notes in `THIRD-PARTY-NOTICES.md` (it bundles sql.js, MIT).
+Its defaults point at `07 Databases/` from plugin version 0.5.0.
+
+- `07 Databases/README.md`: the room's doctrine, for members.
+- `validate-scaffold.py` now requires the room, so Scaffold Check
+  reports it when missing.
+- `GL-1001`, `GL-1004`, `README.md` and `CLAUDE.md` list the new room.
+
+## 1.5.0
+
+Released 2026-09-01.
 
 ### Removed or moved
 

@@ -23,7 +23,7 @@ recognizes the bundled copies normally.
 
 ## Components inside the ICOR plugins
 
-The five ICOR plugins are our own work. Three of them bundle no
+The ICOR plugins are our own work. Several of them bundle no
 third-party code at all: ICOR Focus, ICOR Diagrams and myICOR Connect are
 hand-written JavaScript against the Obsidian plugin API.
 
@@ -92,6 +92,13 @@ follow in full:
     permissions and limitations under the License.
 
     This library is redistributed unmodified.
+
+**ICOR SQLite Viewer** bundles sql.js (a WebAssembly build of SQLite,
+MIT License, https://github.com/sql-js/sql.js) as its mobile and
+fallback engine; SQLite itself is public domain. The full notice ships
+in the plugin's own `THIRD-PARTY-NOTICES.md`. The desktop engine is the
+`sqlite3` command line tool already on the member's machine, which is
+not bundled or redistributed.
 
 No copyleft-licensed code (GPL, LGPL, AGPL or MPL) is bundled inside any
 ICOR plugin. The only copyleft component in this vault is the Terminal

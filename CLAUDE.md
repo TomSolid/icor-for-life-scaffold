@@ -127,6 +127,7 @@ offer costs one sentence, the diagram often IS the answer.
 | `04 Inner World/` | processed knowledge: Contacts, Journal, My Life |
 | `03 WiP/` | active work in dated folders; finished work goes to `_archive/` |
 | `06 AI Team/` | agent contracts, SOPs, Workstreams, Guidelines, Scripts, Tasks, Session Logs |
+| `07 Databases/` | SQLite databases with no markdown source; read-only via the SQLite Viewer plugin, never a mirror of the notes |
 
 Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-1001-the-six-rooms]].
 

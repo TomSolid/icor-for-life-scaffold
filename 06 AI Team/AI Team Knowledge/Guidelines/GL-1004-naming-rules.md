@@ -15,9 +15,10 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
 1. **Never an ICOR stage name**: no Input, Control, Output, Refine as a
    folder name, at any level. The folder tree and the methodology are
    two parallel narratives; mixing them confuses both.
-2. The six top-level rooms are fixed and number-prefixed for sort
-   order: 00 Daily Scratchpad, 01 Inbox, 03 WiP, 04 Inner World,
-   05 Assets, 06 AI Team. Users may add rooms; agents may not.
+2. The top-level rooms are fixed and number-prefixed for sort
+   order: 00 Daily Scratchpad, 01 Inbox, 02 Planner, 03 WiP,
+   04 Inner World, 05 Assets, 06 AI Team, 07 Databases. Users may add
+   rooms; agents may not.
 3. Date-nested shapes are `YYYY/MM/` (Journal, Session Logs,
    Tasks/done, Tasks/cancelled).
 

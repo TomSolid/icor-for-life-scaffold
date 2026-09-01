@@ -7,10 +7,11 @@ created: 2026-08-27
 
 # GL-1001 The six rooms: what belongs where
 
-The scaffold has seven top-level rooms and each answers one question. If
+The scaffold has eight top-level rooms and each answers one question. If
 you cannot say which question a new item answers, it is probably two
 things; split it. (Six are knowledge rooms; 02 Planner is the one
-machine-tended app surface among them, added 2026-08-28.)
+machine-tended app surface among them, added 2026-08-28; 07 Databases
+is the shelf for SQLite data, added 2026-09-01.)
 
 | Room | Question it answers | Persistence |
 | --- | --- | --- |
@@ -21,6 +22,7 @@ machine-tended app surface among them, added 2026-08-28.)
 | 04 Inner World | "what does the user know and who do they know?" | forever, curated |
 | 03 WiP | "what is being worked on right now?" | temporary; retires to _archive |
 | 06 AI Team | "how does the team operate?" | forever, versioned by editing |
+| 07 Databases | "which dataset is too big or too row-shaped for notes?" | forever; sources only, never a database anything regenerates; read-only for the SQLite Viewer plugin |
 
 ## The flow between rooms
 
