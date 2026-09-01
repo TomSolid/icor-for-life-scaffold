@@ -1,9 +1,7 @@
 {
   "cssTheme": "ICOR for Life - INKLINE",
   "nativeMenus": true,
-  "enabledCssSnippets": [
-    "icor-scaffold"
-  ],
+  "enabledCssSnippets": [],
   "translucency": false,
   "theme": "obsidian"
 }

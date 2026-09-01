@@ -71,9 +71,12 @@ duplicates. `icor-ribbon.css` is not: it hides the ribbon with `!important`
 and no setting can outrank it, so the theme's "Hide the left ribbon" switch
 will look broken until the file is gone.
 
-Everything those three did still happens. The theme does it now, and
-`icor-scaffold.css` (which the new download brings) turns on the two pieces
-the theme leaves off by default.
+Everything those three did still happens. The theme does it now, and the
+ICOR for Life - Interface plugin (which the new download brings) turns on the
+two pieces the theme leaves off by default, and gives you switches for all of
+it under Settings, ICOR for Life - Interface. If you downloaded a copy between
+2026-08-31 and 2026-09-01 you may also have `icor-scaffold.css`; delete that
+too, the plugin replaced it.
 
 ## Extending it
 

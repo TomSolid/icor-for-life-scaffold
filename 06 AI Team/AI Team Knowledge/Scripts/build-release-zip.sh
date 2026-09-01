@@ -71,6 +71,7 @@ declare -a SPECS=(
   "icor-for-life-focus|icor-for-life-focus|.obsidian/plugins/icor-for-life-focus|plugin"
   "icor-for-life-diagrams|icor-for-life-diagrams|.obsidian/plugins/icor-for-life-diagrams|plugin"
   "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
+  "icor-for-life-interface|icor-for-life-interface|.obsidian/plugins/icor-for-life-interface|plugin"
   "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life - INKLINE|theme"
 )
 
@@ -412,7 +413,7 @@ present = {d for d in os.listdir(sys.argv[2])
 # Third-party plugins are vendored into the repo and are not our concern here;
 # the coherence rule is enforced over the first-party set only.
 ours = {"icor-for-life-planner", "icor-for-life-focus", "icor-for-life-diagrams",
-        "icor-for-life-connect", "icor-for-life-chat"}
+        "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
