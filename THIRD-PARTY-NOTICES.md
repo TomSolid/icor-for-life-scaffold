@@ -24,7 +24,7 @@ recognizes the bundled copies normally.
 ## Components inside the ICOR plugins
 
 The ICOR plugins are our own work. Several of them bundle no
-third-party code at all: ICOR Focus, ICOR Diagrams and myICOR Connect are
+third-party code at all: ICOR Focus, ICOR Interface and myICOR Connect are
 hand-written JavaScript against the Obsidian plugin API.
 
 **ICOR Planner** embeds the source-tool glyphs (Todoist, ClickUp) as SVG

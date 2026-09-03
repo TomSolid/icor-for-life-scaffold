@@ -68,7 +68,7 @@ and when accepted (or when the explanation clearly benefits), create it:
    (the same script the guided tour uses); fall back to the `obsidian`
    CLI or an `obsidian://open` URL only if the script reports failure.
 4. One diagram that answers the question beats three that decorate it.
-   The fullscreen viewer (ICOR Diagrams plugin) handles size; do not
+   The fullscreen viewer (the Diagrams switch in ICOR for Life - Interface) handles size; do not
    shrink content to fit.
 
 This is a standing behavior, not a feature the user must discover: the

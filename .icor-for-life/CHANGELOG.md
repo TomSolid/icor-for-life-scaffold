@@ -38,6 +38,19 @@ Its defaults point at `07 Databases/` from plugin version 0.5.0.
   reports it when missing.
 - `GL-1001`, `GL-1004`, `README.md` and `CLAUDE.md` list the new room.
 
+### Removed: the ICOR for Life - Diagrams plugin
+
+The fullscreen mermaid viewer is a switch inside **ICOR for Life -
+Interface** from Interface 0.5.0 - same button, same modal - so the
+separate plugin leaves the suite. If your vault still has it, Interface
+detects it and you see one button either way; delete the old folder when
+convenient.
+
+- `.obsidian/plugins/icor-for-life-diagrams/`: removed; the viewer moved
+  into `.obsidian/plugins/icor-for-life-interface/` (Diagrams switch).
+- `community-plugins.json`, the zip builder's plugin list and inventory,
+  `LICENSE.md` and `THIRD-PARTY-NOTICES.md` no longer name it.
+
 ## 1.5.0
 
 Released 2026-09-01.

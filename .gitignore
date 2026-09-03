@@ -19,8 +19,6 @@
 # ICOR Focus is its own git repository (data.json holds the local opens log)
 .obsidian/plugins/icor-for-life-focus/
 
-# ICOR Diagrams is its own git repository
-.obsidian/plugins/icor-for-life-diagrams/
 
 # Live personal data syncs into these paths - never tracked, never shipped
 02 Planner/*/

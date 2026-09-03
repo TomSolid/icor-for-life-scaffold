@@ -69,7 +69,6 @@ git --git-dir "$SCAFFOLD_GIT" archive origin/main | tar -x -C "$STAGE"
 declare -a SPECS=(
   "icor-for-life-planner|icor-for-life-planner|.obsidian/plugins/icor-for-life-planner|plugin"
   "icor-for-life-focus|icor-for-life-focus|.obsidian/plugins/icor-for-life-focus|plugin"
-  "icor-for-life-diagrams|icor-for-life-diagrams|.obsidian/plugins/icor-for-life-diagrams|plugin"
   "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
   "icor-for-life-interface|icor-for-life-interface|.obsidian/plugins/icor-for-life-interface|plugin"
   "icor-for-life-scaffold-check|icor-for-life-scaffold-check|.obsidian/plugins/icor-for-life-scaffold-check|plugin"
@@ -446,7 +445,7 @@ present = {d for d in os.listdir(sys.argv[2])
            if os.path.isfile(os.path.join(sys.argv[2], d, "manifest.json"))}
 # Third-party plugins are vendored into the repo and are not our concern here;
 # the coherence rule is enforced over the first-party set only.
-ours = {"icor-for-life-planner", "icor-for-life-focus", "icor-for-life-diagrams",
+ours = {"icor-for-life-planner", "icor-for-life-focus",
         "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
         "icor-for-life-scaffold-check"}
 for p in sorted((enabled & ours) - present):

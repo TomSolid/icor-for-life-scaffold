@@ -8,7 +8,6 @@
 | ICOR Focus plugin (`icor-for-life-focus`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
 | ICOR Interface plugin (`icor-for-life-interface`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
 | ICOR Scaffold Check plugin (`icor-for-life-scaffold-check`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| ICOR Diagrams plugin (`icor-for-life-diagrams`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
 | ICOR AI Chat plugin (`icor-for-life-chat`) | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
 | myICOR Connect plugin (`icor-for-life-connect`) | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
 | ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | ICOR for Life Source-Available License (Code) v1.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
