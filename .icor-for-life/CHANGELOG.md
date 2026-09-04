@@ -38,6 +38,34 @@ Its defaults point at `07 Databases/` from plugin version 0.5.0.
   reports it when missing.
 - `GL-1001`, `GL-1004`, `README.md` and `CLAUDE.md` list the new room.
 
+### Added: four more agents
+
+The basic team grows from four agents to eight. Mack (automation: tool
+connections, MCP servers, webhooks, automations, and the fetch half of
+an import), Silas (structure and databases: frontmatter and structure
+audits, Bases, the 07 Databases room, the shape of an import), Iris
+(the design system: created with you on your first creative request,
+never shipped as a default) and Charta (structured visuals:
+infographics, tables, diagrams, carousels, PDFs from clean HTML) join
+Larry, Penn, Pax and Nolan. Each arrives in the two-file shape of
+SOP-1007, `AGENT.md` plus the bio `<Name>.md`, with a dispatch shim
+under `.claude/agents/`.
+
+All eight avatars are replaced with the INKLINE set: one orange marker
+line on ink, a bust per agent (Larry fox, Penn barn owl, Pax magpie,
+Nolan terrier, Mack beaver, Silas elephant, Iris hummingbird, Charta
+peacock). The four existing files are overwritten in place under their
+old names; nothing is removed or moved in this entry.
+
+- `06 AI Team/Agents/Mack/`, `Silas/`, `Iris/`, `Charta/`: new, two
+  files each.
+- `.claude/agents/mack.md`, `silas.md`, `iris.md`, `charta.md`: new.
+- `06 AI Team/AI Team Knowledge/Avatars/`: four new PNGs, four
+  overwritten in place.
+- `agent-index.md`, `CLAUDE.md`, Larry's contract, `WS-1004` (Mack
+  fetches remote sources, Silas verifies) and `SOP-1013` (Mack runs the
+  wiring steps) name the new agents.
+
 ### Removed: the ICOR for Life - Diagrams plugin
 
 The fullscreen mermaid viewer is a switch inside **ICOR for Life -

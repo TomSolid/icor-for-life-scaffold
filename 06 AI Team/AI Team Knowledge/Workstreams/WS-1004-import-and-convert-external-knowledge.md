@@ -4,7 +4,7 @@ id: WS-1004
 title: Import and convert external knowledge
 created: 2026-08-28
 owner: larry
-uses: ["[[SOP-1001-process-the-daily-scratchpad]]", "[[SOP-1003-create-a-journal-entry]]", "[[SOP-1004-create-or-update-a-my-life-entity]]", "[[SOP-1005-create-or-update-a-contact]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1010-convert-an-external-note]]", "[[SOP-1011-import-or-align-an-external-agent]]", "[[SOP-1012-convert-an-external-skill]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
+uses: ["[[SOP-1001-process-the-daily-scratchpad]]", "[[SOP-1003-create-a-journal-entry]]", "[[SOP-1004-create-or-update-a-my-life-entity]]", "[[SOP-1005-create-or-update-a-contact]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1010-convert-an-external-note]]", "[[SOP-1011-import-or-align-an-external-agent]]", "[[SOP-1012-convert-an-external-skill]]", "[[SOP-1013-connect-an-external-tool-via-mcp]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
 # WS-1004 Import and convert external knowledge
@@ -17,16 +17,20 @@ translated to THIS scaffold's rules, never copied verbatim.
 
 ```mermaid
 flowchart TD
-    A["Inventory the source, draft the mapping"] --> B["User approves the plan"]
+    A["Fetch if remote, inventory, draft the mapping"] --> B["User approves the plan"]
     B --> C["Create the WiP import folder"]
     C --> D["Penn converts notes and files"]
     C --> E["Nolan rules agents and skills"]
-    D --> F["Validate, spot-check with the user"]
+    D --> F["Silas validates, spot-check with the user"]
     E --> F
     F --> G["Report, archive on acceptance"]
 ```
 
-1. **Plan gate.** [SCRIPT] `Scripts/import-inventory.py <source>`
+1. **Plan gate.** A source that sits behind an API or a login rather
+   than on disk is fetched first by Mack (the connection half; an MCP
+   server goes through [[SOP-1013-connect-an-external-tool-via-mcp|SOP-1013]]) and landed in the WiP
+   folder of step 2; the inventory runs on what he landed.
+   [SCRIPT] `Scripts/import-inventory.py <source>`
    produces the deterministic inventory: shape (mypka /
    obsidian-vault / markdown-folder), counts, frontmatter keys, agent
    definitions found. [JUDGEMENT] Larry drafts the mapping table from
@@ -59,8 +63,10 @@ flowchart TD
    code to red-tested Scripts, reference to Guidelines, roles through
    [[SOP-1011-import-or-align-an-external-agent|SOP-1011]], plus a thin `.claude/skills/` shim only when the skill
    must stay invocable by name.
-6. **Verification.** [SCRIPT] `Scripts/validate-scaffold.py` must exit
-   0. [JUDGEMENT] Spot-check three converted notes with the user:
+6. **Verification (Silas).** [SCRIPT] `Scripts/validate-scaffold.py`
+   and `Scripts/check-bases.py` must exit 0. [JUDGEMENT] Silas checks
+   every landed note's frontmatter against the approved mapping and
+   reports drift. Spot-check three converted notes with the user:
    original vs converted, links working.
 7. **Report.** Counts per room, agents hired/merged, what was left
    behind and why. Manifest stays in the WiP folder; the folder

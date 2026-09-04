@@ -11,7 +11,7 @@ uses: ["[[GL-1005-code-vs-instructions]]"]
 
 Gives the team live access to the user's real tools (email, calendar,
 task manager, project management). Research by Pax, approval by the
-user, wiring by code.
+user, wiring by code, run by Mack.
 
 1. [JUDGEMENT] The user names the tool (from the [[WS-1003-onboarding-first-launch|WS-1003]] interview or
    any time later). Larry routes to Pax.
@@ -26,7 +26,8 @@ user, wiring by code.
    (URLs in project notes) until the vendor ships one.
 3. [JUDGEMENT] The user approves the connection per tool, seeing what
    data the server can reach.
-4. [SCRIPT] `Scripts/add-mcp-server.py` writes the `.mcp.json` entry
+4. [SCRIPT] Mack runs `Scripts/add-mcp-server.py`, which writes the
+   `.mcp.json` entry
    and the `.env` placeholder. The script refuses secret-shaped
    values in the config: secrets live ONLY in `.env`, referenced as
    `${VAR}`.
@@ -34,6 +35,6 @@ user, wiring by code.
    editor.** Agents never ask for a key in chat, never echo `.env`
    contents, and never write key values into notes, session logs, or
    manifests.
-6. Restart the AI runtime, verify the server lists its tools, and
-   record the connection (tool, server, scopes; never the key) in the
+6. Mack restarts the AI runtime, verifies the server lists its tools,
+   and records the connection (tool, server, scopes; never the key) in the
    session log.
