@@ -6,10 +6,13 @@ That emptying is what makes it an inbox.
 
 Outer-world captures (web clips, voice memos, forwarded content) land
 in `Outer World/`; scanned documents land in `Scanner Inbox/` (point
-your scanner's watch folder here). After processing they are stamped in frontmatter
-(`processed: true`, a short summary, wikilinks to everything created from
-them) and moved to `Outer World/archive/`, where the original stays
-verbatim forever.
+your scanner's watch folder here). After processing, a markdown capture
+is stamped in frontmatter (`processed: true`, a short summary, wikilinks
+to everything created from it) and moved to `Outer World/archive/`,
+where the original stays verbatim forever. A scan or any other binary
+cannot carry a stamp: it moves to `05 Assets/` (that move is its
+archive, never a second copy), and the wrapper note that describes it
+in `04 Inner World/Documents/` carries the stamp.
 
 Processing runs per [[SOP-1002-process-an-inbox-capture]].
 

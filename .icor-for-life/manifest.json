@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.6.0",
-  "built": "2026-09-04T13:56:02Z",
-  "commit": "9eccbdc",
+  "built": "2026-09-04T13:57:29Z",
+  "commit": "b8c4857",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -198,7 +198,7 @@
     },
     {
       "path": "01 Inbox/Outer World/README.md",
-      "sha256": "9cb77915b12fbe63d0dbbed72b534c303e7fe5b7664933b45302b55be9e22caf",
+      "sha256": "9cbac245094133b9d62a17c04d7409dc32a881be85e057b241604c2f7544de1f",
       "kind": "doc",
       "example": false
     },
@@ -210,7 +210,7 @@
     },
     {
       "path": "01 Inbox/README.md",
-      "sha256": "27f621e7237c8a68b89309c40853f92dbf87c90f2b34d92fa84e3f14a7ce94bf",
+      "sha256": "6de43f8e3bdeae3a21a4232013ac72d8638218c2cad10c227cc364f6a1f225c2",
       "kind": "doc",
       "example": false
     },
