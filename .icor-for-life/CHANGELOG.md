@@ -12,7 +12,7 @@ those lines and refuses to describe a removal this file does not explain.
 
 ## 1.6.0
 
-Unreleased. The version this manifest describes.
+Released 2026-09-04.
 
 ### Added: the 07 Databases room
 
