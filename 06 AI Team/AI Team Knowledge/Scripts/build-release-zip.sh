@@ -496,6 +496,14 @@ fi
 echo "    scan clean"
 
 NAME="ICOR-for-Life-Scaffold-$STAMP.zip"
+# `zip -r` UPDATES an archive that already exists: new entries are added,
+# changed ones replaced, and every entry the staged tree no longer has is
+# kept. On 2026-09-04 a second build on one day merged into the morning's
+# zip and shipped the plugin folder 1.7.0 had removed, while every gate
+# above stayed green, because every gate above inspects the staged tree
+# and none of them looks inside the zip. The archive is therefore removed
+# first, so the zip is always a fresh copy of the tree the gates passed.
+rm -f "$OUT_DIR/$NAME"
 echo "==> zipping -> $OUT_DIR/$NAME"
 ( cd "$STAGE" && zip -qr "$OUT_DIR/$NAME" . -x "*.DS_Store" )
 echo "==> done: $OUT_DIR/$NAME ($(du -h "$OUT_DIR/$NAME" | cut -f1))"

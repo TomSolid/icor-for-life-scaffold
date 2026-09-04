@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.7.0",
-  "built": "2026-09-04T15:17:53Z",
-  "commit": "2c1272b",
+  "built": "2026-09-04T15:19:12Z",
+  "commit": "98334d1",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -559,7 +559,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh",
-      "sha256": "6fd35ef464893f300ed50ac9a2863f27577f7a9999752e70a8ee1381f62f98e1",
+      "sha256": "4f00f13c0f19ced61c750016d11a3124e9004d20ba1c9ed9315287f18884bb95",
       "kind": "script",
       "example": false
     },
