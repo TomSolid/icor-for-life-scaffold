@@ -82,7 +82,12 @@ offer costs one sentence, the diagram often IS the answer.
    Text section of a journal entry. AI expands AROUND it, never inside it.
 2. **The active Inbox empties.** Processed outer-world captures are
    stamped (`processed: true` + summary + wikilinks) and moved to
-   `01 Inbox/Outer World/archive/`, never deleted.
+   `01 Inbox/Outer World/archive/`, never deleted. A binary capture (a
+   scan, a photo, an audio memo) cannot carry the stamp: its wrapper
+   note in `04 Inner World/Documents/` is stamped instead, and the
+   binary is MOVED to `05 Assets/`, which is its archive, never a second
+   copy in `Outer World/archive/` ([[GL-1002-frontmatter-conventions]],
+   ruling 2026-09-04).
 3. **Daily Scratchpads are never deleted or moved.** Processing stamps
    their frontmatter and extracts; the note stays where it is. This
    covers both shapes in the room: daily notes (`YYYY-MM-DD.md`) and

@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.6.0",
-  "built": "2026-09-04T10:22:14Z",
-  "commit": "6a6a700",
+  "built": "2026-09-04T13:56:02Z",
+  "commit": "9eccbdc",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -468,7 +468,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "e549c67d9d3d544ab43331ac32fe555be242041634617ebcd350e11ee6ffa378",
+      "sha256": "d289fcd44f8b5db7ab196b63124b825c343168b25c22727099907eb704d0a566",
       "kind": "guideline",
       "example": false
     },
@@ -504,7 +504,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1002-process-an-inbox-capture.md",
-      "sha256": "3a4cc77e3d7bc9c14005f06b0a608a2f0b1b3a583de80413130ef6d16cda0fec",
+      "sha256": "815f5bbff11501a34923f054980700643b4d0b6c7e93f875ee423239011da976",
       "kind": "sop",
       "example": false
     },
@@ -654,13 +654,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "0c481da3c46f3106f55fd2f5162031ccc05b3395fea4f163c6a3e86203862ec5",
+      "sha256": "8b5a551a20034f6f613383f3cac480fd41ecf6b67f9b081a7f41785e6c38a347",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
-      "sha256": "95accff7118847b9115ef2c5775efb97e16437b4370b31f1e621105170e000dd",
+      "sha256": "612245dae277d116991c97fffd01a1ce7a21e3e44050759bcd642b8481e2e3ba",
       "kind": "script",
       "example": false
     },
@@ -828,7 +828,7 @@
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "e32ab796a7dc2af9e8e900680affd247319c30bc8982eeee1bcbd54db2e1ee04",
+      "sha256": "90c03ac23a8a2034342a937656c06b38db5befec751c9d99ef40b30d07f601f9",
       "kind": "doc",
       "example": false
     },
@@ -874,7 +874,7 @@
   "history": [
     {
       "version": "1.6.0",
-      "date": "2026-09-03",
+      "date": "2026-09-04",
       "removed": [],
       "renamed": [],
       "added": [

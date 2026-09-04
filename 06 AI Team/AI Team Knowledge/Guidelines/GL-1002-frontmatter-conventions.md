@@ -29,7 +29,7 @@ tags: []     # optional, lowercase, hyphenated
 | capture | source_url, captured (ISO datetime) | processed, processed_summary, processed_into |
 | person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action |
 | company | name | industry, people, website |
-| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | preview_image, issued_on, expiry_date, amount, currency, people, companies |
+| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into |
 | goal | status (not-achieved/achieved) | target_date, key_elements |
 | key-element | - | people, goals |
 | topic | - | related_topics |
@@ -88,7 +88,7 @@ Work in `03 WiP/` that runs past one session or one step carries one
   this person ("send the proposal", "congratulate on the launch").
   Cleared when done, not archived; history lives in the Journal.
 
-## The processed stamp (scratchpads and captures)
+## The processed stamp (scratchpads, captures, document wrapper notes)
 
 ```yaml
 processed: true
@@ -100,6 +100,43 @@ processed_into:
 
 Applied by `Scripts/stamp-processed.py`, never typed by hand and never
 by prose instruction. The body of the stamped note is never edited.
+A binary capture cannot carry the stamp; its wrapper note does (next
+section).
+
+## Binary captures and the processed stamp (ruling 2026-09-04)
+
+A scanned PDF, a photo, an audio memo: a binary capture cannot carry
+frontmatter, so it can never carry the processed stamp itself. Two
+rules met on that case and gave different answers.
+[[GL-1001-the-six-rooms|GL-1001]] keeps binaries in `05 Assets/`
+forever; hard rule 2 of `CLAUDE.md` keeps processed outer-world
+originals in `01 Inbox/Outer World/archive/` forever. This ruling
+breaks the tie:
+
+- **The wrapper note carries the stamp.** The `type: document` note in
+  `04 Inner World/Documents/` (the wrapper-note pattern above) is the
+  metadata-bearing record, so `processed`, `processed_summary` and
+  `processed_into` live there; the table declares them optional on
+  `document`. A photo or an audio memo that needs a record gets the same
+  wrapper with `doc_type: other`. No sidecar stamp note beside the
+  binary: that would be a third file per document and a second place to
+  look for one fact.
+- **The move to the shelf IS the archive.** A binary capture is MOVED
+  from `01 Inbox/` to its `05 Assets/` subfolder, never copied there.
+  "Never deleted" is honoured by the move: the bytes survive, in their
+  permanent room, linked from the wrapper note via `source_file`. A
+  second copy in `Outer World/archive/` would duplicate the file and
+  leave a binary sitting in `01 Inbox`, which GL-1001 exists to prevent.
+- **The move is verified by code, not by care.**
+  `Scripts/stamp-processed.py <wrapper-note> --capture <binary>` stamps
+  the wrapper note and removes the inbox original only after the shelf
+  copy (resolved from `source_file`) matches it byte for byte by
+  sha256. A mismatch fails loudly and removes nothing.
+
+Text captures are unchanged: the capture is its own note, carries the
+stamp itself and moves to `Outer World/archive/` via `--archive`. No
+capture is both shapes, and the script refuses `--archive` and
+`--capture` together.
 
 ## Goals and Projects (ruling 2026-08-28)
 

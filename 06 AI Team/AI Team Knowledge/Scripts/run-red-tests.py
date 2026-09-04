@@ -21,6 +21,15 @@ def expect_fail(name, argv, cwd=None):
     r = subprocess.run([PY] + argv, capture_output=True, text=True, cwd=cwd)
     if r.returncode == 0:
         fails.append(f"{name}: accepted bad input (guard is green when it must be red)")
+    return r
+
+def expect_refusal(name, argv, cwd=None):
+    """expect_fail, plus: the red must be a FAIL line, not a traceback. A
+    crash exits 1 too, and a crash teaches the operator nothing."""
+    r = expect_fail(name, argv, cwd)
+    if "Traceback" in (r.stderr or ""):
+        fails.append(f"{name}: crashed with a traceback instead of refusing")
+    return r
 
 with tempfile.TemporaryDirectory() as td:
     tmp = Path(td)
@@ -228,8 +237,89 @@ with tempfile.TemporaryDirectory() as td:
     expect_fail("new-progress-report/overwrite",
                 [str(pr), "--root", str(wroot), "--wip", "2026-01-01-demo", "--phase", "One"])
 
+    # 31-36. stamp-processed, the binary route (GL-1002 ruling 2026-09-04):
+    #        the wrapper note carries the stamp, the shelf is the archive.
+    sp = HERE / "stamp-processed.py"
+    BIN = b"%PDF-1.4\n\xff\xfe binary stream\n"  # not UTF-8, on purpose
+    def capture_vault(name, shelf=BIN, source_file='"[[scan.pdf]]"'):
+        """A minimal vault: the binary in the Scanner Inbox, its copy on the
+        shelf, and the wrapper note in Documents that links the copy."""
+        v = tmp / name
+        for d in ("01 Inbox/Scanner Inbox", "05 Assets/Documents", "04 Inner World/Documents"):
+            (v / d).mkdir(parents=True)
+        (v / "01 Inbox/Scanner Inbox/scan.pdf").write_bytes(BIN)
+        (v / "05 Assets/Documents/scan.pdf").write_bytes(shelf)
+        fm = "---\ntype: document\ndoc_type: other\n"
+        fm += f"source_file: {source_file}\n" if source_file else ""
+        (v / "04 Inner World/Documents/scan.md").write_text(fm + "---\nbody\n")
+        return v
+    STAMP = ["--summary", "x", "--into", "[[y]]"]
+    # 31. a binary passed as the note is refused by name, never decoded:
+    #     first by suffix, then (a binary wearing .md) by the UTF-8 check
+    #     that used to be the traceback
+    v31 = capture_vault("capture-31")
+    expect_refusal("stamp-processed/binary-as-note",
+                   [str(sp), str(v31 / "01 Inbox/Scanner Inbox/scan.pdf")] + STAMP)
+    (v31 / "bytes.md").write_bytes(BIN)
+    expect_refusal("stamp-processed/binary-bytes-as-note",
+                   [str(sp), str(v31 / "bytes.md")] + STAMP)
+    # 32. --capture with a .md is refused (a markdown capture is its own note)
+    v32 = capture_vault("capture-32")
+    (v32 / "01 Inbox/Scanner Inbox/clip.md").write_text("---\ntype: capture\n---\nbody\n")
+    expect_refusal("stamp-processed/capture-is-markdown",
+                   [str(sp), str(v32 / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--capture", str(v32 / "01 Inbox/Scanner Inbox/clip.md")])
+    # 33. --capture with a binary outside 01 Inbox is refused
+    v33 = capture_vault("capture-33")
+    (tmp / "outside.pdf").write_bytes(BIN)
+    expect_refusal("stamp-processed/capture-outside-inbox",
+                   [str(sp), str(v33 / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--capture", str(tmp / "outside.pdf")])
+    # 34. a wrapper note whose source_file does not resolve to one file on
+    #     the shelf is refused: no source_file at all, and one that points
+    #     at nothing
+    v34 = capture_vault("capture-34", source_file=None)
+    expect_refusal("stamp-processed/wrapper-without-source-file",
+                   [str(sp), str(v34 / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--capture", str(v34 / "01 Inbox/Scanner Inbox/scan.pdf")])
+    v34b = capture_vault("capture-34b", source_file='"[[nowhere.pdf]]"')
+    expect_refusal("stamp-processed/source-file-unresolved",
+                   [str(sp), str(v34b / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--capture", str(v34b / "01 Inbox/Scanner Inbox/scan.pdf")])
+    # 35. --archive and --capture together are refused
+    v35 = capture_vault("capture-35")
+    expect_refusal("stamp-processed/archive-and-capture",
+                   [str(sp), str(v35 / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--archive", "--capture", str(v35 / "01 Inbox/Scanner Inbox/scan.pdf")])
+    # 36. a forced sha256 mismatch is refused AND the inbox original still
+    #     exists, unstamped. A guard that refuses correctly but deletes on
+    #     the way out would pass every other test in this file.
+    v36 = capture_vault("capture-36", shelf=b"not the same bytes")
+    expect_refusal("stamp-processed/sha256-mismatch",
+                   [str(sp), str(v36 / "04 Inner World/Documents/scan.md")] + STAMP
+                   + ["--capture", str(v36 / "01 Inbox/Scanner Inbox/scan.pdf")])
+    if not (v36 / "01 Inbox/Scanner Inbox/scan.pdf").is_file():
+        fails.append("stamp-processed/sha256-mismatch: refused, yet the inbox original is GONE")
+    if "processed: true" in (v36 / "04 Inner World/Documents/scan.md").read_text():
+        fails.append("stamp-processed/sha256-mismatch: refused, yet the wrapper note got stamped")
+    # 36b. And the control: a correct --capture must PASS, stamp the
+    #      wrapper and remove the original, or the six reds prove nothing.
+    v36b = capture_vault("capture-clean")
+    r = subprocess.run([PY, str(sp), str(v36b / "04 Inner World/Documents/scan.md")] + STAMP
+                       + ["--capture", str(v36b / "01 Inbox/Scanner Inbox/scan.pdf")],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        fails.append("stamp-processed/capture-clean-control: rejected a good capture, so its reds are meaningless: "
+                     + (r.stderr.strip().splitlines() or ["?"])[-1])
+    elif (v36b / "01 Inbox/Scanner Inbox/scan.pdf").exists():
+        fails.append("stamp-processed/capture-clean-control: stamped but left the original in 01 Inbox")
+    elif not (v36b / "05 Assets/Documents/scan.pdf").is_file():
+        fails.append("stamp-processed/capture-clean-control: the shelf copy is gone")
+    elif "processed: true" not in (v36b / "04 Inner World/Documents/scan.md").read_text():
+        fails.append("stamp-processed/capture-clean-control: original removed but the wrapper is not stamped")
+
 if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)
     sys.exit(1)
-print(f"OK {checks}/{checks} guards went red on bad input (plus the manifest clean control stayed green)")
+print(f"OK {checks}/{checks} guards went red on bad input (plus the manifest and capture clean controls stayed green)")

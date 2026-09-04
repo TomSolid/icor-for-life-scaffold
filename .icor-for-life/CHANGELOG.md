@@ -66,6 +66,46 @@ old names; nothing is removed or moved in this entry.
   fetches remote sources, Silas verifies) and `SOP-1013` (Mack runs the
   wiring steps) name the new agents.
 
+### Fixed: binary captures can be stamped processed
+
+Reported and designed by community member Mike Mather, 2026-09-04. Found
+in live use: `Scripts/stamp-processed.py` read its note as UTF-8 before
+any guard ran, so a scanned PDF ended in a `UnicodeDecodeError` traceback
+instead of a refusal, and `--archive` only accepted notes inside
+`01 Inbox/Outer World/`, so a scan in `01 Inbox/Scanner Inbox/` was out of
+reach twice over. No binary capture on this scaffold had ever carried a
+processed stamp, and two rules gave two answers for one scanned document:
+GL-1001 keeps binaries in `05 Assets/` forever, hard rule 2 keeps
+processed originals in `Outer World/archive/` forever. Two runs four days
+apart resolved that tie two different ways, and neither was recorded.
+
+The ruling, in `GL-1002` under "Binary captures and the processed stamp
+(ruling 2026-09-04)": the wrapper note carries the stamp, and the move to
+the shelf IS the archive. A binary capture is moved to `05 Assets/`, never
+copied there, and never lands in `Outer World/archive/` as a second copy.
+
+- `GL-1002` declares `processed`, `processed_summary` and
+  `processed_into` optional on `type: document` and carries the ruling.
+- `stamp-processed.py` gains a second route, `--capture <binary>`: a
+  binary passed as the note is refused by name (suffix first, then a
+  UTF-8 decode check, so neither route can traceback); `--capture` needs
+  a binary inside `01 Inbox/` (a `.md` is told to use `--archive`); the
+  wrapper's `source_file` must resolve to exactly one file under
+  `05 Assets/`; the shelf copy must match the inbox original by sha256
+  before the original is removed, and a mismatch removes nothing and
+  stamps nothing; `--archive` and `--capture` refuse each other. The
+  text route is unchanged.
+- `SOP-1002` no longer contradicts itself: step 3 sent binaries to the
+  shelf while step 6 archived every capture. Binaries now take the
+  wrapper route in step 3, markdown captures archive in step 6.
+- `CLAUDE.md` hard rule 2 carries the binary clause, so the boot file
+  and the guideline agree.
+- `run-red-tests.py` adds the binary-route guards (31 to 36), one of
+  which asserts the inbox original survives a forced hash mismatch, plus
+  a green control for a correct `--capture`.
+
+Nothing is removed or moved in this entry.
+
 ### Removed: the ICOR for Life - Diagrams plugin
 
 The fullscreen mermaid viewer is a switch inside **ICOR for Life -
