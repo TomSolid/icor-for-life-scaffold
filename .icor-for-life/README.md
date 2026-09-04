@@ -44,3 +44,18 @@ manifest, and let `--check` go green. The check refuses a manifest that is
 stale against the tree, and it refuses to describe a removed file that the
 changelog does not explain. That second refusal is the whole point: a removal
 without a reason is the thing a member cannot recover from on their own.
+
+After the tag is pushed, the download follows in two steps:
+
+```
+bash "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"            # the member zip, from the pushed tag
+bash "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh" <zip>    # upload it and move the download pointer
+```
+
+The publish step refuses a zip whose version is not the newest tag or whose
+manifest is not that tag's manifest, never overwrites a published version with
+different bytes, and moves the pointer the download is served from only after
+the upload has been read back and its digest compared. Members download
+whatever the pointer names, so the download is current the moment that step
+finishes, with no change anywhere else. Both scripts are maintainer tooling and
+are left out of the download itself.

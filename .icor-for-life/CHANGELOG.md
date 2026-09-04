@@ -10,11 +10,27 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## Unreleased
+## 1.7.2
 
-Not yet released. The maintainer folds this section into the next version
-section when cutting the release; the manifest builder ignores it until
-then.
+Released 2026-09-04.
+
+### Added: the download publishes itself
+
+`06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh` is maintainer
+tooling. It takes the zip the builder produced, refuses it unless its version
+is the newest tag and its manifest is byte for byte that tag's manifest,
+uploads it to the member download store under its version, downloads it back
+and compares the digest, and only then moves the pointer the download is
+served from. From this version on, the download a member gets is the version
+git says is current, without a code change anywhere else. Like
+`build-release-zip.sh`, the script is stripped from the download by the
+builder's residue gate, so nothing in the vault tree changes for a member.
+`.icor-for-life/README.md` names the step.
+
+Until now the download was pinned by hand on the member app side, and 1.5.0,
+1.6.0 and 1.7.0 were tagged while the download still served 1.4.2. 1.7.1 was
+the first version published through the new step, and 1.7.2 is the first
+whose release includes it.
 
 ### Changed: the frontmatter contract learns Routines and the full Habit shape
 

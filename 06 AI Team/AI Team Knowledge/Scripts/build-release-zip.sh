@@ -175,6 +175,9 @@ echo "==> residue gate (our build tooling out of the member download)"
 
 declare -a RESIDUE_PATHS=(
   "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
+  # The publish step is the same kind of thing: it names our download store
+  # and our bucket layout, and a member has no use for it.
+  "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh"
 )
 
 # The self-test hook can only ever ADD a reason to fail. There is no value of
