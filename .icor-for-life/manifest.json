@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.7.1",
-  "built": "2026-09-04T15:37:09Z",
-  "commit": "5ebefec",
+  "version": "1.7.2",
+  "built": "2026-09-04T15:52:26Z",
+  "commit": "b98c15f",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -193,7 +193,7 @@
     },
     {
       "path": "02 Planner/README.md",
-      "sha256": "369d4b7f8594418eefc40e510db32c320551f03572a4e2be62dbd7c485ad92de",
+      "sha256": "46d326aef68a32ed6178d0273794dd5334115ab4c92e1023d50bd315d89705fe",
       "kind": "doc",
       "example": false
     },
@@ -277,7 +277,7 @@
     },
     {
       "path": "04 Inner World/My Life/Habits/Daily Scratchpad writing.md",
-      "sha256": "6a418315a3771c40d32f22906f7850587dfdf91fd76d37ec79f4aa50bbf73f1f",
+      "sha256": "c28c56fe7ea1f482cf3cd10eaf6c70eafe58943ed8c11840392a4e5831b623fc",
       "kind": "doc",
       "example": true
     },
@@ -445,7 +445,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "d289fcd44f8b5db7ab196b63124b825c343168b25c22727099907eb704d0a566",
+      "sha256": "0c3e8e12318c55d5a0d2035406dcde6b017d5e09aa124278849c943a821b08b6",
       "kind": "guideline",
       "example": false
     },
@@ -559,7 +559,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh",
-      "sha256": "4f00f13c0f19ced61c750016d11a3124e9004d20ba1c9ed9315287f18884bb95",
+      "sha256": "8323d024b997bb2e7d70955f13a9dc380a281682753b4f197d79e0365b7e1895",
       "kind": "script",
       "example": false
     },
@@ -630,6 +630,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh",
+      "sha256": "bd1f72687d97cf53cd3ea521a81b87bb4ebdc21cbb9f1517c43482721240edce",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
       "sha256": "8b5a551a20034f6f613383f3cac480fd41ecf6b67f9b081a7f41785e6c38a347",
       "kind": "script",
@@ -643,7 +649,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "c9e0d42ba6c4fe7d946a2f9c53d71a5b67e23ee7e1f53d3ab323b682c8a39eac",
+      "sha256": "2301ab340a637065c5ac24396338523758c254a5735b1287c8ad1792d0a4c708",
       "kind": "script",
       "example": false
     },
@@ -849,6 +855,15 @@
     }
   ],
   "history": [
+    {
+      "version": "1.7.2",
+      "date": "2026-09-04",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh"
+      ]
+    },
     {
       "version": "1.7.1",
       "date": "2026-09-04",
