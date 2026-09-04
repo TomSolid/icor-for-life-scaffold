@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.7.0",
-  "built": "2026-09-04T15:16:44Z",
-  "commit": "2396e6f",
+  "built": "2026-09-04T15:17:53Z",
+  "commit": "2c1272b",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -849,6 +849,39 @@
     }
   ],
   "history": [
+    {
+      "version": "1.7.0",
+      "date": "2026-09-04",
+      "removed": [
+        {
+          "path": ".obsidian/plugins/terminal/LICENSE.txt",
+          "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+          "note": "removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/`"
+        },
+        {
+          "path": ".obsidian/plugins/terminal/data.json",
+          "sha256": "4fb7fcba82d9d9e8e34b0102a86718b18ce173dadeae8542166e748864a219d0",
+          "note": "removed with the third-party plugin; the ICOR Terminal keeps its own settings in its own folder"
+        },
+        {
+          "path": ".obsidian/plugins/terminal/main.js",
+          "sha256": "b8d3ff003b4b301121993efd359aa1d344c899ef7c9fe302c493d56b96dd5454",
+          "note": "removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/main.js`"
+        },
+        {
+          "path": ".obsidian/plugins/terminal/manifest.json",
+          "sha256": "d5b85dcc749f628024ac8a66dc3d10e69d1153fc1353935ff1c87bdb1a5032f8",
+          "note": "removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/manifest.json`"
+        },
+        {
+          "path": ".obsidian/plugins/terminal/styles.css",
+          "sha256": "715a7d8fb4d7157ba968c909b111d03fd6c24853accf1dcfa9ed43fdd83aca0e",
+          "note": "removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/styles.css`"
+        }
+      ],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.6.0",
       "date": "2026-09-04",
