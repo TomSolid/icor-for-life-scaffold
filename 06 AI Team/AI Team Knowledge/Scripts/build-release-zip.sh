@@ -102,43 +102,53 @@ for spec in "${SPECS[@]}"; do
   git --git-dir "$HOME/.icor-git/$repo.git" archive origin/main | tar -x -C "$STAGE/$dest"
 done
 
-# The chat plugin is a full source repo that does NOT track its build output,
-# and its dev worktree may hold an in-flight build that never shipped. The zip
-# therefore stages it entirely from its LATEST GitHub release: docs
-# from the release tag, bundle from the release assets - the certified
-# artifact by construction, independent of any dev state.
+# The chat and terminal plugins are full source repos that do NOT track their
+# build output, and their dev worktrees may hold an in-flight build that never
+# shipped. The zip therefore stages each entirely from its LATEST GitHub
+# release: docs from the release tag, bundle from the release assets - the
+# certified artifact by construction, independent of any dev state.
 #
 # The mirror fetch is a hard block, not a `|| true`. A soft fetch means a
 # mirror that cannot reach origin stages whatever it happens to hold, under
 # the name of a tag it may not have; that is the stale-mirror defect the
-# five specs above already refuse, and this artifact is no different.
-echo "==> adding the chat plugin (from its latest GitHub release)"
-CHAT_REMOTE="icor-for-life-chat"
-CHAT_DEST="$STAGE/.obsidian/plugins/$CHAT_REMOTE"
-mkdir -p "$CHAT_DEST"
-CHAT_TAG="$(gh release view --repo "myICOR/$CHAT_REMOTE" --json tagName --jq .tagName)"
-if [ -z "$CHAT_TAG" ]; then
-  echo "BLOCKED: myICOR/$CHAT_REMOTE has no published release to stage from" >&2
-  exit 1
-fi
-if ! git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" fetch --quiet --tags --force origin \
-     "+refs/heads/main:refs/remotes/origin/main"; then
-  echo "BLOCKED: cannot refresh the $CHAT_REMOTE mirror from origin" >&2
-  exit 1
-fi
-# The tag has to exist in the mirror after that fetch. Without this check a
-# missing tag reaches `git archive` as an unresolved rev, and the failure
-# reads like a build error rather than what it is: staging a release the
-# mirror has never seen.
-if ! git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" rev-parse -q --verify "refs/tags/$CHAT_TAG" >/dev/null; then
-  echo "BLOCKED: the $CHAT_REMOTE mirror has no tag $CHAT_TAG after fetching origin" >&2
-  exit 1
-fi
-git --git-dir "$HOME/.icor-git/$CHAT_REMOTE.git" archive "$CHAT_TAG" -- \
-  manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/provenance.md SECURITY.md \
-  | tar -x -C "$CHAT_DEST"
-gh release download "$CHAT_TAG" --repo "myICOR/$CHAT_REMOTE" \
-  --pattern main.js --pattern styles.css --dir "$CHAT_DEST" --clobber
+# specs above already refuse, and these artifacts are no different.
+#
+# remote | the docs staged from the release tag (the bundle comes from the assets)
+declare -a RELEASE_SPECS=(
+  "icor-for-life-chat|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/provenance.md SECURITY.md"
+  "icor-for-life-terminal|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/handoff.md SECURITY.md"
+)
+declare -a RELEASE_REMOTES=()
+for rspec in "${RELEASE_SPECS[@]}"; do
+  IFS='|' read -r R_REMOTE R_DOCS <<< "$rspec"
+  RELEASE_REMOTES+=("$R_REMOTE")
+  echo "==> adding the $R_REMOTE plugin (from its latest GitHub release)"
+  R_DEST="$STAGE/.obsidian/plugins/$R_REMOTE"
+  mkdir -p "$R_DEST"
+  R_TAG="$(gh release view --repo "myICOR/$R_REMOTE" --json tagName --jq .tagName)"
+  if [ -z "$R_TAG" ]; then
+    echo "BLOCKED: myICOR/$R_REMOTE has no published release to stage from" >&2
+    exit 1
+  fi
+  if ! git --git-dir "$HOME/.icor-git/$R_REMOTE.git" fetch --quiet --tags --force origin \
+       "+refs/heads/main:refs/remotes/origin/main"; then
+    echo "BLOCKED: cannot refresh the $R_REMOTE mirror from origin" >&2
+    exit 1
+  fi
+  # The tag has to exist in the mirror after that fetch. Without this check a
+  # missing tag reaches `git archive` as an unresolved rev, and the failure
+  # reads like a build error rather than what it is: staging a release the
+  # mirror has never seen.
+  if ! git --git-dir "$HOME/.icor-git/$R_REMOTE.git" rev-parse -q --verify "refs/tags/$R_TAG" >/dev/null; then
+    echo "BLOCKED: the $R_REMOTE mirror has no tag $R_TAG after fetching origin" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC2086
+  git --git-dir "$HOME/.icor-git/$R_REMOTE.git" archive "$R_TAG" -- $R_DOCS \
+    | tar -x -C "$R_DEST"
+  gh release download "$R_TAG" --repo "myICOR/$R_REMOTE" \
+    --pattern main.js --pattern styles.css --dir "$R_DEST" --clobber
+done
 
 fail=0
 
@@ -262,8 +272,8 @@ done < <(find "$STAGE" \( -name ".env" -o -name "*.env" -o -name "workspace-mobi
 # 1b. THE FIRST-OPEN WORKSPACE, and why it is the one exception.
 #
 # A vault with no workspace opens on whatever Obsidian last felt like, which
-# in practice was the terminal plugin's changelog: a member's first sight of
-# the product was a third party's release notes. So the scaffold ships ONE
+# in practice was a third-party plugin's changelog: a member's first sight of
+# the product was somebody else's release notes. So the scaffold ships ONE
 # curated workspace whose only job is to open README.md.
 #
 # workspace.json is otherwise personal state and stays banned. It records
@@ -327,10 +337,10 @@ PYCHK
     echo "BLOCKED workspace carries state that is not the shipped README: ${f#$STAGE/}"; fail=1
   fi
 done < <(find "$STAGE" -name "workspace.json" -type f)
-# 2. data.json is allowed ONLY for the bundled community plugins
+# 2. data.json is allowed ONLY for the bundled community plugin
 while IFS= read -r f; do
   case "$f" in
-    */plugins/terminal/data.json|*/plugins/obsidian-outliner/data.json) ;;
+    */plugins/obsidian-outliner/data.json) ;;
     *) echo "BLOCKED data.json: $f"; fail=1 ;;
   esac
 done < <(find "$STAGE" -name "data.json" -type f)
@@ -350,7 +360,7 @@ done < <(find "$STAGE" -name ".npmrc" -type f)
 # 3. Content patterns that look like live credentials
 if grep -rInE "(pk_[0-9]+_[A-Z0-9]{20,}|xoxb-|BEGIN [A-Z ]*PRIVATE KEY|LEXOFFICE_API_KEY=|app_password|smtp_pass)" "$STAGE" 2>/dev/null \
      | grep -v "Scripts/run-red-tests.py" \
-     | grep -v "plugins/$CHAT_REMOTE/main.js"; then
+     | grep -v "plugins/icor-for-life-chat/main.js"; then
   echo "BLOCKED: credential-like content found (see matches above)"; fail=1
 fi
 
@@ -429,7 +439,9 @@ for spec in "${SPECS[@]}"; do
     verify_artifact "$remote" "$remote" "$STAGE/$dest" "main.js manifest.json styles.css"
   fi
 done
-verify_artifact "$CHAT_REMOTE" "$CHAT_REMOTE" "$CHAT_DEST" "main.js manifest.json styles.css"
+for R_REMOTE in "${RELEASE_REMOTES[@]}"; do
+  verify_artifact "$R_REMOTE" "$R_REMOTE" "$STAGE/.obsidian/plugins/$R_REMOTE" "main.js manifest.json styles.css"
+done
 
 # 5. The enabled-plugin list and the staged plugin folders must agree.
 #    Enabling a plugin the zip does not ship, or shipping one the vault does
@@ -444,11 +456,12 @@ import json, os, sys
 enabled = set(json.load(open(sys.argv[1])))
 present = {d for d in os.listdir(sys.argv[2])
            if os.path.isfile(os.path.join(sys.argv[2], d, "manifest.json"))}
-# Third-party plugins are vendored into the repo and are not our concern here;
+# The third-party plugin is vendored into the repo and is not our concern here;
 # the coherence rule is enforced over the first-party set only.
 ours = {"icor-for-life-planner", "icor-for-life-focus",
         "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
-        "icor-for-life-scaffold-check", "icor-for-life-sqlite-viewer"}
+        "icor-for-life-scaffold-check", "icor-for-life-sqlite-viewer",
+        "icor-for-life-terminal"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
@@ -460,7 +473,7 @@ for p in sorted((present & ours) - enabled):
 # and every check above stays green. This one names the complete expected
 # tree instead, so anything extra or missing is a failure by construction
 # rather than by remembering to add it to a list.
-expected = ours | {"terminal", "obsidian-outliner"}
+expected = ours | {"obsidian-outliner"}
 for p in sorted(present - expected):
     print(f"the zip stages an unexpected plugin folder {p!r}")
 for p in sorted(expected - present):

@@ -1,5 +1,4 @@
 [
-  "terminal",
   "obsidian-outliner",
   "icor-for-life-connect",
   "icor-for-life-planner",
@@ -7,5 +6,6 @@
   "icor-for-life-chat",
   "icor-for-life-interface",
   "icor-for-life-scaffold-check",
-  "icor-for-life-sqlite-viewer"
+  "icor-for-life-sqlite-viewer",
+  "icor-for-life-terminal"
 ]

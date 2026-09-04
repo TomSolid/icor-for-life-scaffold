@@ -94,7 +94,6 @@ theme = appearance.get("cssTheme") or ""
 # the versioning metadata itself (the version check covers that).
 EXCLUDE = {
     ".obsidian/workspace.json",
-    ".obsidian/plugins/terminal/data.json",
     ".mcp.json",
     ".gitignore",
 }

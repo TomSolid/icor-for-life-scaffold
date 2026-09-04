@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.6.0",
-  "built": "2026-09-04T14:04:36Z",
-  "commit": "8f4da21",
+  "version": "1.7.0",
+  "built": "2026-09-04T15:16:44Z",
+  "commit": "2396e6f",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -42,7 +42,8 @@
     "icor-for-life-interface",
     "icor-for-life-planner",
     "icor-for-life-scaffold-check",
-    "icor-for-life-sqlite-viewer"
+    "icor-for-life-sqlite-viewer",
+    "icor-for-life-terminal"
   ],
   "snippets": [],
   "files": [
@@ -108,7 +109,7 @@
     },
     {
       "path": ".obsidian/community-plugins.json",
-      "sha256": "08c5eb18f23b708c13590e183c985b8a53a77dfb9755f634ec979f03664712a4",
+      "sha256": "466fd4fbb7961e2be1d89225702ea59c7eb6a9f9efa9d0e1ecdca58b91e9a301",
       "kind": "config",
       "example": false
     },
@@ -151,30 +152,6 @@
     {
       "path": ".obsidian/plugins/obsidian-outliner/styles.css",
       "sha256": "7922a264883894e69f22c37f549744f7d46d1de926fc802aa4e94c75cd2fbceb",
-      "kind": "config",
-      "example": false
-    },
-    {
-      "path": ".obsidian/plugins/terminal/LICENSE.txt",
-      "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
-      "kind": "config",
-      "example": false
-    },
-    {
-      "path": ".obsidian/plugins/terminal/main.js",
-      "sha256": "b8d3ff003b4b301121993efd359aa1d344c899ef7c9fe302c493d56b96dd5454",
-      "kind": "config",
-      "example": false
-    },
-    {
-      "path": ".obsidian/plugins/terminal/manifest.json",
-      "sha256": "d5b85dcc749f628024ac8a66dc3d10e69d1153fc1353935ff1c87bdb1a5032f8",
-      "kind": "config",
-      "example": false
-    },
-    {
-      "path": ".obsidian/plugins/terminal/styles.css",
-      "sha256": "715a7d8fb4d7157ba968c909b111d03fd6c24853accf1dcfa9ed43fdd83aca0e",
       "kind": "config",
       "example": false
     },
@@ -582,13 +559,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh",
-      "sha256": "251e24912e4434157a111ab717ad807aee928a18e5b85d95da30e8acf5a6e4ea",
+      "sha256": "6fd35ef464893f300ed50ac9a2863f27577f7a9999752e70a8ee1381f62f98e1",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py",
-      "sha256": "f8e6b5ba8b77ccd6dcd5579f5de9e6e4d565b1d3c5193b080624ca868cf4c0ad",
+      "sha256": "1c60622b05f2450e911cd6fe79962c832270007d82e398baf724f61305478e82",
       "kind": "script",
       "example": false
     },
@@ -834,19 +811,19 @@
     },
     {
       "path": "LICENSE.md",
-      "sha256": "77a4297669904336177b2a56731f3d550d86076238a921eb6cb82b0804adeee9",
+      "sha256": "f999f6d8713fbea830a87edb41e0f96d5d460d6d9c177cb014383cb5d5ce1cb5",
       "kind": "doc",
       "example": false
     },
     {
       "path": "README.md",
-      "sha256": "328e4087df1d20fdd5b3301bd88bbb2d90d3b2902ae15ee739d4abfeae34801d",
+      "sha256": "adcc42b0f6a501a86411ab94aabacef4d09a205eea3aab7e51285841d4e52c60",
       "kind": "doc",
       "example": false
     },
     {
       "path": "THIRD-PARTY-NOTICES.md",
-      "sha256": "c8ded3d9e3dcb0148bbc634c4b85b079fe39f19dbe3ed1eccb9ac958d68d95aa",
+      "sha256": "dc263ce28bab20f746a508df60db1731c627603c407aa3546ac0a2a2219fd550",
       "kind": "doc",
       "example": false
     }

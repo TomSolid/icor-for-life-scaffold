@@ -11,8 +11,8 @@
 | ICOR AI Chat plugin (`icor-for-life-chat`) | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
 | myICOR Connect plugin (`icor-for-life-connect`) | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
 | ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | ICOR for Life Source-Available License (Code) v1.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
+| ICOR Terminal plugin (`icor-for-life-terminal`) | ICOR for Life Source-Available License (Code) v1.0 (bundles xterm.js and its addons under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
 | Scaffold content (structure, templates, AI-team files, prose) | ICOR for Life Source-Available License (Content) v1.0 | Use as your personal vault, adapt and extend your own copy without limit, quote brief excerpts with attribution, apply the ICOR Journey method freely | Publish or share the vault, adapted versions, or substantial parts; build commercial products, courses, or templates from the files |
-| Terminal plugin (bundled, unmodified) | AGPL-3.0 (its own authors) | Everything the AGPL-3.0 allows | N/A - see THIRD-PARTY-NOTICES.md for license text and source |
 | Outliner plugin (bundled, unmodified) | MIT (its own authors) | Everything MIT allows - keep its notice | N/A - see THIRD-PARTY-NOTICES.md |
 
 "Personal use" means use by you, for you, in vaults you control. Your license

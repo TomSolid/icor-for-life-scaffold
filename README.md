@@ -50,14 +50,22 @@ cannot hold.
 ## First steps
 
 1. Open this folder as a vault in Obsidian, and click "Trust author
-   and enable plugins" so the bundled Terminal and Outliner plugins
-   activate (see `THIRD-PARTY-NOTICES.md`). Then run Settings ->
+   and enable plugins" so the bundled plugins activate: the ICOR for
+   Life suite (Planner, Focus, Connect, AI Chat, Interface, Scaffold
+   Check, SQLite Viewer, Terminal; see `LICENSE.md`) and the Outliner
+   community plugin (see `THIRD-PARTY-NOTICES.md`). Then run Settings ->
    Community plugins -> Check for updates to get their latest
    versions. It opens in the ICOR for Life - INKLINE theme, which
    draws the rooms with icons and colors (the 00-06 prefixes only
    exist for sort order) and the banner above the folder tree.
-2. Open a terminal here and start your AI. It reads `CLAUDE.md` and
-   becomes Larry, your orchestrator.
+2. Open a terminal here and start your AI. The shell inside the app is
+   the **ICOR for Life - Terminal** plugin: run "Run Claude Code here"
+   from the command palette, or "New terminal" for a plain shell in the
+   vault folder. It reads `CLAUDE.md` and becomes Larry, your
+   orchestrator. The integrated terminal needs Python 3 on macOS (from
+   the Xcode Command Line Tools, `xcode-select --install`, or Homebrew)
+   and on Linux; on Windows the pane offers one button that opens your
+   own terminal (Windows Terminal by default) in the same folder.
 3. Write into today's Daily Scratchpad, then tell Larry:
    "process my scratchpad".
 

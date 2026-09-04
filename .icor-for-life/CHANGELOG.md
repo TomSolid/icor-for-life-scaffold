@@ -10,6 +10,52 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.7.0
+
+Released 2026-09-04.
+
+### Added: the ICOR for Life - Terminal plugin
+
+The shell inside the app is now our own. **ICOR for Life - Terminal**
+(`icor-for-life-terminal`, 0.1.0) ships and is enabled in this download:
+your login shell in a tab or a split, keyboard capture that still lets
+Obsidian keep its palette, a find bar, clickable links, shell profiles,
+and a one-command launcher for Claude Code in the vault folder ("Run
+Claude Code here", "Resume a Claude session by ID"). It is skinned by the
+INKLINE theme and hands a session to and from the AI Chat pane. Desktop
+only. It makes no network connection of its own and scrubs the `CLAUDE*`
+environment variables from the shell it starts; its `README.md` and
+`SECURITY.md` inside the plugin folder state everything it does on your
+machine. It passed the team's security review before release.
+
+Prerequisite, stated once in `README.md` first steps: the integrated pane
+needs Python 3 on macOS (Xcode Command Line Tools or Homebrew) and on
+Linux. On Windows this version has no integrated pane; it offers one
+button that opens your own terminal in the vault folder.
+
+The plugin joins `community-plugins.json`, the license table in
+`LICENSE.md` (under the ICOR for Life Source-Available License (Code)
+v1.0; it bundles xterm.js and five addons under MIT, listed in
+`THIRD-PARTY-NOTICES.md`), the zip builder's release-staged set and
+inventory, and the first-open workspace's ribbon entry. The manifest
+builder lists it as an expected plugin from `community-plugins.json`.
+
+### Removed: the third-party Terminal plugin
+
+polyipseity's Terminal community plugin (`terminal`, 3.27.1, AGPL-3.0),
+bundled since the first download, leaves the vault; ICOR for Life -
+Terminal replaces it. If you updated by hand, disable `terminal` under
+Settings -> Community plugins and delete its folder when convenient; the
+Scaffold Check will point at the files. With it gone, no copyleft
+component ships in this vault at all.
+
+- `.obsidian/plugins/terminal/LICENSE.txt`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/`
+- `.obsidian/plugins/terminal/data.json`: removed with the third-party plugin; the ICOR Terminal keeps its own settings in its own folder
+- `.obsidian/plugins/terminal/main.js`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/main.js`
+- `.obsidian/plugins/terminal/manifest.json`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/manifest.json`
+- `.obsidian/plugins/terminal/styles.css`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-terminal/styles.css`
+- `community-plugins.json` enables `icor-for-life-terminal` in place of `terminal`; `LICENSE.md` drops the AGPL row; `THIRD-PARTY-NOTICES.md` drops the polyipseity entry and lists the xterm.js components; `README.md` names the new plugin and the Python prerequisite; the zip builder's `data.json` allowance, plugin list and inventory no longer name `terminal`; the manifest builder no longer excludes its `data.json`.
+
 ## 1.6.0
 
 Released 2026-09-04.

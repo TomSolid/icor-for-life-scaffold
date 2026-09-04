@@ -2,24 +2,27 @@
 
 ## Bundled community plugins
 
-The ICOR for Life Scaffold bundles two unmodified community plugins for
-Obsidian so the vault works out of the box. They are separate works by
-their own authors, distributed under their own licenses, aggregated
-here for convenience:
+The ICOR for Life Scaffold bundles one unmodified community plugin for
+Obsidian so the vault works out of the box. It is a separate work by
+its own author, distributed under its own license, aggregated here for
+convenience:
 
 | Plugin | Author | Version bundled | License | Source |
 | --- | --- | --- | --- | --- |
-| Terminal | polyipseity | 3.27.1 | AGPL-3.0 | https://github.com/polyipseity/obsidian-terminal |
 | Outliner | Viacheslav Slinko | 4.10.2 | MIT | https://github.com/vslinko/obsidian-outliner |
 
-Full license texts ship inside each plugin's folder under
-`.obsidian/plugins/`. The complete corresponding source code of each
-plugin is available at the linked repositories.
+The full license text ships inside the plugin's folder under
+`.obsidian/plugins/`. The complete corresponding source code is
+available at the linked repository.
 
-These plugins are listed in Obsidian's official community catalog.
-After first open, run Settings -> Community plugins -> Check for
-updates to move to the latest official versions; Obsidian's updater
-recognizes the bundled copies normally.
+This plugin is listed in Obsidian's official community catalog. After
+first open, run Settings -> Community plugins -> Check for updates to
+move to the latest official version; Obsidian's updater recognizes the
+bundled copy normally.
+
+Until Scaffold 1.6.0 the vault also bundled the third-party Terminal
+plugin by polyipseity (AGPL-3.0). From 1.7.0 the shell inside the app is
+**ICOR for Life - Terminal**, our own plugin, listed below.
 
 ## Components inside the ICOR plugins
 
@@ -100,9 +103,35 @@ in the plugin's own `THIRD-PARTY-NOTICES.md`. The desktop engine is the
 `sqlite3` command line tool already on the member's machine, which is
 not bundled or redistributed.
 
+**ICOR Terminal** bundles the xterm.js terminal emulator and five of its
+addons, all by The xterm.js authors and all under the MIT License, from
+https://github.com/xtermjs/xterm.js:
+
+| Component | Version | Used for |
+| --- | --- | --- |
+| `@xterm/xterm` | 6.0.0 | the terminal emulator, rendering and input; its `css/xterm.css` is included in `styles.css` with its license header |
+| `@xterm/addon-fit` | 0.11.0 | sizing the grid to the pane |
+| `@xterm/addon-search` | 0.16.0 | the find bar |
+| `@xterm/addon-web-links` | 0.12.0 | clickable URLs in output |
+| `@xterm/addon-unicode11` | 0.9.0 | correct width of Unicode 11 characters, including emoji |
+| `@xterm/addon-webgl` | 0.19.0 | the WebGL renderer where the graphics stack allows it |
+
+Copyright (c) 2017-2019, The xterm.js authors (MIT). Copyright (c)
+2014-2016, SourceLair Private Company (MIT). Copyright (c) 2012-2013,
+Christopher Jeffrey (MIT). The MIT License text is the same one
+reproduced above under Zod. The full notice, with each component listed,
+ships in the plugin's own `THIRD-PARTY-NOTICES.md`.
+
+The plugin's pseudo-terminal helper (shipped inside `main.js` as readable
+Python source) uses only the Python 3 standard library. Python itself is
+NOT bundled or redistributed; the plugin runs the `python3` already
+installed on the member's machine, which is a prerequisite on macOS and
+Linux (see `README.md`). Lucide icon names are resolved through
+Obsidian's own API at runtime; no icon assets are bundled.
+
 No copyleft-licensed code (GPL, LGPL, AGPL or MPL) is bundled inside any
-ICOR plugin. The only copyleft component in this vault is the Terminal
-community plugin listed above, which ships unmodified and separate.
+ICOR plugin, and from Scaffold 1.7.0 no copyleft component ships in this
+vault at all.
 
 Obsidian itself is NOT bundled or redistributed; users install it from
 obsidian.md under Obsidian's own terms.
