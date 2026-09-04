@@ -10,6 +10,51 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.7.1
+
+Released 2026-09-04.
+
+### Changed: ICOR for Life - Terminal moves from 0.1.0 to 0.1.1
+
+The bundled **ICOR for Life - Terminal** plugin (`icor-for-life-terminal`)
+is now 0.1.1 in the download. 1.7.0 shipped 0.1.0 and said 0.1.1 would
+follow; this is that release, and it is the only change. Nothing in the
+vault tree moves: the download is built from this tag and stages the
+Terminal from its latest published release, so this section exists to
+make the changelog and the tag say the same thing as the bytes.
+
+Why 0.1.1 exists. The Obsidian directory's automated review of 0.1.0
+returned one error and a set of warnings, and 0.1.1 answers them without
+changing how the terminal behaves:
+
+- The manifest error: the plugin description named the app. It is
+  rewritten without the word, same meaning, in `manifest.json` and in the
+  README's first paragraph.
+- The deprecated `setWarning` call on the "Remove profile" button now uses
+  `setDestructive` on Obsidian 1.13 and newer, and sets the old class
+  below that.
+- The multi-value `text-decoration` shorthands in xterm's stylesheet, which
+  the CSS lint reported as only partially supported at the declared floor,
+  are split into `text-decoration-line` and `text-decoration-style` when
+  `styles.css` is assembled; a headless-Chrome test proves each xterm
+  decoration class still resolves to the same computed style.
+- The three release assets (`main.js`, `manifest.json`, `styles.css`) are
+  now published by the plugin's own release workflow and carry GitHub
+  artifact attestations. Anyone can verify what they downloaded with
+  `gh attestation verify main.js --repo myICOR/icor-for-life-terminal`.
+
+Acknowledged and unchanged: the licence warning (the plugin is
+source-available on purpose, see its `LICENSE`) and the behaviour warnings
+(file access outside the vault, process spawning, clipboard use are what a
+terminal is; each is described in its `README.md` and `SECURITY.md`). The
+security posture of 0.1.0 stands: the helper still runs Python in isolated
+mode, and no new spawn path was added.
+
+If you updated by hand: copy `main.js`, `manifest.json` and `styles.css`
+from https://github.com/myICOR/icor-for-life-terminal/releases/tag/0.1.1
+into `.obsidian/plugins/icor-for-life-terminal/` and reload the plugin.
+No file is removed or moved in this version.
+
 ## 1.7.0
 
 Released 2026-09-04.
