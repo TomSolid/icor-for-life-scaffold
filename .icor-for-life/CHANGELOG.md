@@ -10,6 +10,53 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.7.3
+
+Released 2026-09-04.
+
+### Changed: ICOR for Life - Terminal moves from 0.1.1 to 0.1.2
+
+The bundled **ICOR for Life - Terminal** plugin (`icor-for-life-terminal`)
+is now 0.1.2 in the download, and that is the only change. Nothing in the
+vault tree moves: the download is built from this tag and stages the
+Terminal from its latest published release, so this section exists to make
+the changelog and the tag say the same thing as the bytes.
+
+Why 0.1.2 exists. The Obsidian directory's automated review of 0.1.1 left
+two warnings standing, and 0.1.2 clears both without changing how the
+terminal behaves, with one visible exception named below:
+
+- The CSS lint warning on `text-decoration`. The `text-decoration-line`
+  and `text-decoration-style` longhands that 0.1.1 introduced were still
+  reported as only partially supported at the declared floor, because the
+  review's baseline flags a styled or two-line decoration in any spelling.
+  The stylesheet now carries only the plain single-keyword forms
+  (`underline`, `overline`, `line-through`). The cost is confined to the
+  DOM renderer, the fallback behind WebGL: it draws double, wavy, dotted
+  and dashed underlines as a plain underline. The WebGL renderer, the
+  default, draws decorations on its canvas and never reads these rules.
+- The behaviour warning "Direct Filesystem Access: Uses the Node.js fs
+  module". The plugin's only `fs` use was the executable check for
+  `claude` and the Python interpreter. The import is gone: a candidate is
+  now probed by running it with `--version` (no shell, no stdio, a 1.5 s
+  timeout) and the verdict is remembered per path until settings are
+  saved. No spawn path's arguments change beyond these probes; the helper
+  still runs Python in isolated mode (`-I`), and every condition of the
+  security review stands. The plugin's `SECURITY.md` lists the probes in
+  its spawn inventory.
+
+Acknowledged and unchanged, as in 0.1.1: the clipboard recommendation
+(inherent to a terminal) and the licence warning (the plugin is
+source-available on purpose; its README now says in plain words what the
+licence allows and what it does not). The three release assets carry
+GitHub artifact attestations, verified before this cut with
+`gh attestation verify main.js --repo myICOR/icor-for-life-terminal`.
+
+If you updated by hand: copy `main.js`, `manifest.json` and `styles.css`
+from https://github.com/myICOR/icor-for-life-terminal/releases/tag/0.1.2
+into `.obsidian/plugins/icor-for-life-terminal/` and reload the plugin.
+No file is removed or moved in this version.
+
 ## 1.7.2
 
 Released 2026-09-04.
