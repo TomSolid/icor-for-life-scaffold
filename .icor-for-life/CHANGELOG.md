@@ -28,6 +28,9 @@ environment variables from the shell it starts; its `README.md` and
 `SECURITY.md` inside the plugin folder state everything it does on your
 machine. It passed the team's security review before release.
 
+The download built from this tag carries Terminal 0.1.0; 0.1.1 (the
+Obsidian directory's review fixes) follows in the next scaffold release.
+
 Prerequisite, stated once in `README.md` first steps: the integrated pane
 needs Python 3 on macOS (Xcode Command Line Tools or Homebrew) and on
 Linux. On Windows this version has no integrated pane; it offers one
