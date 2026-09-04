@@ -34,7 +34,7 @@ tags: []     # optional, lowercase, hyphenated
 | key-element | - | people, goals |
 | topic | - | related_topics |
 | project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements |
-| habit | cadence (daily/weekly/monthly) | status, since |
+| habit | cadence (daily/weekdays/weekly/monthly/adhoc) | name, status (active/paused/abandoned), cadence_days (mon..sun codes), started_on (ISO date; `since` is read as an alias) |
 | task | status (open/in-progress/done/cancelled), assignee | related, due |
 | progress-report | status (live/closed), updated (ISO datetime) | plan |
 | session-log | date, agents | - |
@@ -43,7 +43,8 @@ tags: []     # optional, lowercase, hyphenated
 | agent-bio | agent, role | - |
 | agent | name, role | - |
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) |
-| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at |
+| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due |
+| planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) |
 
 ## Documents: the wrapper-note pattern (ruling 2026-08-29)
 
@@ -193,3 +194,155 @@ render on the board but never become notes.
   With "Push edits to source" on (the default), editing the note BODY or
   `due` / `priority` syncs back to Todoist / ClickUp on the next detection,
   so body edits are sanctioned and travel.
+- Recurring tasks (Planner 0.7.3), all source-owned: `recurring` is
+  `true`, `false`, or `null` when the source cannot say (ClickUp, or a note
+  from before the field existed); `due_string` is the source's own
+  recurrence phrase ("every monday"), Todoist only; `last_completed_due` is
+  the due date of the most recently finished occurrence; `occurrences`
+  lists finished occurrences oldest first, at most 30, each with `due`,
+  `planned_day`, `planned_half`, `done_at`. `reopen_pending` is `true`
+  between unchecking a source-closed card and the source confirming the
+  reopen: the board sets it, sync clears it, and reconcile stands down
+  while it is set.
+- Subtasks: `parent_id` is the source's id of the parent task as a string,
+  or `null`. Source-owned. It resolves inside the same `source` only; a
+  child whose parent is not in the vault is an ordinary item.
+- Manual items carry `created_at` in place of `synced_at`.
+
+## Planner routines (ruling 2026-09-04)
+
+A routine is a fixed block of the day (morning, afternoon or evening) with
+a short checklist of steps. Routines are a Planner concept, not a My Life
+entity: they live in `02 Planner/Routines/`, one note per routine, and the
+Planner plugin creates the folder when it needs it. The frontmatter is the
+definition; the body holds the steps and the log.
+
+```yaml
+type: planner-routine
+name: Morning launch
+routine_type: morning                 # morning | afternoon | evening
+start: "06:30"                        # HH:MM, local time
+end: "07:30"                          # HH:MM, must be after start
+weekdays: [mon, tue, wed, thu, fri]   # same lowercase 3-letter codes as cadence_days
+active: true
+created_at: 2026-09-04T09:00:00Z      # optional
+```
+
+Body, two fixed sections:
+
+```markdown
+## Steps
+- [ ] Water, 500 ml
+- [ ] One journal page
+- [ ] Plan the day on the board
+
+## Log
+<!-- routine-log: schema=steps -->
+| Date | Done | Steps |
+|---|---|---|
+| 2026-09-04 | 3/3 | 1,2,3 |
+| 2026-09-03 | 1/3 | 2 |
+| 2026-09-02 | S | |
+```
+
+- `## Steps` is the definition. The plugin never writes its boxes and reads
+  them as labels only; a `- [x]` there counts as unchecked, because the
+  day's state lives in the log. Steps are identified by position (1-based),
+  so editing the list mid-day changes that day's mapping; the log keeps the
+  count that matters.
+- `## Log` carries the `<!-- routine-log: schema=steps -->` sentinel on its
+  own line immediately before the table. Columns are `Date | Done | Steps`:
+  `Date` is an ISO date, `Done` is `n/m` (steps done of steps defined) or
+  `S` when the routine was skipped that day, `Steps` is the comma-separated
+  positions that were done. One row per date. Newest on top is the
+  default; a writer keeps whatever direction the table already has and
+  replaces a day's row in place, never rewriting the lines around it.
+- An agent answers "what is the morning routine and was it done today" by
+  reading the steps from `## Steps` and today's row from `## Log`. An agent
+  may append a row in chat, the same way it does for a habit.
+- Never a streak, a count or a done-state in frontmatter. Definition in
+  frontmatter, log in the body: the same rule as Habits below.
+
+## Habits: cadence and the daily log (ruling 2026-09-04)
+
+The Planner plugin reads the Habits room (`04 Inner World/My Life/Habits/`,
+one flat `.md` per habit, never a folder) and writes check-ins into it, so
+the habit contract is stated in full here. It is the shape the
+maintainer's own vault has run on since June 2026.
+
+```yaml
+type: habit
+name: Morning walk               # optional; the filename is the name when absent
+cadence: daily                   # daily | weekdays | weekly | monthly | adhoc
+cadence_days: [sun, wed]         # optional: mon | tue | wed | thu | fri | sat | sun
+status: active                   # active | paused | abandoned
+started_on: 2026-04-01           # ISO date; `since` is read as an alias
+tags: []
+```
+
+- `cadence` is the rhythm; `status` is whether you are currently doing it.
+  `weekdays` means Monday to Friday. `adhoc` is a habit with no fixed
+  rhythm; give it `cadence_days` when it has target days. Readers accept
+  the singular `weekday` as `weekdays`; writers use `weekdays`.
+- `cadence_days` names the fixed weekdays a habit lands on when `cadence`
+  alone cannot express it: "twice a week, on Sunday and Wednesday" is
+  `cadence: weekly` plus `cadence_days: [sun, wed]`. Values are lowercase
+  3-letter day codes. Leave the field off for habits whose `cadence`
+  already says everything (`daily`, `weekdays`, plain `monthly`). Optional,
+  additive: existing habits without it stay valid. It gives the Planner a
+  precise "is today a target day" answer instead of inferring one. The
+  Planner's HABITS tab may write `cadence` and `cadence_days`; it writes no
+  other habit frontmatter.
+- `started_on` is the ISO date the habit began. Notes written before this
+  ruling carry `since`; readers treat the two as one field, new notes use
+  `started_on`.
+- **Streak tracking stays a body-level concern, never a frontmatter
+  field.** Frontmatter holds the definition; the daily log lives in the
+  body.
+
+### The daily log: the `<!-- habit-log: schema=... -->` sentinel
+
+A habit that tracks daily check-ins keeps them as a markdown table in the
+body (human-readable, editable in chat or by hand, canonical). So that code
+can parse the table deterministically, place a single HTML-comment sentinel
+on its own line immediately before the table, under a `## Daily log`
+heading:
+
+```markdown
+## Daily log
+<!-- habit-log: schema=streak -->
+| Date | Y/N | Note |
+|---|---|---|
+| 2026-09-04 | Y | |
+| 2026-09-03 | N | slept in |
+```
+
+The sentinel is invisible in Obsidian and unambiguous for the parser. This
+is a body convention, not a frontmatter field. Two schemas cover the known
+patterns:
+
+- `schema=streak`: the first column is a date and the second a binary
+  done marker; any further columns are folded into a note. Used by
+  streak-style and green/red trackers.
+- `schema=process`: the same two columns plus a third column captured as
+  the trigger (what set the habit off, or what drifted). Used by process
+  trackers that have no streak by design.
+
+Markers, both schemas:
+
+| marker | meaning |
+| --- | --- |
+| `Y`, `✓`, `G` | done |
+| `N`, `R`, an en dash (U+2013) | not done |
+| `_`, an em dash (U+2014), blank | pending: the day is not over |
+
+One row per date. Newest on top is the default; a writer keeps whatever
+direction the table already has and replaces a day's row in place, never
+rewriting the lines around it. Streaks are never written into the table or
+the frontmatter; they are computed from the rows at read time, which is
+what stops self-reported streaks from drifting. The Planner's check-in
+writes exactly this: `Y` on check, `_` on uncheck (or `N` when the row
+already carries a note), and it creates the `## Daily log` section with the
+`streak` sentinel when the note has none. Body section conventions for the
+rest of a habit note: `## Why this habit`, `## What it looks like`,
+`## Reflection`.

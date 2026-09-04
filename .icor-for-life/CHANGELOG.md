@@ -10,6 +10,44 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## Unreleased
+
+Not yet released. The maintainer folds this section into the next version
+section when cutting the release; the manifest builder ignores it until
+then.
+
+### Changed: the frontmatter contract learns Routines and the full Habit shape
+
+The ICOR for Life - Planner plugin is about to write habit check-ins and
+routine logs into member vaults, and no plugin writes a field the Guideline
+does not name. So
+`06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md`
+changes ahead of that plugin release:
+
+- `habit`: `cadence` is now `daily | weekdays | weekly | monthly | adhoc`
+  (the singular `weekday` is accepted on read); optional `name`,
+  `cadence_days` (lowercase `mon..sun`), `started_on` (`since` stays an
+  alias on read). A new section documents the daily log as a body table
+  behind the `<!-- habit-log: schema=streak -->` or `schema=process`
+  sentinel, with the marker table; streaks are computed, never stored.
+- new `planner-routine` type for `02 Planner/Routines/`: required `name`,
+  `routine_type`, `start`, `end`, `weekdays`, `active`; optional
+  `created_at`; body sections `## Steps` and `## Log` behind the
+  `<!-- routine-log: schema=steps -->` sentinel.
+- `planner-item` gains `created_at`, `parent_id`, `recurring`,
+  `due_string`, `occurrences`, `reopen_pending`, `last_completed_due`,
+  matching the Planner README's contract table.
+
+Alongside: `02 Planner/README.md` gains a Routines and a Habits paragraph;
+the example `04 Inner World/My Life/Habits/Daily Scratchpad writing.md`
+shows `cadence_days` as a commented optional field and uses `started_on`;
+`06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py` now checks
+habit `cadence` and `cadence_days` values and the shape of every note in
+`02 Planner/Routines/`. The folder itself is not a required room: the
+Planner creates it when Routines are switched on.
+
+No file is removed or moved.
+
 ## 1.7.1
 
 Released 2026-09-04.

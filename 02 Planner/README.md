@@ -28,3 +28,30 @@ restore the board instantly on relaunch. It is secret-free by contract
 (event data only, never the calendar feed URL) and safe for the AI team to
 read for schedule context, the same way the Todoist / ClickUp / Email task
 notes are read. Do not edit it; every healthy sync overwrites it.
+
+## Routines
+
+`02 Planner/Routines/` holds one note per routine (`type: planner-routine`):
+a fixed block of the day with a short checklist. The frontmatter is the
+definition (name, morning / afternoon / evening, start and end time, the
+weekdays it runs, whether it is active); the body holds the steps under
+`## Steps` and the daily log under `## Log`, a table behind a
+`<!-- routine-log: schema=steps -->` sentinel, newest row on top. The plugin
+creates the folder when Routines are switched on and writes only log rows,
+never the steps. The AI team reads the steps and today's row to answer
+"what is the morning routine and was it done", and may append a row in chat
+the same way it does for habits. Field names and the marker rules are in
+[[GL-1002-frontmatter-conventions|GL-1002]].
+
+## Habits
+
+The Planner reads the My Life Habits room (`04 Inner World/My Life/Habits/`)
+and shows each active habit on the days its `cadence` and `cadence_days`
+name. Checking a habit on the board writes one row into the habit note's
+daily log, the body table behind the `<!-- habit-log: schema=... -->`
+sentinel, and creates that section the first time when the note has none.
+The plugin never writes habit frontmatter, with one exception: the HABITS
+tab in the tray sets `cadence` and `cadence_days` when you pick weekdays
+there. Streaks are computed from the rows at render time, never stored.
+The full contract, the cadence value set and the marker table, is in
+[[GL-1002-frontmatter-conventions|GL-1002]].

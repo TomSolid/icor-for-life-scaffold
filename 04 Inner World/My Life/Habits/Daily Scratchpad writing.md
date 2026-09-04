@@ -1,8 +1,9 @@
 ---
 type: habit
 cadence: daily
+# cadence_days: [sun, wed]   # optional, only when cadence alone cannot name the days (GL-1002)
 status: active
-since: 2026-08-27
+started_on: 2026-08-27
 tags: [example]
 ---
 # Daily Scratchpad writing

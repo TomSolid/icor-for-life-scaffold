@@ -10,6 +10,10 @@ Checks (all deterministic, per GL-1001 and GL-1004):
   6. Every folder inside a room resolves a colour and a glyph from
      the icor-rooms snippet, so a new folder can never ship as bare
      text in the file tree the way "AI Sessions" did (2026-08-30).
+  7. Habit notes use the GL-1002 cadence value set and mon..sun codes
+     in cadence_days.
+  8. Every note in 02 Planner/Routines/ has the planner-routine shape
+     (type, routine_type, HH:MM start before end, weekdays, active).
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 """
 import re, sys
@@ -103,6 +107,77 @@ if goals_dir.is_dir():
         m = re.search(r"^status:\s*(\S+)", fm(f), re.M)
         if m and m.group(1) not in ("not-achieved", "achieved"):
             fails.append(f"goal status must be not-achieved|achieved: {f.name} has '{m.group(1)}'")
+
+# --- 7 and 8. habit and routine frontmatter value sets (GL-1002) --------
+DAY_CODES = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+# `weekday` (singular) is the read alias GL-1002 grants older notes.
+CADENCES = ("daily", "weekdays", "weekly", "monthly", "adhoc", "weekday")
+
+def fm_list(front, key):
+    """Values of a frontmatter list, inline `[a, b]` or block `- a`.
+    None when the key is absent; [] when it is present and empty."""
+    m = re.search(r"^%s:[ \t]*(.*)$" % re.escape(key), front, re.M)
+    if not m:
+        return None
+    rest = m.group(1).strip()
+    if rest.startswith("["):
+        return [v.strip().strip("'\"") for v in rest.strip("[]").split(",") if v.strip()]
+    if rest:
+        return [rest.strip("'\"")]
+    items = []
+    for line in front[m.end():].splitlines()[1:]:
+        lm = re.match(r"^\s+-\s*(.+)$", line)
+        if not lm:
+            break
+        items.append(lm.group(1).strip().strip("'\""))
+    return items
+
+habits_dir = ROOT / "04 Inner World/My Life/Habits"
+if habits_dir.is_dir():
+    for f in habits_dir.glob("*.md"):
+        if f.name == "README.md":
+            continue
+        front = fm(f)
+        m = re.search(r"^cadence:\s*(\S+)", front, re.M)
+        if m and m.group(1) not in CADENCES:
+            fails.append(f"habit cadence must be daily|weekdays|weekly|monthly|adhoc: {f.name} has '{m.group(1)}'")
+        for d in fm_list(front, "cadence_days") or []:
+            if d not in DAY_CODES:
+                fails.append(f"habit cadence_days must use mon..sun codes: {f.name} has '{d}'")
+
+routines = ROOT / "02 Planner/Routines"
+if routines.is_dir():
+    for f in routines.glob("*.md"):
+        if f.name == "README.md":
+            continue
+        front = fm(f)
+        t = re.search(r"^type:\s*(\S+)", front, re.M)
+        if not t or t.group(1) != "planner-routine":
+            fails.append(f"routine note must carry type: planner-routine (GL-1002): {f.name}")
+        if not re.search(r"^name:\s*\S", front, re.M):
+            fails.append(f"routine without a name: {f.name}")
+        rt = re.search(r"^routine_type:\s*(\S+)", front, re.M)
+        if not rt or rt.group(1) not in ("morning", "afternoon", "evening"):
+            fails.append(f"routine_type must be morning|afternoon|evening: {f.name}")
+        times = {}
+        for key in ("start", "end"):
+            km = re.search(r'^%s:\s*"?(\d{2}:\d{2})"?\s*$' % key, front, re.M)
+            if km:
+                times[key] = km.group(1)
+            else:
+                fails.append(f"routine {key} must be HH:MM: {f.name}")
+        if len(times) == 2 and times["end"] <= times["start"]:
+            fails.append(f"routine end must be after start: {f.name} ({times['start']} to {times['end']})")
+        days = fm_list(front, "weekdays")
+        if days is None:
+            fails.append(f"routine without weekdays: {f.name}")
+        else:
+            for d in days:
+                if d not in DAY_CODES:
+                    fails.append(f"routine weekdays must use mon..sun codes: {f.name} has '{d}'")
+        am = re.search(r"^active:\s*(\S+)", front, re.M)
+        if not am or am.group(1) not in ("true", "false"):
+            fails.append(f"routine active must be true|false: {f.name}")
 
 agents = ROOT / "06 AI Team/Agents"
 if agents.is_dir():
