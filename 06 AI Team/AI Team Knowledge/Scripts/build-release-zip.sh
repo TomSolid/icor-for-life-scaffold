@@ -72,6 +72,7 @@ declare -a SPECS=(
   "icor-for-life-connect|icor-for-life-connect|.obsidian/plugins/icor-for-life-connect|plugin"
   "icor-for-life-interface|icor-for-life-interface|.obsidian/plugins/icor-for-life-interface|plugin"
   "icor-for-life-scaffold-check|icor-for-life-scaffold-check|.obsidian/plugins/icor-for-life-scaffold-check|plugin"
+  "icor-for-life-sqlite-viewer|icor-for-life-sqlite-viewer|.obsidian/plugins/icor-for-life-sqlite-viewer|plugin"
   "icor-for-life-inkline|icor-for-life-inkline|.obsidian/themes/ICOR for Life - INKLINE|theme"
 )
 
@@ -447,7 +448,7 @@ present = {d for d in os.listdir(sys.argv[2])
 # the coherence rule is enforced over the first-party set only.
 ours = {"icor-for-life-planner", "icor-for-life-focus",
         "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
-        "icor-for-life-scaffold-check"}
+        "icor-for-life-scaffold-check", "icor-for-life-sqlite-viewer"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
