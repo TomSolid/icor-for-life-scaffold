@@ -420,12 +420,12 @@ PYCHK
     echo "BLOCKED workspace carries state that is not the shipped README: ${f#$STAGE/}"; fail=1
   fi
 done < <(find "$STAGE" -name "workspace.json" -type f)
-# 2. data.json is allowed ONLY for the bundled community plugin
+# 2. data.json never ships. Every plugin in the vault is first-party now and
+#    keeps its own settings out of the vault's tracked history (the same rule
+#    every other ICOR plugin already followed); there is no bundled
+#    community plugin left to carve an exception for.
 while IFS= read -r f; do
-  case "$f" in
-    */plugins/obsidian-outliner/data.json) ;;
-    *) echo "BLOCKED data.json: $f"; fail=1 ;;
-  esac
+  echo "BLOCKED data.json: $f"; fail=1
 done < <(find "$STAGE" -name "data.json" -type f)
 # 2b. Personal live data: planner items and dated daily notes never ship
 while IFS= read -r f; do
@@ -539,12 +539,12 @@ import json, os, sys
 enabled = set(json.load(open(sys.argv[1])))
 present = {d for d in os.listdir(sys.argv[2])
            if os.path.isfile(os.path.join(sys.argv[2], d, "manifest.json"))}
-# The third-party plugin is vendored into the repo and is not our concern here;
-# the coherence rule is enforced over the first-party set only.
+# Every plugin in the vault is first-party now; there is no third-party
+# plugin left to carve out of the coherence rule.
 ours = {"icor-for-life-planner", "icor-for-life-focus",
         "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
         "icor-for-life-scaffold-check", "icor-for-life-sqlite-viewer",
-        "icor-for-life-terminal"}
+        "icor-for-life-terminal", "icor-for-life-outliner"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
@@ -556,7 +556,7 @@ for p in sorted((present & ours) - enabled):
 # and every check above stays green. This one names the complete expected
 # tree instead, so anything extra or missing is a failure by construction
 # rather than by remembering to add it to a list.
-expected = ours | {"obsidian-outliner"}
+expected = ours
 for p in sorted(present - expected):
     print(f"the zip stages an unexpected plugin folder {p!r}")
 for p in sorted(expected - present):

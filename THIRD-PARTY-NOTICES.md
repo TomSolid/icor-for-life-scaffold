@@ -1,34 +1,26 @@
 # Third-party notices
 
-## Bundled community plugins
+Every plugin the ICOR for Life Scaffold bundles is an ICOR for Life
+plugin, our own work. None of them is a third-party community install,
+and this file bundles no community plugin's own license or catalog
+listing any more. From 1.7.0 the shell inside the app has been **ICOR
+for Life - Terminal**, our own plugin, replacing the third-party
+Terminal plugin by polyipseity (AGPL-3.0); from 1.10.0 the outliner
+inside the app is **ICOR for Life - Outliner**, our own plugin,
+replacing the third-party Outliner community plugin (MIT).
 
-The ICOR for Life Scaffold bundles one unmodified community plugin for
-Obsidian so the vault works out of the box. It is a separate work by
-its own author, distributed under its own license, aggregated here for
-convenience:
-
-| Plugin | Author | Version bundled | License | Source |
-| --- | --- | --- | --- | --- |
-| Outliner | Viacheslav Slinko | 4.10.2 | MIT | https://github.com/vslinko/obsidian-outliner |
-
-The full license text ships inside the plugin's folder under
-`.obsidian/plugins/`. The complete corresponding source code is
-available at the linked repository.
-
-This plugin is listed in Obsidian's official community catalog. After
-first open, run Settings -> Community plugins -> Check for updates to
-move to the latest official version; Obsidian's updater recognizes the
-bundled copy normally.
-
-Until Scaffold 1.6.0 the vault also bundled the third-party Terminal
-plugin by polyipseity (AGPL-3.0). From 1.7.0 the shell inside the app is
-**ICOR for Life - Terminal**, our own plugin, listed below.
+What follows is not a notice about a bundled tool. It is the licenses of
+the open-source libraries some of our own plugins use inside their code
+- MIT and Apache notices that travel with that code under its own
+license, whichever plugin folder it ships in.
 
 ## Components inside the ICOR plugins
 
 The ICOR plugins are our own work. Several of them bundle no
 third-party code at all: ICOR Focus, ICOR Interface and myICOR Connect are
-hand-written JavaScript against the Obsidian plugin API.
+hand-written JavaScript against the Obsidian plugin API, and ICOR for
+Life - Outliner is hand-written TypeScript against the CodeMirror and
+Obsidian editor APIs.
 
 **ICOR Planner** embeds the source-tool glyphs (Todoist, ClickUp) as SVG
 path data from the Simple Icons project (https://simpleicons.org),
