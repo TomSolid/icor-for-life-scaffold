@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.8.0",
-  "built": "2026-09-06T13:39:02Z",
-  "commit": "c09bfc7",
+  "version": "1.9.0",
+  "built": "2026-09-06T13:47:32Z",
+  "commit": "a98b4a9",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -50,6 +50,12 @@
     {
       "path": ".claude/agents/charta.md",
       "sha256": "4cd43e87360eba6835ce9a3b2b0c8968c80761ad71346135dafb979d18d4cb8d",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/agents/flint.md",
+      "sha256": "0b4c367fee2c95a401750fec8be800cb0264711d6ef7521ff9c8316d15670c9f",
       "kind": "claude",
       "example": false
     },
@@ -344,6 +350,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Avatars/charta.png",
       "sha256": "d42200a5fd734dc12bfa669e13f46ec0ff0d7042629eeb26b776f0dc7c267fc3",
+      "kind": "asset",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/flint.png",
+      "sha256": "49736ec22a6e6dd1cb2d02dc2c21740ce928c5049f20a74c8b3af3dc45ced135",
       "kind": "asset",
       "example": false
     },
@@ -720,6 +732,18 @@
       "example": false
     },
     {
+      "path": "06 AI Team/Agents/Flint/AGENT.md",
+      "sha256": "40a1985444a8fb7caa4270d36fb9d26684c192fc04e807f26ff233905a14fc48",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Flint/Flint.md",
+      "sha256": "34af3b0ba7d3535e63e60ad10f2c4a3cf8a2f989fe13e024b66cbb3b3d08059d",
+      "kind": "agent",
+      "example": false
+    },
+    {
       "path": "06 AI Team/Agents/Iris/AGENT.md",
       "sha256": "7c6b24620858e8cf033ac5e95f5ef3c32fcec46789aaed4ae5fd67fc98bf98a8",
       "kind": "agent",
@@ -733,7 +757,7 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "57de652141f9185783adee45604496e70b1ff68c11807a47dcba76a6b0e16523",
+      "sha256": "f187f6eda6919f020482c65e5374e4cbca336015e44372940d28363c2b19fad0",
       "kind": "agent",
       "example": false
     },
@@ -811,7 +835,7 @@
     },
     {
       "path": "06 AI Team/Agents/agent-index.md",
-      "sha256": "fe14904c4358f358e3dd98b430b4bc8937eed01d26eb94de95d17bd9b9c560ab",
+      "sha256": "ea00502a364b7d1b9ca8428deaf0fd3bf581d2ae2a2f40a6866d535323ccf847",
       "kind": "agent",
       "example": false
     },
@@ -829,7 +853,7 @@
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "b39d1b0ebe6f4693c89dd2f8a9e2f7d3ed3391e5431b9e029d1d46683c145592",
+      "sha256": "60b24a1d1763d5ecb09d650f95bc69931ff130c18b13465c163c4e9c0d39b5cb",
       "kind": "doc",
       "example": false
     },
@@ -873,6 +897,18 @@
     }
   ],
   "history": [
+    {
+      "version": "1.9.0",
+      "date": "2026-09-06",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".claude/agents/flint.md",
+        "06 AI Team/AI Team Knowledge/Avatars/flint.png",
+        "06 AI Team/Agents/Flint/AGENT.md",
+        "06 AI Team/Agents/Flint/Flint.md"
+      ]
+    },
     {
       "version": "1.8.0",
       "date": "2026-09-06",
