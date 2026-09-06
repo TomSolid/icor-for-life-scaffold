@@ -40,6 +40,34 @@ with tempfile.TemporaryDirectory() as td:
     shutil.copytree(ROOT, bad, ignore=shutil.ignore_patterns(".obsidian"))
     (bad / "Control").mkdir()
     expect_fail("validate-scaffold/stage-name", [str(HERE / "validate-scaffold.py"), str(bad)])
+    # 1b. checkpoint --assert-logged must refuse a vault with no session log
+    #     for today, and must say so as a FAIL line rather than a traceback.
+    #     A copy of ROOT with today's logs removed is the bad vault.
+    nolog = tmp / "no-log-today"
+    shutil.copytree(ROOT, nolog, ignore=shutil.ignore_patterns(".obsidian"))
+    import datetime as _dt
+    _today = _dt.date.today().isoformat()
+    for p in (nolog / "06 AI Team/AI Team Knowledge/Session Logs").glob(f"*/*/{_today}*.md"):
+        p.unlink()
+    expect_refusal("checkpoint/assert-logged", [str(HERE / "checkpoint.py"), str(nolog), "--assert-logged"])
+    # 1c. and the WiP flag must fire: an unreferenced folder older than the
+    #     window is a LEAVE? candidate. A positive check through the JSON
+    #     report, because a guard that never flags anything is not a guard.
+    import json as _json, os as _os, time as _time
+    stale = nolog / "03 WiP" / "2020-01-01-stale-probe"
+    stale.mkdir(parents=True, exist_ok=True)
+    f = stale / "notes.md"; f.write_text("old")
+    old_t = _time.time() - 400 * 86400
+    _os.utime(f, (old_t, old_t)); _os.utime(stale, (old_t, old_t))
+    r = subprocess.run([PY, str(HERE / "checkpoint.py"), str(nolog), "--json", "--window", "30"], capture_output=True, text=True)
+    checks += 1
+    try:
+        rep = _json.loads(r.stdout)
+        hit = [w for w in rep["wip"] if w["folder"] == "2020-01-01-stale-probe"]
+        if not hit or not hit[0]["candidate_to_leave"]:
+            fails.append("checkpoint/wip-candidate: a 400-day-old unreferenced WiP folder was not flagged to leave")
+    except Exception as e:
+        fails.append(f"checkpoint/wip-candidate: report unreadable ({e})")
     # 2b. validate-scaffold must reject an agent folder without its bio
     bad2 = tmp / "bad-scaffold-2"
     shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))

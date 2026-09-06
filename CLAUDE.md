@@ -150,8 +150,12 @@ Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-1001-the-six-rooms]].
 3. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
    material; offer to process, never process silently.
 
-## Session close ritual
+## Session close: `/checkpoint`
 
-1. Capture unfinished work as tasks.
-2. Write the session log ([[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]).
-3. Agents append durable insights to their own `Journal/`.
+Sessions end when the user closes the terminal, so the close is a command
+the user types, not a ritual the model remembers. `/checkpoint` runs
+[[WS-1005-checkpoint|WS-1005]]: `Scripts/checkpoint.py` reports the facts,
+tasks that shipped move to done, WiP folders that can leave are proposed,
+the session log is written ([[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]),
+agents journal what they learned, and `checkpoint.py --assert-logged` must
+exit 0 before the session is over.

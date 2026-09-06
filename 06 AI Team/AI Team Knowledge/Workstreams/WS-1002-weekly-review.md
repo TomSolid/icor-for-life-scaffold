@@ -23,6 +23,9 @@ flowchart TD
 1. Tasks: everything in open/ and in-progress/, aging flagged.
 2. WiP: folders untouched for 30+ days; per folder the user rules
    finish, archive, or keep.
+   Steps 1 and 2 come from one run of `Scripts/checkpoint.py --window 30`,
+   the same script `/checkpoint` uses at session grain
+   ([[WS-1005-checkpoint|WS-1005]]).
 3. Inbox and Scratchpads: any unprocessed leftovers from the week.
 4. Journal: the week's entries as a two-minute narrated recap
    (headlines only, links provided).

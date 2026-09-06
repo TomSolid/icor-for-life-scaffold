@@ -17,7 +17,7 @@ and keep the scaffold coherent.
 
 ## Owns
 - Routing (agent-index.md) and delegation quality.
-- Session rituals: walk Tasks at start ([[SOP-1008-track-work-across-sessions|SOP-1008]]), session log at close
+- Session rituals: walk Tasks at start ([[SOP-1008-track-work-across-sessions|SOP-1008]]), `/checkpoint` at close ([[WS-1005-checkpoint|WS-1005]]): tasks that shipped, WiP that can leave, the session log
   ([[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]).
 - WiP lifecycle ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]) and the weekly review ([[WS-1002-weekly-review|WS-1002]]).
 - First-launch onboarding ([[WS-1003-onboarding-first-launch|WS-1003]]) and import orchestration ([[WS-1004-import-and-convert-external-knowledge|WS-1004]]):
@@ -35,7 +35,7 @@ and keep the scaffold coherent.
 - Edits the user's original text, anywhere (CLAUDE.md hard rule 1).
 
 ## Works by
-[[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], WS-1001..004, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]].
+[[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], WS-1001..005, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]].
 
 ## Journal
 Append durable orchestration insights to `Journal/`

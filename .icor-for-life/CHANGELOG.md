@@ -10,6 +10,81 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.8.0
+
+Released 2026-09-06.
+
+### Changed: journal entries carry the ICOR type, `category` is retired
+
+The journal schema now speaks the ICOR canon. Journaling in ICOR carries
+exactly two things beyond the words: what KIND of entry it is, and what
+it is ABOUT. The scaffold's old `category` field (insight, reflection,
+log, meeting, idea, other) mixed both jobs and matched neither; it is
+retired and replaced.
+
+The new shape, for `type: journal` notes:
+
+- `journal_type` (required): one of exactly four - `interaction`
+  (anything involving another human), `note` (a shallow capture),
+  `thought` (a deep capture), `milestone` (something crossed a
+  threshold). There is never a fifth type; `GL-1003` teaches the four.
+- `format` (optional): how the entry arrived - `text`, `voice`, `photo`,
+  `meeting-notes`, `other`. Absent means text.
+- `key_element` (optional): the entry's subject when it is about a Key
+  Element. A Topic subject lives in `linked_topics`, as before.
+
+`type: journal` itself is untouched; it stays the entity discriminator.
+
+**If you have existing entries with `category`: nothing breaks.** The
+scaffold never edits your data, `validate-scaffold.py` does not gate
+journal frontmatter, and old entries keep working as untyped notes in
+every Base and search. To bring an old entry into the new shape, replace
+its `category` line with a `journal_type` line using the closest of the
+four (insight/reflection/idea usually mean `thought`, log usually means
+`note`, meeting means `interaction`); do it whenever you next touch the
+entry, or all at once, or never. New entries get the new shape from the
+script and carry no `category`.
+
+Files changed, none removed or moved:
+
+- `GL-1002`: the journal row requires `journal_type`, offers `format`
+  and `key_element`, plus the ruling "Journal: the ICOR four".
+- `GL-1003`: new section "Type and Subject" - the four types with their
+  one-line meanings, the never-a-fifth rule, and what a subject is.
+- `SOP-1003`: picking the type is a judgement step; the script call
+  uses the new flags; step 4 sets `key_element`.
+- `Scripts/new-journal-entry.py`: `--category` becomes `--journal-type`
+  (gated to the four), plus optional `--format` (gated to the five).
+  Path, filename and skeleton ownership are unchanged. An old
+  `--category` call now fails loudly instead of writing a stale field.
+- `Scripts/run-red-tests.py`: the journal guards test the new flags,
+  plus a new red test for a bad `--format`.
+- `04 Inner World/Journal/2026/08/2026-08-27_perfect-for-my-knowledge-system.md`:
+  the example entry migrates (`category: insight` becomes
+  `journal_type: thought`) as the worked example of the new shape.
+
+## 1.8.0
+
+Unreleased.
+
+### Added: `/checkpoint`, the session close you can type
+
+Sessions end when you close the terminal, and the three-line "session
+close ritual" in `CLAUDE.md` fired only when the model decided a session
+was ending, which is to say rarely. `/checkpoint` is a command: it runs
+`Scripts/checkpoint.py` for the facts (the last session log, the tasks
+changed since it, every WiP folder with its age and whether an open task
+still names it), closes the tasks that shipped, proposes the WiP folders
+that can leave, writes the session log, has agents journal what they
+learned, and refuses to end without today's log
+(`checkpoint.py --assert-logged`). The weekly review uses the same script
+at a 30-day window. `CLAUDE.md`'s close ritual now points at the command.
+
+- `.claude/commands/checkpoint.md`: the command.
+- `06 AI Team/AI Team Knowledge/Workstreams/WS-1005-checkpoint.md`: the procedure.
+- `06 AI Team/AI Team Knowledge/Scripts/checkpoint.py`: the report and the gate; two red tests in `run-red-tests.py`.
+- `CLAUDE.md`, `06 AI Team/Agents/Larry/AGENT.md`, `WS-1002`, `Scripts/README.md`: point at it.
+
 ## 1.7.3
 
 Released 2026-09-04.
