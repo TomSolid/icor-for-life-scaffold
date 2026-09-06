@@ -10,11 +10,9 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## Unreleased
+## 1.10.0
 
-Not yet released. The maintainer folds this section into the next version
-section when cutting the release; the manifest builder ignores it until
-then.
+Released 2026-09-06.
 
 ### Changed: the Planner owns Habits as its own entity, the way it owns Routines
 
@@ -56,6 +54,50 @@ cadence check, watched red on a broken habit note before this commit.
 `02 Planner/Routines/` and the `planner-routine` type are unchanged.
 
 No file is removed or moved.
+
+### Added: the ICOR for Life - Outliner plugin
+
+**ICOR for Life - Outliner** (`icor-for-life-outliner`, 0.1.0) ships and is
+enabled in this download: indent, outdent and move a bullet together with
+everything under it, an Enter that knows about children, a cursor that
+stays out of the bullet, and a select-all that climbs, with two settable
+keyboard schemes (Tana and Heptabase) alongside the default. It replaces
+the community Outliner plugin every earlier download bundled by hand.
+
+The plugin joins `community-plugins.json` in Outliner's place and the
+license table in `LICENSE.md`, under the ICOR for Life Source-Available
+License (Code) v1.0; it bundles no third-party code (the three CodeMirror
+packages it needs are declared external and supplied by Obsidian at
+runtime, not bundled into `main.js`).
+
+Every plugin in this vault is now an ICOR for Life plugin, first-party;
+none of them is a third-party community install any more, so
+`THIRD-PARTY-NOTICES.md` no longer carries a "Bundled community plugins"
+section. What it still carries, and always will as long as the code
+ships, are the open-source library notices bundled inside our own
+plugins (Simple Icons, the Claude Agent SDK's bundled Zod and
+OpenTelemetry, sql.js, xterm.js and its addons) - MIT and Apache notices
+that are the license of code inside our own plugins, not a notice about
+a third-party tool, and removing them would breach those licenses.
+
+If you updated by hand: disable the community Outliner plugin before
+enabling ICOR for Life - Outliner. Both bind `Tab` and `Enter` inside
+lists, and Obsidian will not let two plugins answer the same key at
+once. Any hotkey you set on the old plugin's commands does not carry
+over; set it again on the new plugin's commands under Settings ->
+Hotkeys.
+
+### Removed: the third-party Outliner plugin
+
+The Outliner community plugin (`obsidian-outliner`, 4.10.2, MIT),
+bundled since the first download, leaves the vault; ICOR for Life -
+Outliner replaces it.
+
+- `.obsidian/plugins/obsidian-outliner/LICENSE`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-outliner/`
+- `.obsidian/plugins/obsidian-outliner/main.js`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-outliner/main.js`
+- `.obsidian/plugins/obsidian-outliner/manifest.json`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-outliner/manifest.json`
+- `.obsidian/plugins/obsidian-outliner/styles.css`: removed with the third-party plugin; replaced by `.obsidian/plugins/icor-for-life-outliner/styles.css`
+- `community-plugins.json` enables `icor-for-life-outliner` in place of `obsidian-outliner`; `LICENSE.md` drops the Outliner row and adds one for `icor-for-life-outliner`; `THIRD-PARTY-NOTICES.md` drops its "Bundled community plugins" section entirely, keeping only the ICOR-plugin library notices; `README.md` names the new plugin among the first-party suite and drops the community-plugin mention; the zip builder's `data.json` allowance and its plugin inventory no longer name `obsidian-outliner`.
 
 ## 1.9.1
 
