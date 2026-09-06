@@ -10,6 +10,39 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.10.1
+
+Released 2026-09-06.
+
+### Changed: the Code license text now says what it always meant, and every plugin gets a CONTRIBUTING.md
+
+A member reading section 2(b) of the ICOR for Life Source-Available
+License (Code) v1.0 correctly parsed it as "no business use at all,"
+broader than the no-resale line Tom intended, and section 2(a) blocked
+the very pull requests the same license already welcomes back in section
+7. Sections 2(a) and 2(b) are rewritten: 2(a) now names the Licensor as
+the one permitted recipient of a modified copy and says a pull request is
+not distribution; 2(b) targets offering the plugin, or a lookalike built
+from it, to third parties as a product or service, and says your own
+business use is not restricted. Section 2(c) is unchanged. A five-line
+plain-language block ("what you can do", "what you cannot do",
+"contributions", "not open source", "third-party notices") now opens
+every plugin `LICENSE` and its README `Licence` section, and this file,
+above the per-part table. Every plugin repository gains a `CONTRIBUTING.md`
+and a machine-readable `license` field in `package.json`:
+`LicenseRef-ICOR-Source-Available-1.0`. The license family stays
+source-available; this is a drafting fix, not a family change, decided
+without a Fachanwalt read (Tom, 2026-09-06).
+
+Applied to `icor-for-life-outliner`, `icor-for-life-planner`,
+`icor-for-life-chat`, `icor-for-life-terminal`, `icor-for-life-interface`,
+`icor-for-life-sqlite-viewer`, `icor-for-life-diagrams`,
+`icor-for-life-scaffold-check`, `icor-for-life-connect`,
+`icor-for-life-focus`, each in its own repository and release, and to this
+repository's `LICENSE.md`. `icor-for-life-inkline` carried uncommitted
+work at the time and is not yet included. No plugin build changed: the
+license text is not part of `main.js`.
+
 ## 1.10.0
 
 Released 2026-09-06.

@@ -1,5 +1,20 @@
 # ICOR for Life - What you may do with each part
 
+What you can do: install it, run it, read the code, modify your own copy,
+and use it in your own business. What you cannot do: sell it, redistribute
+it, or offer it (original or modified) as your own product or service to
+others. Contributions: send a pull request. See CONTRIBUTING.md;
+submitting one grants Paperless Movement the rights described in Section 7
+of the LICENSE. This is not open source. It is source-available: the code
+is visible, personal and business use are free, resale and republishing
+are not. Bundled third-party components keep their own licenses; see
+THIRD-PARTY-NOTICES.md.
+
+The block above is the plain-language summary of the ICOR for Life
+Source-Available License (Code) v1.0 that governs the plugins listed
+below; each plugin repository carries its own LICENSE and CONTRIBUTING.md.
+Machine-readable identifier, used in every plugin repository's
+`package.json`: `LicenseRef-ICOR-Source-Available-1.0`.
 
 | Artifact | License | You MAY | You may NOT |
 |---|---|---|---|
