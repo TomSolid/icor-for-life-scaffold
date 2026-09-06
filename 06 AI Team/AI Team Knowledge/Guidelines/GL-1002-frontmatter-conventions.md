@@ -24,7 +24,7 @@ tags: []     # optional, lowercase, hyphenated
 
 | type | required fields | optional fields |
 | --- | --- | --- |
-| journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element, mood, linked_people, linked_topics, linked_projects, source |
+| journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element (wikilink), mood, linked_people, linked_topics, linked_projects, source |
 | scratchpad | date | processed, processed_summary, processed_into |
 | capture | source_url, captured (ISO datetime) | processed, processed_summary, processed_into |
 | person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action |
@@ -54,7 +54,9 @@ and closed: interaction, note, thought, milestone. What each means, and
 why there is never a fifth, is taught in
 [[GL-1003-journal-entry-anatomy|GL-1003]]. `format` records how the entry
 arrived (absent means text). `key_element` is the entry's subject when it
-is about a Key Element; a Topic subject lives in `linked_topics` as before.
+is about a Key Element - a quoted wikilink, `key_element: "[[Health]]"`,
+the same value shape goals and projects already use. A Topic subject
+lives in `linked_topics` as before.
 `category` is retired from the journal type: entries that still carry it
 keep working as untyped, but no new entry gets one.
 

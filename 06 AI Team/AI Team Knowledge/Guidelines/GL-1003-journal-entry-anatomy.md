@@ -47,8 +47,9 @@ When it arrived in a form other than plain text, the optional `format`
 field says so (voice, photo, meeting-notes, other); absent means text.
 
 **Subject** is what the entry is about: a Key Element (the `key_element`
-field) or a Topic (a wikilink in `linked_topics`). An entry does not
-need a subject to exist, but an entry with one is findable from the
+field, a quoted wikilink: `key_element: "[[Health]]"` - a bare name is
+text, not a link) or a Topic (a wikilink in `linked_topics`). An entry
+does not need a subject to exist, but an entry with one is findable from the
 thing it is about.
 
 ## Rules
