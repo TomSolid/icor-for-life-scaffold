@@ -97,11 +97,10 @@ are met; never against BLOCKED.
    `styles.css` attached to the release as separate files; for a
    theme, `manifest.json` and `theme.css`. `README.md` and `LICENSE`
    at the repo root.
-6. **Preview scan.** Run the community.obsidian.md preview scan on the
-   branch, tag or commit under review from the developer dashboard, or
-   the eslint plugin locally. If neither is reachable from where Flint
-   sits, the verdict says so and hands the user the exact dashboard
-   action. Never imply a scan that did not happen.
+6. **Preview scan.** Ask the user to run the community.obsidian.md
+   preview scan on the branch, tag or commit under review from their
+   developer dashboard, or run the eslint plugin locally. Never imply a
+   scan that did not happen.
 
 **Verdict.** APPROVED / CONDITIONAL (numbered conditions) / BLOCKED
 (the exact line and the exact fix). Each finding carries a severity
