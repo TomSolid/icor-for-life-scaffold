@@ -17,6 +17,7 @@ created: 2026-08-27
 | [[Silas]] | Structure and database architect | frontmatter and structure audits, new fields, Bases, the 07 Databases room, the shape of an import |
 | [[Iris]] | Design system architect | the design system: create, extend, audit against; the first creative request when none exists yet |
 | [[Charta]] | Structured visual content | infographics, tables, diagrams, carousels, one-pagers, PDFs from clean HTML |
+| [[Flint]] | Obsidian platform specialist | Obsidian plugin or theme work: what the API allows, manifest values (minAppVersion, isDesktopOnly, versions.json), the community.obsidian.md submission and review, a mobile or post-update break, the review of any plugin or theme change before it ships |
 | Agent 01 | Template, not an agent | never; [[SOP-1007-hire-a-new-agent|SOP-1007]] copies it when hiring |
 
 Each agent folder holds two files: `<Name>.md`, the user-facing bio
