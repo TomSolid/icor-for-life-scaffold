@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.9.0",
-  "built": "2026-09-06T13:47:32Z",
-  "commit": "a98b4a9",
+  "version": "1.9.1",
+  "built": "2026-09-06T14:41:28Z",
+  "commit": "d8f95a8",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -576,14 +576,8 @@
       "example": false
     },
     {
-      "path": "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh",
-      "sha256": "8323d024b997bb2e7d70955f13a9dc380a281682753b4f197d79e0365b7e1895",
-      "kind": "script",
-      "example": false
-    },
-    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py",
-      "sha256": "1c60622b05f2450e911cd6fe79962c832270007d82e398baf724f61305478e82",
+      "sha256": "436d9ac51b69e2dbe17cc0633da14555fbeb72173153058f3682d4f84c7bac39",
       "kind": "script",
       "example": false
     },
@@ -654,14 +648,8 @@
       "example": false
     },
     {
-      "path": "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh",
-      "sha256": "bd1f72687d97cf53cd3ea521a81b87bb4ebdc21cbb9f1517c43482721240edce",
-      "kind": "script",
-      "example": false
-    },
-    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "3dea2309950c354b63d2eede724ae9a5c4ea60c3e5145a79963ebb13a46a2a07",
+      "sha256": "3361df5956f5ec21af6ca8f7d03def96ddc65da6b8b9e75196e8478af3b36e5e",
       "kind": "script",
       "example": false
     },
@@ -897,6 +885,21 @@
     }
   ],
   "history": [
+    {
+      "version": "1.9.1",
+      "date": "2026-09-06",
+      "removed": [
+        {
+          "path": "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh",
+          "sha256": "bd1f72687d97cf53cd3ea521a81b87bb4ebdc21cbb9f1517c43482721240edce",
+          "note": "removed. The member download store it uploaded to and the pointer it moved are retired; the release workflow publishes to GitHub Releases and the download follows the latest release."
+        }
+      ],
+      "renamed": [],
+      "added": [
+        ".github/workflows/release.yml"
+      ]
+    },
     {
       "version": "1.9.0",
       "date": "2026-09-06",

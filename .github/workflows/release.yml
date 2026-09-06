@@ -1,0 +1,359 @@
+# The release, on every push to main.
+#
+# A push that passes the gates becomes a tag, a GitHub release and three
+# assets, and the member download on app.myicor.com follows
+#   https://github.com/<this repo>/releases/latest/download/icor-for-life-obsidian-edition.zip
+# (or the versioned copy beside it) with no deploy, no store and no pointer
+# anywhere else. Nothing here holds a secret: the run token can write this
+# repository's releases and read the public plugin repositories the zip is
+# built from, and that is all it needs.
+#
+# Order matters and is deliberate:
+#   1. every gate runs BEFORE the tag: the checks, the release notes, and a
+#      full dry run of the builder against a throwaway clone of this commit.
+#      A red must never leave a tag behind, because a tag never moves and a
+#      burnt version number costs a bump.
+#   2. the real zip is built from the TAG on GitHub, not from main, so a
+#      second push landing while this runs cannot leak into a zip published
+#      under this version, and the tag is asserted to be this commit.
+#   3. the release is created as a DRAFT, its assets are uploaded and their
+#      digests read back, and only then is it published as latest. Latest
+#      never points at a release without its assets, not even for a second.
+#   4. an asset is never replaced. Same version, different bytes is a failure.
+#   5. the run is green only after the public URLs were downloaded and the
+#      bytes compared with the zip that was built.
+#
+# Every step is idempotent: a red after the tag exists is re-run with
+# workflow_dispatch on main and picks up where it stopped. This file is
+# stripped from the member download by the builder's residue gate, like the
+# builder itself.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Two pushes never race for the same tag or release. The second waits for the
+# first; it is not cancelled, because a cancelled release is a half release.
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  ASSET_STEM: icor-for-life-obsidian-edition
+  SCRIPTS: 06 AI Team/AI Team Knowledge/Scripts
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    # workflow_dispatch from any other branch must not be able to tag.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pushed commit with its history and tags
+        # actions/checkout v7.0.1, pinned to the commit. The manifest check
+        # and the red tests read the tag history, so the whole history comes
+        # along. No credentials are left in the checkout: the tag below is
+        # created through the API with the run token, not with git push.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Read the version
+        id: version
+        run: |
+          v="$(tr -d '[:space:]' < .icor-for-life/VERSION)"
+          if ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::.icor-for-life/VERSION is not MAJOR.MINOR.PATCH: '$v'"
+            exit 1
+          fi
+          # Never below the newest tag that exists. Equal is allowed (a re-run
+          # on the tagged commit); the tag step decides whether it is the
+          # same commit.
+          newest="$(git tag --list '[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)"
+          if [ -n "$newest" ] && [ "$(printf '%s\n%s\n' "$newest" "$v" | sort -V | tail -1)" != "$v" ]; then
+            echo "::error::VERSION $v is below the newest existing tag $newest"
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "version $v at $GITHUB_SHA (newest existing tag: ${newest:-none})"
+
+      - name: Gates (manifest current, structure valid, every guard goes red)
+        run: |
+          python3 "$SCRIPTS/build-scaffold-manifest.py" --check
+          python3 "$SCRIPTS/validate-scaffold.py"
+          python3 "$SCRIPTS/run-red-tests.py"
+
+      - name: Release notes are this version's section of the changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - "$VERSION" ".icor-for-life/CHANGELOG.md" "$RUNNER_TEMP/notes.md" <<'PY'
+          import re, sys
+          version, changelog, out = sys.argv[1:4]
+          lines = open(changelog, encoding="utf-8").read().splitlines()
+          body, inside = [], False
+          for line in lines:
+              m = re.match(r"^##\s+\[?(\d+\.\d+\.\d+)\]?", line)
+              if m:
+                  if inside:
+                      break
+                  inside = m.group(1) == version
+                  continue
+              if inside:
+                  body.append(line)
+          text = "\n".join(body).strip("\n")
+          if not text:
+              sys.exit(f"FAIL CHANGELOG.md has no '## {version}' section with content")
+          open(out, "w", encoding="utf-8").write(text + "\n")
+          print(f"release notes: {len(body)} lines from the {version} section")
+          PY
+
+      - name: Check the tag (a tag never moves)
+        id: tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Branch on the exit status, not on the output: a missing ref is a
+          # 404 whose error body gh prints to STDOUT, so "empty output" would
+          # never be true and every first release would fail as "tag exists".
+          if existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$VERSION" \
+               --jq '.object.sha + " " + .object.type' 2>/dev/null)"; then
+            sha="${existing% *}"
+            type="${existing#* }"
+            if [ "$type" = "tag" ]; then
+              sha="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$sha" --jq .object.sha)"
+            fi
+            if [ "$sha" != "$GITHUB_SHA" ]; then
+              echo "::error::tag $VERSION already exists at $sha and this push is $GITHUB_SHA. A tag never moves: bump VERSION, write its changelog section, rebuild the manifest, push again."
+              exit 1
+            fi
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "tag $VERSION already points at this commit"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "tag $VERSION does not exist yet"
+          fi
+
+      - name: Dry run of the builder against this commit, before any tag exists
+        id: dryrun
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ICOR_SCAFFOLD_TAG: ${{ steps.version.outputs.version }}
+          ICOR_SCAFFOLD_GIT: ${{ runner.temp }}/dry/mirror.git
+          ICOR_SCAFFOLD_REMOTE: ${{ runner.temp }}/dry/remote.git
+        run: |
+          # A throwaway bare clone of the checkout at the pushed sha, carrying
+          # the tag this run is about to create. The builder stages from it
+          # exactly as it will from GitHub, through every gate it has, so a
+          # red here costs nothing: no tag, no release, nothing to undo.
+          mkdir -p "$RUNNER_TEMP/dry/out"
+          git clone --quiet --bare "$GITHUB_WORKSPACE" "$ICOR_SCAFFOLD_REMOTE"
+          git --git-dir "$ICOR_SCAFFOLD_REMOTE" \
+            -c user.name="release workflow" -c user.email="release@localhost" \
+            tag -f -a "$VERSION" -m "ICOR for Life Scaffold $VERSION" "$GITHUB_SHA"
+          bash "$SCRIPTS/build-release-zip.sh" "$RUNNER_TEMP/dry/out"
+          dry="$(ls "$RUNNER_TEMP/dry/out"/ICOR-for-Life-Scaffold-*.zip)"
+          sha="$(sha256sum "$dry" | cut -d' ' -f1)"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "dry run built $dry ($(stat -c %s "$dry") bytes, sha256 $sha)"
+
+      - name: Create the tag
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/tags" \
+            -f tag="$VERSION" \
+            -f message="ICOR for Life Scaffold $VERSION" \
+            -f object="$GITHUB_SHA" \
+            -f type=commit \
+            --jq .sha)"
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref="refs/tags/$VERSION" \
+            -f sha="$tag_sha" \
+            --jq .ref
+          echo "created annotated tag $VERSION at $GITHUB_SHA"
+
+      - name: Build the member zip from the tag on GitHub, through every gate
+        id: build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DRY_SHA: ${{ steps.dryrun.outputs.sha256 }}
+          ICOR_SCAFFOLD_TAG: ${{ steps.version.outputs.version }}
+          # Pinned on purpose: this build stages from THIS repository on
+          # GitHub, into a fresh mirror, whatever the builder's defaults are.
+          ICOR_SCAFFOLD_REMOTE: https://github.com/${{ github.repository }}.git
+          ICOR_SCAFFOLD_GIT: ${{ runner.temp }}/scaffold.git
+        run: |
+          out="$RUNNER_TEMP/release"
+          mkdir -p "$out"
+          bash "$SCRIPTS/build-release-zip.sh" "$out"
+          zip="$(ls "$out"/ICOR-for-Life-Scaffold-*.zip)"
+          [ -f "$zip" ] || { echo "::error::the builder produced no zip"; exit 1; }
+
+          # The tag the builder staged from is this commit, on GitHub.
+          tagged="$(git --git-dir "$ICOR_SCAFFOLD_GIT" rev-parse "$VERSION^{commit}")"
+          if [ "$tagged" != "$GITHUB_SHA" ]; then
+            echo "::error::tag $VERSION on GitHub is $tagged, this run is $GITHUB_SHA"
+            exit 1
+          fi
+
+          # What the builder does not look at: the zip itself.
+          if unzip -Z1 "$zip" | grep -qE '^\.github/|build-release-zip\.sh$'; then
+            echo "::error::the zip carries build tooling:"
+            unzip -Z1 "$zip" | grep -E '^\.github/|build-release-zip\.sh$'
+            exit 1
+          fi
+          inside="$(unzip -p "$zip" .icor-for-life/VERSION | tr -d '[:space:]')"
+          if [ "$inside" != "$VERSION" ]; then
+            echo "::error::the zip says version '$inside', the tag is $VERSION"
+            exit 1
+          fi
+          sha="$(sha256sum "$zip" | cut -d' ' -f1)"
+          # Same tag, same plugin releases, same bytes as the dry run minutes
+          # ago. A difference means something moved under this run.
+          if [ "$sha" != "$DRY_SHA" ]; then
+            echo "::error::the zip built from the tag ($sha) differs from the dry run ($DRY_SHA)"
+            exit 1
+          fi
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "built $zip ($(stat -c %s "$zip") bytes, sha256 $sha, version $inside, tag at $tagged)"
+
+      - name: Create the release as a draft if it does not exist
+        id: release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # `gh release view` finds drafts too; the tag-based REST lookup
+          # does not, which is why the release id is what every later step
+          # addresses.
+          if ! id="$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" --json databaseId --jq .databaseId 2>/dev/null)"; then
+            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" \
+              --draft --verify-tag \
+              --title "ICOR for Life Scaffold $VERSION" \
+              --notes-file "$RUNNER_TEMP/notes.md"
+            id="$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" --json databaseId --jq .databaseId)"
+            echo "created draft release $VERSION (id $id)"
+          else
+            echo "release $VERSION exists (id $id, draft: $(gh api "repos/$GITHUB_REPOSITORY/releases/$id" --jq .draft))"
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the assets and read their digests back (never replace an asset with different bytes)
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
+          ZIP: ${{ steps.build.outputs.zip }}
+          SHA: ${{ steps.build.outputs.sha256 }}
+        run: |
+          digest_of() {  # $1 asset name -> "sha256:..." | "nodigest" | ""
+            gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" \
+              --jq ".assets[] | select(.name == \"$1\") | (.digest // \"nodigest\")"
+          }
+          upload() {  # $1 local file  $2 asset name  $3 expected sha256
+            local file="$1" name="$2" want="$3" published have
+            published="$(digest_of "$name")"
+            if [ -n "$published" ]; then
+              have="${published#sha256:}"
+              if [ "$have" = "$want" ]; then
+                echo "$name is already on release $VERSION with these bytes"
+                return 0
+              fi
+              echo "::error::$name is already on release $VERSION with different bytes (published $have, built $want). A version name never changes bytes: bump VERSION and push again."
+              exit 1
+            fi
+            cp "$file" "$RUNNER_TEMP/$name"
+            gh release upload "$VERSION" "$RUNNER_TEMP/$name" --repo "$GITHUB_REPOSITORY"
+            # Read back: the release carries the digest of what it received.
+            for attempt in 1 2 3 4 5 6; do
+              published="$(digest_of "$name")"
+              [ "${published#sha256:}" = "$want" ] && { echo "uploaded $name, digest read back matches"; return 0; }
+              sleep 5
+            done
+            echo "::error::$name uploaded but its digest read back as '${published:-missing}', expected sha256:$want"
+            exit 1
+          }
+          upload "$ZIP" "$ASSET_STEM.zip" "$SHA"
+          upload "$ZIP" "$ASSET_STEM-$VERSION.zip" "$SHA"
+          upload ".icor-for-life/manifest.json" "manifest.json" "$(sha256sum .icor-for-life/manifest.json | cut -d' ' -f1)"
+
+      - name: Publish the release as latest, now that its assets are verified
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
+        run: |
+          gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          echo "release $VERSION published (draft: $(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" --jq .draft))"
+
+      - name: Verify the public URLs serve the bytes just built
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA: ${{ steps.build.outputs.sha256 }}
+        run: |
+          url="https://github.com/$GITHUB_REPOSITORY/releases/latest/download/$ASSET_STEM.zip"
+          ok=0
+          for attempt in 1 2 3 4 5 6; do
+            location="$(curl -sI "$url" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2}')"
+            code="$(curl -sSL --retry 3 --retry-delay 5 -o "$RUNNER_TEMP/roundtrip.zip" -w '%{http_code}' "$url" || true)"
+            got="$(sha256sum "$RUNNER_TEMP/roundtrip.zip" 2>/dev/null | cut -d' ' -f1)"
+            if [ "$code" = "200" ] && [ "$got" = "$SHA" ] \
+               && [[ "$location" == *"/releases/download/$VERSION/"* ]]; then
+              ok=1
+              break
+            fi
+            echo "attempt $attempt: http $code, location '$location', sha256 ${got:-none}; waiting"
+            sleep 10
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::$url does not serve the zip built for $VERSION (last: http $code, location '$location', sha256 ${got:-none} vs built $SHA)"
+            exit 1
+          fi
+          size="$(stat -c %s "$RUNNER_TEMP/roundtrip.zip")"
+          inside="$(unzip -p "$RUNNER_TEMP/roundtrip.zip" .icor-for-life/VERSION | tr -d '[:space:]')"
+          echo "latest-release URL serves $VERSION: $size bytes, sha256 $SHA, VERSION inside the zip $inside"
+
+          # The versioned copy is what the member app redirects to whenever it
+          # knows the version (the folder the member unzips is named after the
+          # file), so it is verified the same way. Same bytes, or the run is red.
+          vurl="https://github.com/$GITHUB_REPOSITORY/releases/download/$VERSION/$ASSET_STEM-$VERSION.zip"
+          vcode="$(curl -sSL --retry 3 --retry-delay 5 -o "$RUNNER_TEMP/roundtrip-versioned.zip" -w '%{http_code}' "$vurl" || true)"
+          vgot="$(sha256sum "$RUNNER_TEMP/roundtrip-versioned.zip" 2>/dev/null | cut -d' ' -f1)"
+          if [ "$vcode" != "200" ] || [ "$vgot" != "$SHA" ]; then
+            echo "::error::$vurl does not serve the zip built for $VERSION (http $vcode, sha256 ${vgot:-none} vs built $SHA)"
+            exit 1
+          fi
+          echo "versioned URL serves the same bytes: $vurl"
+
+          # And the manifest asset is this commit's manifest.
+          murl="https://github.com/$GITHUB_REPOSITORY/releases/download/$VERSION/manifest.json"
+          mwant="$(sha256sum .icor-for-life/manifest.json | cut -d' ' -f1)"
+          mcode="$(curl -sSL --retry 3 --retry-delay 5 -o "$RUNNER_TEMP/roundtrip-manifest.json" -w '%{http_code}' "$murl" || true)"
+          mgot="$(sha256sum "$RUNNER_TEMP/roundtrip-manifest.json" 2>/dev/null | cut -d' ' -f1)"
+          if [ "$mcode" != "200" ] || [ "$mgot" != "$mwant" ]; then
+            echo "::error::$murl does not serve this commit's manifest (http $mcode, sha256 ${mgot:-none} vs $mwant)"
+            exit 1
+          fi
+          echo "manifest asset serves this commit's manifest: $murl"
+          {
+            echo "## ICOR for Life Scaffold $VERSION"
+            echo
+            echo "- download: $url"
+            echo "- resolves to: $location"
+            echo "- versioned: $vurl"
+            echo "- manifest: $murl (sha256 $mwant)"
+            echo "- size: $size bytes"
+            echo "- sha256: $SHA"
+            echo "- version inside the zip: $inside"
+          } >> "$GITHUB_STEP_SUMMARY"

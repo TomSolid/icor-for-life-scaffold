@@ -10,6 +10,49 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.9.1
+
+Released 2026-09-06.
+
+### Changed: the download publishes itself on every push
+
+A push to `main` is now a release. A GitHub Actions workflow,
+`.github/workflows/release.yml`, runs the manifest check, the structure
+check and the red tests, tags the commit with the version in
+`.icor-for-life/VERSION` (a tag never moves: a version re-pushed on new
+bytes fails the run), builds the member zip from that tag through
+`build-release-zip.sh` and every gate in it, creates the GitHub release as
+a draft with this file's section as its notes, uploads the zip under a
+fixed name and under its version plus this version's `manifest.json`,
+publishes the release once every digest has been read back, and then
+downloads the assets through the public URLs and compares the digests.
+Every gate, including a full dry run of the builder, runs before the tag
+exists, so a red never burns a version number. The member download on
+app.myicor.com follows that URL, so it is current the moment the run is
+green, with no store, no pointer and no deploy anywhere else. The workflow
+file is stripped from the download by the builder's residue gate, beside
+the builder itself.
+
+The builder learned three things for this. It creates a missing local
+mirror on its own, so a fresh machine can build. It stages an exact tag
+when told to (`ICOR_SCAFFOLD_TAG`), and refuses a tag whose tree calls
+itself another version. And it writes the zip reproducibly, one timestamp
+for every entry and the entries in one fixed order, so the same tag with
+the same plugin releases gives the same bytes and a re-run is compared
+with what was published instead of overwriting it.
+
+The manifest no longer describes the files the residue gate strips. A
+member's vault never had them, and the Scaffold Check plugin was reporting
+the two build scripts as missing from every vault. The manifest builder
+reads the gate's own list instead of keeping a copy.
+
+### Removed: the upload step
+
+- `06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh`: removed. The member download store it uploaded to and the pointer it moved are retired; the release workflow publishes to GitHub Releases and the download follows the latest release.
+
+`.icor-for-life/README.md` describes the release contract as it is now:
+bump `VERSION`, write the section here, rebuild the manifest, push `main`.
+
 ## 1.9.0
 
 Released 2026-09-06.

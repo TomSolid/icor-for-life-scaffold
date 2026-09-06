@@ -30,7 +30,9 @@ Sources of truth, none of them duplicated here:
   rooms     the REQUIRED list in validate-scaffold.py (read via ast, not copied)
   plugins   .obsidian/community-plugins.json (the icor-for-life-* ids)
   snippets  .obsidian/appearance.json enabledCssSnippets
-  files     `git ls-files`: only tracked files ship, same rule as the zip
+  files     `git ls-files`: only tracked files ship, same rule as the zip,
+            minus the RESIDUE_PATHS the zip builder strips (read via regex
+            from build-release-zip.sh, not copied)
   history   `git diff --name-status -M` between consecutive tags
   notes     .icor-for-life/CHANGELOG.md, matched by exact backticked path
 
@@ -99,6 +101,24 @@ EXCLUDE = {
 }
 EXCLUDE_PREFIX = (".icor-for-life/",)
 
+# Files the zip builder's residue gate strips from the download never reach a
+# member, so the manifest must not describe them either: the Scaffold Check
+# plugin would report our build tooling as missing from every vault, and a
+# member who "fixed" that would end up with a release workflow in their
+# notes. The list is read out of the builder's RESIDUE_PATHS array, one
+# quoted path per line, so there is exactly one list.
+def residue_paths():
+    src = (HERE / "build-release-zip.sh").read_text(encoding="utf-8")
+    m = re.search(r"^declare -a RESIDUE_PATHS=\(\n(.*?)^\)", src, re.M | re.S)
+    if not m:
+        die("could not find the RESIDUE_PATHS array in build-release-zip.sh")
+    paths = re.findall(r'^\s*"([^"]+)"\s*$', m.group(1), re.M)
+    if not paths:
+        die("the RESIDUE_PATHS array in build-release-zip.sh names no paths")
+    return set(paths)
+
+RESIDUE = residue_paths()
+
 def kind_of(path):
     if path.endswith(".base"): return "base"
     if "/Guidelines/" in path: return "guideline"
@@ -123,7 +143,7 @@ def is_example(path, data):
 tracked = [p for p in git("ls-files", "-z").split("\0") if p]
 files = []
 for p in tracked:
-    if p in EXCLUDE or p.startswith(EXCLUDE_PREFIX) or p.endswith("/.gitkeep"):
+    if p in EXCLUDE or p in RESIDUE or p.startswith(EXCLUDE_PREFIX) or p.endswith("/.gitkeep"):
         continue
     fp = ROOT / p
     if not fp.is_file():

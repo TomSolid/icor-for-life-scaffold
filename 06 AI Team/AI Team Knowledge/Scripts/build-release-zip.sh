@@ -14,14 +14,20 @@
 #   4. THE ARTIFACT GATE: every bundled plugin and the theme is compared,
 #      byte for byte, against the assets of its latest published GitHub
 #      release. A version number is not evidence; the digest is.
-#   5. THE RESIDUE GATE: this script is our build tooling. It names our
-#      local mirror paths, our output directory and our GitHub org, so it
-#      is a map of our internals and it has no use to a member. It is
-#      dropped from the staged tree by exact path, and then an independent
-#      scan that knows nothing about that path fails the build if any of
-#      those fingerprints survive anywhere in the tree. Removal alone would
-#      be silent filtering; the scan is what makes a rename go red.
+#   5. THE RESIDUE GATE: this script and the release workflow that runs it
+#      are our build tooling. They name our local mirror paths, our output
+#      directory and our GitHub org, so they are a map of our internals and
+#      they have no use to a member. Both are dropped from the staged tree
+#      by exact path, and then an independent scan that knows nothing about
+#      those paths fails the build if any of their fingerprints survive
+#      anywhere in the tree. Removal alone would be silent filtering; the
+#      scan is what makes a rename go red.
 #      The zip is only written after every gate passes.
+#   6. THE ZIP IS REPRODUCIBLE: every entry carries the staged commit's
+#      timestamp and the entries are written in one fixed order, so the same
+#      tag with the same plugin releases gives the same bytes. The release
+#      workflow relies on this: a re-run compares its zip with the asset
+#      already published under that version instead of overwriting it.
 #
 # Why gate 4 exists. Three times a correct version number sat on top of the
 # wrong bytes, and each time a person caught it, not a check:
@@ -35,35 +41,92 @@
 # that defect inside the zip, where nobody is looking at git.
 #
 # Usage: bash build-release-zip.sh [output-dir]   (default: ~/Desktop)
+#
+# Environment (every one optional; the defaults are the local maintainer setup):
+#   ICOR_SCAFFOLD_TAG     stage this exact tag of the scaffold instead of
+#                         origin/main. The release workflow sets it to the
+#                         version it just tagged, so what ships is the tagged
+#                         tree and nothing that landed on main after it. The
+#                         tag must exist on the remote and its VERSION must
+#                         equal the tag name.
+#   ICOR_SCAFFOLD_GIT     the scaffold's bare mirror (default: the mirror
+#                         beside the plugin mirrors). Created if missing.
+#   ICOR_SCAFFOLD_REMOTE  where that mirror fetches from (default: the public
+#                         scaffold repository). A local dry run points both of
+#                         these at a throwaway clone; CI never sets either.
 
 set -euo pipefail
 
-SCAFFOLD_GIT="$HOME/.icor-git/scaffold.git"
-SCAFFOLD_REMOTE="https://github.com/TomSolid/icor-for-life-scaffold.git"
+MIRRORS="$HOME/.icor-git"
+SCAFFOLD_GIT="${ICOR_SCAFFOLD_GIT:-$MIRRORS/scaffold.git}"
+SCAFFOLD_REMOTE="${ICOR_SCAFFOLD_REMOTE:-https://github.com/TomSolid/icor-for-life-scaffold.git}"
+SCAFFOLD_TAG="${ICOR_SCAFFOLD_TAG:-}"
 OUT_DIR="${1:-$HOME/Desktop}"
 STAMP="$(date +%Y-%m-%d)"
 STAGE="$(mktemp -d /tmp/icor-release.XXXXXX)"
 trap 'rm -rf "$STAGE"' EXIT
+
+# A mirror that does not exist yet is created as a bare clone of its remote.
+# On a maintainer's machine every mirror already exists and this is a no-op;
+# in CI the runner starts empty and this is how the mirrors come to be, from
+# the same public repositories, with no list of them kept anywhere else.
+ensure_mirror() {  # $1 bare mirror path  $2 remote url
+  [ -d "$1" ] && return 0
+  echo "    creating mirror $1"
+  if ! git clone --quiet --bare "$2" "$1"; then
+    echo "BLOCKED: cannot create the mirror $1 from $2" >&2
+    exit 1
+  fi
+}
 
 # The scaffold's own mirror gets the same treatment the five plugin mirrors
 # get below. Staging the vault from a mirror that sits behind origin ships
 # yesterday's scaffold under today's date, and nothing downstream would
 # notice, because every artifact gate below inspects the PLUGINS.
 echo "==> refreshing the scaffold mirror"
+ensure_mirror "$SCAFFOLD_GIT" "$SCAFFOLD_REMOTE"
 if ! git --git-dir "$SCAFFOLD_GIT" fetch --quiet --tags --force origin \
      "+refs/heads/main:refs/remotes/origin/main"; then
   echo "BLOCKED: cannot refresh the scaffold mirror from origin" >&2
   exit 1
 fi
-scaffold_staged="$(git --git-dir "$SCAFFOLD_GIT" rev-parse origin/main)"
-scaffold_remote="$(git ls-remote "$SCAFFOLD_REMOTE" refs/heads/main | cut -f1)"
-if [ "$scaffold_staged" != "$scaffold_remote" ]; then
-  echo "BLOCKED: scaffold origin/main is $scaffold_staged but the remote reports $scaffold_remote" >&2
-  exit 1
+if [ -n "$SCAFFOLD_TAG" ]; then
+  # The release workflow stages the tag it just created, not whatever main
+  # holds by the time this runs: a second push landing during the build must
+  # not leak into a zip published under the first push's version. The tag is
+  # compared with the remote's copy the same way origin/main is below, so a
+  # mirror carrying a tag the remote does not, or a different one, blocks.
+  if ! scaffold_staged="$(git --git-dir "$SCAFFOLD_GIT" rev-parse -q --verify \
+        "refs/tags/$SCAFFOLD_TAG^{commit}")"; then
+    echo "BLOCKED: the scaffold mirror has no tag $SCAFFOLD_TAG after fetching origin" >&2
+    exit 1
+  fi
+  # An annotated tag lists twice on the remote, the tag object and, with a
+  # ^{} suffix, the commit it points at; the commit is what gets compared.
+  scaffold_remote="$(git ls-remote --tags "$SCAFFOLD_REMOTE" \
+    | awk -v peeled="refs/tags/$SCAFFOLD_TAG^{}" -v plain="refs/tags/$SCAFFOLD_TAG" \
+        '$2==peeled{p=$1} $2==plain{q=$1} END{print (p!="")?p:q}')"
+  if [ -z "$scaffold_remote" ]; then
+    echo "BLOCKED: tag $SCAFFOLD_TAG is not on the scaffold remote" >&2
+    exit 1
+  fi
+  if [ "$scaffold_staged" != "$scaffold_remote" ]; then
+    echo "BLOCKED: tag $SCAFFOLD_TAG is $scaffold_staged in the mirror but $scaffold_remote on the remote" >&2
+    exit 1
+  fi
+  scaffold_label="tag $SCAFFOLD_TAG"
+else
+  scaffold_staged="$(git --git-dir "$SCAFFOLD_GIT" rev-parse origin/main)"
+  scaffold_remote="$(git ls-remote "$SCAFFOLD_REMOTE" refs/heads/main | cut -f1)"
+  if [ "$scaffold_staged" != "$scaffold_remote" ]; then
+    echo "BLOCKED: scaffold origin/main is $scaffold_staged but the remote reports $scaffold_remote" >&2
+    exit 1
+  fi
+  scaffold_label="origin/main"
 fi
 
-echo "==> staging scaffold from git (tracked files only)"
-git --git-dir "$SCAFFOLD_GIT" archive origin/main | tar -x -C "$STAGE"
+echo "==> staging scaffold from git ($scaffold_label, tracked files only)"
+git --git-dir "$SCAFFOLD_GIT" archive "$scaffold_staged" | tar -x -C "$STAGE"
 
 # local repo name | github remote | destination in the vault | kind
 declare -a SPECS=(
@@ -84,6 +147,7 @@ echo "==> adding first-party plugins and theme from their repos"
 # whatever it happens to hold.
 for spec in "${SPECS[@]}"; do
   IFS='|' read -r repo remote dest _kind <<< "$spec"
+  ensure_mirror "$MIRRORS/$repo.git" "https://github.com/myICOR/$remote.git"
   if ! git --git-dir "$HOME/.icor-git/$repo.git" fetch --quiet --tags --force origin \
        "+refs/heads/main:refs/remotes/origin/main"; then
     echo "BLOCKED: cannot refresh $repo from origin; refusing to stage a stale mirror" >&2
@@ -130,6 +194,7 @@ for rspec in "${RELEASE_SPECS[@]}"; do
     echo "BLOCKED: myICOR/$R_REMOTE has no published release to stage from" >&2
     exit 1
   fi
+  ensure_mirror "$MIRRORS/$R_REMOTE.git" "https://github.com/myICOR/$R_REMOTE.git"
   if ! git --git-dir "$HOME/.icor-git/$R_REMOTE.git" fetch --quiet --tags --force origin \
        "+refs/heads/main:refs/remotes/origin/main"; then
     echo "BLOCKED: cannot refresh the $R_REMOTE mirror from origin" >&2
@@ -173,11 +238,15 @@ fail=0
 # ---------------------------------------------------------------------------
 echo "==> residue gate (our build tooling out of the member download)"
 
+# build-scaffold-manifest.py reads this array out of this file, so the
+# manifest never describes a file the download does not carry. Keep it one
+# quoted path per line.
 declare -a RESIDUE_PATHS=(
   "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
-  # The publish step is the same kind of thing: it names our download store
-  # and our bucket layout, and a member has no use for it.
-  "06 AI Team/AI Team Knowledge/Scripts/publish-release-zip.sh"
+  # The release workflow is the same kind of thing one level up: it is how
+  # this script runs on every push, it names the same internals, and a
+  # workflow file inside a member's vault would do nothing but confuse.
+  ".github/workflows/release.yml"
 )
 
 # The self-test hook can only ever ADD a reason to fail. There is no value of
@@ -209,11 +278,17 @@ for rp in "${RESIDUE_PATHS[@]}"; do
   rm -rf "$STAGE/$rp"
   echo "    removed $rp"
 done
+# The workflow's folders are empty once it is gone, and an empty .github/
+# inside a vault is an invitation to put something in it.
+[ -d "$STAGE/.github" ] && find "$STAGE/.github" -depth -type d -empty -delete
 
 # Now the part that does not know the filename.
 declare -a RESIDUE_PATTERNS=(
   "[.]icor-git"
   "HOME/Desktop"
+  # Only a GitHub Actions workflow says this. A renamed workflow file, or
+  # a copy of one anywhere in the tree, goes red here.
+  "runs-on:"
   "YishenTu"
   "claudian"
 )
@@ -249,6 +324,11 @@ done
 echo "==> version gate (.icor-for-life/manifest.json describes the staged tree)"
 if [ ! -f "$STAGE/.icor-for-life/VERSION" ] || [ ! -f "$STAGE/.icor-for-life/manifest.json" ]; then
   echo "BLOCKED version: .icor-for-life/VERSION or manifest.json is missing from the staged tree"; fail=1
+elif [ -n "$SCAFFOLD_TAG" ] && [ "$(tr -d '[:space:]' < "$STAGE/.icor-for-life/VERSION")" != "$SCAFFOLD_TAG" ]; then
+  # A tag named after one version on a tree that calls itself another is
+  # the moved-tag defect in a different coat, and --check below would not
+  # see it: a tagged HEAD is trusted to be its own version.
+  echo "BLOCKED version: staging tag $SCAFFOLD_TAG but the tree's VERSION reads $(tr -d '[:space:]' < "$STAGE/.icor-for-life/VERSION")"; fail=1
 else
   # The builder needs `git ls-files` and the tag history, and a bare mirror
   # has neither an index nor a work tree. So: a throwaway clone of the mirror
@@ -507,6 +587,25 @@ NAME="ICOR-for-Life-Scaffold-$STAMP.zip"
 # and none of them looks inside the zip. The archive is therefore removed
 # first, so the zip is always a fresh copy of the tree the gates passed.
 rm -f "$OUT_DIR/$NAME"
+# REPRODUCIBLE. Two builds of the same tag with the same plugin releases must
+# be the same bytes, or the release workflow could never tell "already
+# published" from "different bytes under the same version". Two things make
+# a zip differ for no reason: file times (git archive stamps the commit
+# time, but the release downloads carry the moment they were fetched) and
+# entry order (a directory walk is filesystem order). So every entry gets
+# the staged commit's timestamp, the entries are written in one sorted
+# order, and the zip carries no per-file extra attributes. The zip format
+# keeps its times in local time, so the clock is pinned to UTC as well.
 echo "==> zipping -> $OUT_DIR/$NAME"
-( cd "$STAGE" && zip -qr "$OUT_DIR/$NAME" . -x "*.DS_Store" )
-echo "==> done: $OUT_DIR/$NAME ($(du -h "$OUT_DIR/$NAME" | cut -f1))"
+STAGE_EPOCH="$(git --git-dir "$SCAFFOLD_GIT" log -1 --format=%ct "$scaffold_staged")"
+python3 - "$STAGE" "$STAGE_EPOCH" <<'PYSTAMP'
+import os, sys
+root, t = sys.argv[1], int(sys.argv[2])
+for d, dirs, files in os.walk(root):
+    for n in dirs + files:
+        os.utime(os.path.join(d, n), (t, t), follow_symlinks=False)
+os.utime(root, (t, t))
+PYSTAMP
+( cd "$STAGE" && find . -type f ! -name ".DS_Store" | sed 's|^\./||' | LC_ALL=C sort \
+  | TZ=UTC zip -qX "$OUT_DIR/$NAME" -@ )
+echo "==> done: $OUT_DIR/$NAME ($(du -h "$OUT_DIR/$NAME" | cut -f1), sha256 $(sha_of "$OUT_DIR/$NAME"))"

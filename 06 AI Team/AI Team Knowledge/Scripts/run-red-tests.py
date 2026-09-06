@@ -126,6 +126,15 @@ with tempfile.TemporaryDirectory() as td:
     if r.returncode != 0:
         fails.append("build-scaffold-manifest/clean-control: rejected a good tree, so its reds are meaningless: "
                      + (r.stderr.strip().splitlines() or ["?"])[-1])
+    # 2f. the manifest reads the zip builder's RESIDUE_PATHS so it never
+    #     describes a file the download strips. A builder without that array
+    #     must be a refusal, not a manifest that quietly lists build tooling
+    #     as canonical files again.
+    clone4 = manifest_clone("manifest-no-residue-list")
+    bz = clone4 / "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
+    import re as _re
+    bz.write_text(_re.sub(r"^declare -a RESIDUE_PATHS=\(\n.*?^\)\n", "", bz.read_text(), flags=_re.M | _re.S))
+    expect_refusal("build-scaffold-manifest/no-residue-list", [str(clone4 / builder), "--check"])
     # 3. stamp-processed must reject a note without frontmatter
     plain = tmp / "plain.md"; plain.write_text("no frontmatter here\n")
     expect_fail("stamp-processed/no-frontmatter",
