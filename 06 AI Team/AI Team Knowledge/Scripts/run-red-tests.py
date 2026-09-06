@@ -119,15 +119,21 @@ with tempfile.TemporaryDirectory() as td:
     # 7. new-journal-entry must reject a bad date
     expect_fail("new-journal-entry/bad-date",
                 [str(HERE / "new-journal-entry.py"), "--date", "27.08.2026",
-                 "--slug", "x", "--category", "insight", "--original", "t"])
-    # 8. new-journal-entry must reject a bad category
-    expect_fail("new-journal-entry/bad-category",
+                 "--slug", "x", "--journal-type", "thought", "--original", "t"])
+    # 8. new-journal-entry must reject a fifth journal type (GL-1003: there
+    #    are exactly four, ever)
+    expect_fail("new-journal-entry/bad-journal-type",
                 [str(HERE / "new-journal-entry.py"), "--date", "2026-08-27",
-                 "--slug", "x", "--category", "rant", "--original", "t"])
+                 "--slug", "x", "--journal-type", "rant", "--original", "t"])
+    # 8b. new-journal-entry must reject a bad format
+    expect_fail("new-journal-entry/bad-format",
+                [str(HERE / "new-journal-entry.py"), "--date", "2026-08-27",
+                 "--slug", "x", "--journal-type", "thought", "--format", "fax",
+                 "--original", "t"])
     # 9. new-journal-entry must reject empty original text
     expect_fail("new-journal-entry/empty-original",
                 [str(HERE / "new-journal-entry.py"), "--date", "2026-08-27",
-                 "--slug", "x", "--category", "insight", "--original", "  "])
+                 "--slug", "x", "--journal-type", "thought", "--original", "  "])
     # 10. new-task must reject an uppercase slug
     expect_fail("new-task/bad-slug",
                 [str(HERE / "new-task.py"), "new", "--slug", "Bad_Slug",

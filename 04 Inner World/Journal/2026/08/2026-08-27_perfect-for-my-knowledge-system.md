@@ -1,7 +1,7 @@
 ---
 type: journal
 date: 2026-08-27
-category: insight
+journal_type: thought
 created: 2026-08-27
 linked_people: []
 linked_topics: ["[[Knowledge Management]]"]

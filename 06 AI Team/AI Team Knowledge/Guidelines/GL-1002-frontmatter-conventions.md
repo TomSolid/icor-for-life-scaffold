@@ -24,7 +24,7 @@ tags: []     # optional, lowercase, hyphenated
 
 | type | required fields | optional fields |
 | --- | --- | --- |
-| journal | date, category (insight/reflection/log/meeting/idea/other) | mood, linked_people, linked_topics, linked_projects, source |
+| journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element, mood, linked_people, linked_topics, linked_projects, source |
 | scratchpad | date | processed, processed_summary, processed_into |
 | capture | source_url, captured (ISO datetime) | processed, processed_summary, processed_into |
 | person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action |
@@ -45,6 +45,18 @@ tags: []     # optional, lowercase, hyphenated
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) |
 | planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) |
+
+## Journal: the ICOR four (ruling 2026-09-06)
+
+`type: journal` stays the entity discriminator; `journal_type` says which
+of the four ICOR kinds the entry is. The four values are exact, lowercase,
+and closed: interaction, note, thought, milestone. What each means, and
+why there is never a fifth, is taught in
+[[GL-1003-journal-entry-anatomy|GL-1003]]. `format` records how the entry
+arrived (absent means text). `key_element` is the entry's subject when it
+is about a Key Element; a Topic subject lives in `linked_topics` as before.
+`category` is retired from the journal type: entries that still carry it
+keep working as untyped, but no new entry gets one.
 
 ## Documents: the wrapper-note pattern (ruling 2026-08-29)
 
