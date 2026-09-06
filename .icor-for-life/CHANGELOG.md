@@ -10,6 +10,16 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.10.2
+
+Released 2026-09-06.
+
+### Changed: Connect 0.14.0, the terminal button leaves the right side panel
+
+The top-row terminal button in the right side panel is gone. The terminal is
+ICOR for Life - Terminal, launched from its own toolbar entry under the ICOR
+for Life logo in the left side panel. The settings gear stays where it was.
+
 ## 1.10.1
 
 Released 2026-09-06.
