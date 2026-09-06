@@ -63,10 +63,6 @@ Files changed, none removed or moved:
   the example entry migrates (`category: insight` becomes
   `journal_type: thought`) as the worked example of the new shape.
 
-## 1.8.0
-
-Unreleased.
-
 ### Added: `/checkpoint`, the session close you can type
 
 Sessions end when you close the terminal, and the three-line "session
