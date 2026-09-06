@@ -10,6 +10,33 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.9.0
+
+Released 2026-09-06.
+
+### Added: Flint, the Obsidian platform specialist
+
+The basic team grows from eight agents to nine. Flint knows the Obsidian
+platform itself: what the documented plugin API allows, what the
+community directory's automated review rejects, and what breaks on a
+phone or on the next Obsidian release. He reads every plugin or theme
+change that touches the Obsidian API, a manifest (`minAppVersion`,
+`isDesktopOnly`, `versions.json`) or the release path before it ships,
+walks the community.obsidian.md submission and its review flags, and
+answers "can Obsidian do this" from the live API reference, naming the
+sanctioned way when the obvious way is an undocumented hack. He advises
+and reviews; he never writes the fix. The preview scan on
+community.obsidian.md runs from the user's own developer dashboard;
+Flint asks for it and never implies a scan that did not happen. Same
+two-file shape as the other agents (SOP-1007), plus a dispatch shim and
+an avatar in the INKLINE style. Nothing is removed or moved.
+
+- `06 AI Team/Agents/Flint/AGENT.md`: the contract.
+- `06 AI Team/Agents/Flint/Flint.md`: the bio.
+- `.claude/agents/flint.md`: the dispatch shim, subagent type `flint`.
+- `06 AI Team/AI Team Knowledge/Avatars/flint.png`: the avatar.
+- `agent-index.md`, `CLAUDE.md`, Larry's contract name the new agent.
+
 ## 1.8.0
 
 Released 2026-09-06.
