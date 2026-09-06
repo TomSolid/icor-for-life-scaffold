@@ -45,13 +45,22 @@ the same way it does for habits. Field names and the marker rules are in
 
 ## Habits
 
-The Planner reads the My Life Habits room (`04 Inner World/My Life/Habits/`)
-and shows each active habit on the days its `cadence` and `cadence_days`
-name. Checking a habit on the board writes one row into the habit note's
-daily log, the body table behind the `<!-- habit-log: schema=... -->`
-sentinel, and creates that section the first time when the note has none.
-The plugin never writes habit frontmatter, with one exception: the HABITS
-tab in the tray sets `cadence` and `cadence_days` when you pick weekdays
-there. Streaks are computed from the rows at render time, never stored.
-The full contract, the cadence value set and the marker table, is in
-[[GL-1002-frontmatter-conventions|GL-1002]].
+Habits are a Planner concept now, the same way Routines are: `02 Planner/Habits/`
+holds one note per habit (`type: planner-habit`), and the Planner plugin
+creates the folder when it needs it. The frontmatter carries `cadence`,
+`cadence_days` or `month_day`, `status` and `started_on`; the board shows
+each active habit on the days its `cadence` names. Checking a habit on the
+board writes one row into the note's `## Log`, the body table behind the
+`<!-- habit-log: schema=... -->` sentinel, and creates that section the
+first time when the note has none. The plugin writes only the fields this
+paragraph names; it never touches a My Life note's frontmatter or body.
+
+A habit MAY also have a meaning note in `04 Inner World/My Life/Habits/`
+(`type: habit`, narrative only: why it matters, what it looks like, the
+reflection). The Planner note's `linked_note` points at that note when one
+exists; the My Life note's own `planner_habit` points back. Importing an
+existing My Life habit into the Planner (the HABITS tab's import) moves
+`cadence`, `cadence_days`, `started_on` and the log off the My Life note
+and onto the new Planner note, so the schedule and the log live in exactly
+one place. The full contract, the cadence and status value sets, and the
+marker table, is in [[GL-1002-frontmatter-conventions|GL-1002]].

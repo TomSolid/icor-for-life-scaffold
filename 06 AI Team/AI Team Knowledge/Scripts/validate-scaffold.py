@@ -10,8 +10,8 @@ Checks (all deterministic, per GL-1001 and GL-1004):
   6. Every folder inside a room resolves a colour and a glyph from
      the icor-rooms snippet, so a new folder can never ship as bare
      text in the file tree the way "AI Sessions" did (2026-08-30).
-  7. Habit notes use the GL-1002 cadence value set and mon..sun codes
-     in cadence_days.
+  7. Every note in 02 Planner/Habits/ has the planner-habit shape (type,
+     name, cadence, status, cadence_days/month_day value sets).
   8. Every note in 02 Planner/Routines/ has the planner-routine shape
      (type, routine_type, HH:MM start before end, weekdays, active).
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
@@ -108,10 +108,9 @@ if goals_dir.is_dir():
         if m and m.group(1) not in ("not-achieved", "achieved"):
             fails.append(f"goal status must be not-achieved|achieved: {f.name} has '{m.group(1)}'")
 
-# --- 7 and 8. habit and routine frontmatter value sets (GL-1002) --------
+# --- 7 and 8. planner-habit and planner-routine frontmatter shape (GL-1002) -
 DAY_CODES = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
-# `weekday` (singular) is the read alias GL-1002 grants older notes.
-CADENCES = ("daily", "weekdays", "weekly", "monthly", "adhoc", "weekday")
+CADENCES = ("daily", "weekdays", "weekly", "monthly")
 
 def fm_list(front, key):
     """Values of a frontmatter list, inline `[a, b]` or block `- a`.
@@ -132,18 +131,36 @@ def fm_list(front, key):
         items.append(lm.group(1).strip().strip("'\""))
     return items
 
-habits_dir = ROOT / "04 Inner World/My Life/Habits"
-if habits_dir.is_dir():
-    for f in habits_dir.glob("*.md"):
+planner_habits = ROOT / "02 Planner/Habits"
+if planner_habits.is_dir():
+    for f in planner_habits.glob("*.md"):
         if f.name == "README.md":
             continue
         front = fm(f)
-        m = re.search(r"^cadence:\s*(\S+)", front, re.M)
-        if m and m.group(1) not in CADENCES:
-            fails.append(f"habit cadence must be daily|weekdays|weekly|monthly|adhoc: {f.name} has '{m.group(1)}'")
+        t = re.search(r"^type:\s*(\S+)", front, re.M)
+        if not t or t.group(1) != "planner-habit":
+            fails.append(f"habit note must carry type: planner-habit (GL-1002): {f.name}")
+        if not re.search(r"^name:\s*\S", front, re.M):
+            fails.append(f"planner-habit without a name: {f.name}")
+        cm = re.search(r"^cadence:\s*(\S+)", front, re.M)
+        if not cm:
+            fails.append(f"planner-habit without a cadence: {f.name}")
+        elif cm.group(1) not in CADENCES:
+            fails.append(f"planner-habit cadence must be daily|weekdays|weekly|monthly: {f.name} has '{cm.group(1)}'")
+        sm = re.search(r"^status:\s*(\S+)", front, re.M)
+        if not sm or sm.group(1) not in ("active", "paused", "archived"):
+            fails.append(f"planner-habit status must be active|paused|archived: {f.name}")
         for d in fm_list(front, "cadence_days") or []:
             if d not in DAY_CODES:
-                fails.append(f"habit cadence_days must use mon..sun codes: {f.name} has '{d}'")
+                fails.append(f"planner-habit cadence_days must use mon..sun codes: {f.name} has '{d}'")
+        mm = re.search(r"^month_day:\s*(\S+)", front, re.M)
+        if mm:
+            try:
+                day = int(mm.group(1))
+                if not (1 <= day <= 28):
+                    fails.append(f"planner-habit month_day must be 1..28: {f.name} has '{mm.group(1)}'")
+            except ValueError:
+                fails.append(f"planner-habit month_day must be an integer 1..28: {f.name} has '{mm.group(1)}'")
 
 routines = ROOT / "02 Planner/Routines"
 if routines.is_dir():

@@ -1,10 +1,8 @@
 ---
 type: habit
-cadence: daily
-# cadence_days: [sun, wed]   # optional, only when cadence alone cannot name the days (GL-1002)
 status: active
-started_on: 2026-08-27
 tags: [example]
+# schedule, cadence and the check-in log live on this habit's planner-habit note in 02 Planner/Habits/ (GL-1002)
 ---
 # Daily Scratchpad writing
 

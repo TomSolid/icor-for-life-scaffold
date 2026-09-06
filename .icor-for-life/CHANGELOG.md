@@ -10,6 +10,53 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## Unreleased
+
+Not yet released. The maintainer folds this section into the next version
+section when cutting the release; the manifest builder ignores it until
+then.
+
+### Changed: the Planner owns Habits as its own entity, the way it owns Routines
+
+The 2026-09-04 change (folded into 1.7.2) put `cadence`, `cadence_days`,
+`started_on` and the daily log on the My Life habit note itself. That was
+one step short: the Planner plugin is about to write habit schedules the
+same way it already writes Routines, and two notes holding the same
+schedule fact is not SSOT. So
+`06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md`
+splits the `habit` type in two:
+
+- `habit` (`04 Inner World/My Life/Habits/`) goes back to meaning only:
+  no required field, optional `name`, `status` (`active | paused |
+  abandoned`), `planner_habit` (wikilink to the planner-habit note).
+  `cadence`, `cadence_days` and `started_on` are removed from this type
+  entirely, not kept as a hint that could drift from the real schedule.
+  There is no `## Daily log` on this note any more.
+- new `planner-habit` type for `02 Planner/Habits/`: required `name`,
+  `cadence` (`daily | weekdays | weekly | monthly`), `status` (`active |
+  paused | archived`); optional `cadence_days` (`mon..sun` codes, for
+  `weekly`), `month_day` (`1..28`, for `monthly`), `started_on`,
+  `linked_note` (wikilink back to the My Life habit note), `created_at`.
+  Body carries `## Log` behind the `<!-- habit-log: schema=... -->`
+  sentinel, exactly the table the My Life note used to hold.
+- The Planner's habit import moves `cadence`, `cadence_days`,
+  `started_on` and the log off an existing My Life habit note and onto
+  its new `planner-habit` note, and sets `linked_note` back to it. A
+  vault that has not run the import yet keeps working on the old shape
+  until it does.
+
+Alongside: `02 Planner/README.md`'s Habits paragraph now describes the
+Planner-owned note and the optional My Life meaning note; the example
+`04 Inner World/My Life/Habits/Daily Scratchpad writing.md` drops
+`cadence` and `started_on` and gains a one-line pointer to where the
+schedule now lives; `06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py`
+now checks the `planner-habit` shape under `02 Planner/Habits/` (cadence,
+status, cadence_days, month_day value sets) in place of the old habit
+cadence check, watched red on a broken habit note before this commit.
+`02 Planner/Routines/` and the `planner-routine` type are unchanged.
+
+No file is removed or moved.
+
 ## 1.9.1
 
 Released 2026-09-06.

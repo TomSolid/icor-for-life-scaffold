@@ -34,7 +34,7 @@ tags: []     # optional, lowercase, hyphenated
 | key-element | - | people, goals |
 | topic | - | related_topics |
 | project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements |
-| habit | cadence (daily/weekdays/weekly/monthly/adhoc) | name, status (active/paused/abandoned), cadence_days (mon..sun codes), started_on (ISO date; `since` is read as an alias) |
+| habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) |
 | task | status (open/in-progress/done/cancelled), assignee | related, due |
 | progress-report | status (live/closed), updated (ISO datetime) | plan |
 | session-log | date, agents | - |
@@ -45,6 +45,7 @@ tags: []     # optional, lowercase, hyphenated
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) |
 | planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) |
+| planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (wikilink to the My Life habit note), created_at (ISO datetime) |
 
 ## Journal: the ICOR four (ruling 2026-09-06)
 
@@ -277,63 +278,116 @@ Body, two fixed sections:
 - Never a streak, a count or a done-state in frontmatter. Definition in
   frontmatter, log in the body: the same rule as Habits below.
 
-## Habits: cadence and the daily log (ruling 2026-09-04)
+## Habits: the meaning note and the planner note (ruling 2026-09-06, supersedes 2026-09-04)
 
-The Planner plugin reads the Habits room (`04 Inner World/My Life/Habits/`,
-one flat `.md` per habit, never a folder) and writes check-ins into it, so
-the habit contract is stated in full here. It is the shape the
-maintainer's own vault has run on since June 2026.
+The 2026-09-04 ruling put `cadence`, `cadence_days`, `started_on` and the
+daily log on the My Life habit note itself. The Planner plugin now owns
+habit tracking as its own entity, the same way it already owns Routines,
+and this ruling splits the two apart for one reason: two notes writing the
+same fact is not SSOT. A habit's SCHEDULE and its LOG belong to whichever
+surface the Planner renders and checks off; a habit's MEANING (why it
+matters, what it looks like, the reflection) belongs to My Life. A field
+lives in exactly one of the two notes, never both.
+
+**The My Life habit note (`04 Inner World/My Life/Habits/`, one flat `.md`
+per habit) keeps only meaning.** `cadence`, `cadence_days` and
+`started_on` are removed from the `habit` type entirely, not kept as an
+optional hint: a schedule hint that can drift from the real, Planner-held
+schedule is worse than no hint, and the Planner note is one wikilink away
+via `planner_habit`.
 
 ```yaml
 type: habit
-name: Morning walk               # optional; the filename is the name when absent
-cadence: daily                   # daily | weekdays | weekly | monthly | adhoc
-cadence_days: [sun, wed]         # optional: mon | tue | wed | thu | fri | sat | sun
-status: active                   # active | paused | abandoned
-started_on: 2026-04-01           # ISO date; `since` is read as an alias
+name: Morning walk                # optional; the filename is the name when absent
+status: active                    # active | paused | abandoned
+planner_habit: "[[morning-walk]]" # optional, wikilink to the planner-habit note
 tags: []
 ```
 
-- `cadence` is the rhythm; `status` is whether you are currently doing it.
-  `weekdays` means Monday to Friday. `adhoc` is a habit with no fixed
-  rhythm; give it `cadence_days` when it has target days. Readers accept
-  the singular `weekday` as `weekdays`; writers use `weekdays`.
-- `cadence_days` names the fixed weekdays a habit lands on when `cadence`
-  alone cannot express it: "twice a week, on Sunday and Wednesday" is
-  `cadence: weekly` plus `cadence_days: [sun, wed]`. Values are lowercase
-  3-letter day codes. Leave the field off for habits whose `cadence`
-  already says everything (`daily`, `weekdays`, plain `monthly`). Optional,
-  additive: existing habits without it stay valid. It gives the Planner a
-  precise "is today a target day" answer instead of inferring one. The
-  Planner's HABITS tab may write `cadence` and `cadence_days`; it writes no
-  other habit frontmatter.
-- `started_on` is the ISO date the habit began. Notes written before this
-  ruling carry `since`; readers treat the two as one field, new notes use
-  `started_on`.
-- **Streak tracking stays a body-level concern, never a frontmatter
-  field.** Frontmatter holds the definition; the daily log lives in the
-  body.
+- `status` here is whether the user still holds this as a life practice
+  at all (`active`/`paused`/`abandoned`); it is independent of the
+  Planner's own `status` on the tracking note below, so a habit can read
+  `abandoned` here while its planner-habit note still shows `active` for
+  a day or two until tracking is turned off too.
+- `planner_habit` is optional and points forward to the tracking note.
+  Ruling: this is not a violation of a one-way-linking rule, because this
+  scaffold states none; [[SOP-1004-create-or-update-a-my-life-entity|SOP-1004]]
+  step 7 already directs agents to cross-link both directions wherever the
+  schema carries fields for it (person and key element, goal and key
+  element), so a habit and its planner-habit note follow the existing
+  norm rather than break it. When the field is absent (a habit created
+  before an import, or a vault that has not imported Habit tracking yet),
+  the planner note is still found by searching `linked_note` for this
+  note's wikilink; no agent should read a missing `planner_habit` as "not
+  tracked."
+- Body sections stay `## Why this habit`, `## What it looks like`,
+  `## Reflection`. There is no `## Daily log` here any more: the log
+  moved to the planner-habit note below.
 
-### The daily log: the `<!-- habit-log: schema=... -->` sentinel
+## Planner habits: cadence, status and the log (ruling 2026-09-06)
 
-A habit that tracks daily check-ins keeps them as a markdown table in the
-body (human-readable, editable in chat or by hand, canonical). So that code
-can parse the table deterministically, place a single HTML-comment sentinel
-on its own line immediately before the table, under a `## Daily log`
-heading:
+A tracked habit is a Planner concept now, the same shape of decision as a
+Routine: it lives in `02 Planner/Habits/`, one note per habit, and the
+Planner plugin creates the folder when it needs it. The frontmatter is
+the schedule; the body holds the log.
+
+```yaml
+type: planner-habit
+name: Morning walk
+cadence: daily                      # daily | weekdays | weekly | monthly
+cadence_days: [sun, wed]            # optional, weekly cadence: mon..sun codes
+month_day: 15                       # optional, monthly cadence: 1..28
+status: active                      # active | paused | archived
+started_on: 2026-04-01              # optional, ISO date
+linked_note: "[[Morning walk]]"     # optional, wikilink to the My Life habit note
+created_at: 2026-09-06T09:00:00Z    # optional, ISO datetime
+tags: []
+```
+
+- `cadence` is the rhythm the Planner schedules the habit on: `daily`,
+  `weekdays` (Monday to Friday), `weekly` or `monthly`. `weekly` pairs
+  with `cadence_days` when the habit lands on named days rather than
+  every day ("twice a week, Sunday and Wednesday" is `cadence: weekly`
+  plus `cadence_days: [sun, wed]`, lowercase 3-letter day codes);
+  `monthly` pairs with `month_day`, capped at 1 to 28 so every month can
+  honour it without a 29/30/31 edge case.
+- `status` is the Planner's own tracking state (`active`/`paused`/
+  `archived`), a different value set from the meaning note's `status`
+  above on purpose: archiving here stops the habit from rendering on the
+  board; it does not touch the My Life note or its own `status`.
+- `started_on` is the ISO date tracking began. `linked_note` is the
+  wikilink back to the My Life habit note when the Habits room is also in
+  use; a Planner-only habit (no meaning note yet) leaves it off.
+  `created_at` is this note's own creation timestamp.
+- **The import writes a `planner-habit` note FROM an existing My Life
+  habit note.** It moves `cadence`, `cadence_days` and `started_on` off
+  the My Life note and onto this one, moves the `## Log` table with them,
+  and sets `linked_note` to the My Life note it came from. Nothing is
+  copied and left behind: the source fields and the log are removed from
+  the My Life note in the same operation, per the "field lives in exactly
+  one note" rule above. A vault that has not run the import yet keeps
+  running on the pre-2026-09-06 shape until it does; nothing breaks by
+  standing still.
+
+### The log: the `<!-- habit-log: schema=... -->` sentinel
+
+The daily log lives here now, not on the My Life note, as a markdown
+table in the body (human-readable, editable in chat or by hand,
+canonical). So that code can parse the table deterministically, place a
+single HTML-comment sentinel on its own line immediately before the
+table, under a `## Log` heading (matching the Routine's `## Log`):
 
 ```markdown
-## Daily log
+## Log
 <!-- habit-log: schema=streak -->
 | Date | Y/N | Note |
 |---|---|---|
-| 2026-09-04 | Y | |
-| 2026-09-03 | N | slept in |
+| 2026-09-06 | Y | |
+| 2026-09-05 | N | slept in |
 ```
 
-The sentinel is invisible in Obsidian and unambiguous for the parser. This
-is a body convention, not a frontmatter field. Two schemas cover the known
-patterns:
+The sentinel is invisible in Obsidian and unambiguous for the parser.
+Two schemas cover the known patterns:
 
 - `schema=streak`: the first column is a date and the second a binary
   done marker; any further columns are folded into a note. Used by
@@ -356,7 +410,5 @@ rewriting the lines around it. Streaks are never written into the table or
 the frontmatter; they are computed from the rows at read time, which is
 what stops self-reported streaks from drifting. The Planner's check-in
 writes exactly this: `Y` on check, `_` on uncheck (or `N` when the row
-already carries a note), and it creates the `## Daily log` section with the
-`streak` sentinel when the note has none. Body section conventions for the
-rest of a habit note: `## Why this habit`, `## What it looks like`,
-`## Reflection`.
+already carries a note), and it creates the `## Log` section with the
+`streak` sentinel when the note has none.
