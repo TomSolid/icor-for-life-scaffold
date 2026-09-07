@@ -1,6 +1,10 @@
-# The release, on every push to main.
+# The release, on a pushed version tag. Never on a push to main.
 #
-# A push that passes the gates becomes a tag, a GitHub release and three
+# A push to main only lands code (Tom decisions r7k and t5m, 2026-09-07).
+# A release starts with the maintainer pushing a bare tag equal to
+# .icor-for-life/VERSION on a commit that is on main, after Flint's
+# review-before-ship read. The tag is made by hand, never by this workflow.
+# The tagged commit that passes the gates becomes a GitHub release and three
 # assets, and the member download on app.myicor.com follows
 #   https://github.com/<this repo>/releases/latest/download/icor-for-life-obsidian-edition.zip
 # (or the versioned copy beside it) with no deploy, no store and no pointer
@@ -9,10 +13,11 @@
 # built from, and that is all it needs.
 #
 # Order matters and is deliberate:
-#   1. every gate runs BEFORE the tag: the checks, the release notes, and a
-#      full dry run of the builder against a throwaway clone of this commit.
-#      A red must never leave a tag behind, because a tag never moves and a
-#      burnt version number costs a bump.
+#   1. every gate runs BEFORE anything is published: the tag equals VERSION
+#      and sits on main, the checks, the release notes, and a full dry run of
+#      the builder against a throwaway clone of the tagged commit. A red
+#      publishes nothing; the tag stays where the maintainer put it, and a
+#      tag never moves, so a red that needs a code change costs a bump.
 #   2. the real zip is built from the TAG on GitHub, not from main, so a
 #      second push landing while this runs cannot leak into a zip published
 #      under this version, and the tag is asserted to be this commit.
@@ -24,14 +29,16 @@
 #      bytes compared with the zip that was built.
 #
 # Every step is idempotent: a red after the tag exists is re-run with
-# workflow_dispatch on main and picks up where it stopped. This file is
+# workflow_dispatch on main (the tag must already exist at that commit; the
+# dispatch never creates one) and picks up where it stopped. This file is
 # stripped from the member download by the builder's residue gate, like the
 # builder itself.
 name: release
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
 
 permissions:
@@ -54,8 +61,9 @@ defaults:
 
 jobs:
   release:
-    # workflow_dispatch from any other branch must not be able to tag.
-    if: github.ref == 'refs/heads/main'
+    # A pushed version tag, or a workflow_dispatch re-run on main. A dispatch
+    # from any other branch must not be able to publish.
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the pushed commit with its history and tags
@@ -85,8 +93,20 @@ jobs:
             echo "::error::VERSION $v is below the newest existing tag $newest"
             exit 1
           fi
+          # The tag is the version. On a tag push the two must be equal; on a
+          # dispatch re-run the tag must already exist (checked below).
+          if [[ "$GITHUB_REF" == refs/tags/* ]] && [ "$GITHUB_REF_NAME" != "$v" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not equal .icor-for-life/VERSION $v"
+            exit 1
+          fi
+          # And the commit is on main. A tag on a stray commit publishes nothing.
+          git fetch --no-tags --force origin "+refs/heads/main:refs/remotes/origin/main"
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_SHA is not on main"
+            exit 1
+          fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          echo "version $v at $GITHUB_SHA (newest existing tag: ${newest:-none})"
+          echo "version $v at $GITHUB_SHA, on main (newest existing tag: ${newest:-none})"
 
       - name: Gates (manifest current, structure valid, every guard goes red)
         run: |
@@ -138,14 +158,13 @@ jobs:
               echo "::error::tag $VERSION already exists at $sha and this push is $GITHUB_SHA. A tag never moves: bump VERSION, write its changelog section, rebuild the manifest, push again."
               exit 1
             fi
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "tag $VERSION already points at this commit"
+            echo "tag $VERSION points at this commit"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "tag $VERSION does not exist yet"
+            echo "::error::tag $VERSION does not exist on GitHub. A release starts with a pushed tag; this workflow never creates one."
+            exit 1
           fi
 
-      - name: Dry run of the builder against this commit, before any tag exists
+      - name: Dry run of the builder against this commit, before anything is published
         id: dryrun
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -167,23 +186,6 @@ jobs:
           sha="$(sha256sum "$dry" | cut -d' ' -f1)"
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
           echo "dry run built $dry ($(stat -c %s "$dry") bytes, sha256 $sha)"
-
-      - name: Create the tag
-        if: steps.tag.outputs.exists == 'false'
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          tag_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/tags" \
-            -f tag="$VERSION" \
-            -f message="ICOR for Life Scaffold $VERSION" \
-            -f object="$GITHUB_SHA" \
-            -f type=commit \
-            --jq .sha)"
-          gh api "repos/$GITHUB_REPOSITORY/git/refs" \
-            -f ref="refs/tags/$VERSION" \
-            -f sha="$tag_sha" \
-            --jq .ref
-          echo "created annotated tag $VERSION at $GITHUB_SHA"
 
       - name: Build the member zip from the tag on GitHub, through every gate
         id: build

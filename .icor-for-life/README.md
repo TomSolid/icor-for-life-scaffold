@@ -46,21 +46,24 @@ stale against the tree, and it refuses to describe a removed file that the
 changelog does not explain. That second refusal is the whole point: a removal
 without a reason is the thing a member cannot recover from on their own.
 
-Then push `main` to GitHub. That is the release:
+Then push `main` to GitHub. Nothing ships yet: a push to `main` only lands
+code. Flint reads the diff before ship; no read, no tag. The release is the
+tag, pushed by hand, bare (`1.11.2`, never `v1.11.2`), equal to `VERSION`:
 
 ```
 git push github main
-git ls-remote github refs/heads/main     # must show the sha you just pushed
+git tag -a 1.11.2 -m "ICOR for Life Scaffold 1.11.2"
+git push github 1.11.2
 ```
 
-The `release` workflow in `.github/workflows/release.yml` runs the same
-`--check`, the structure check and the red tests, extracts this version's
-`CHANGELOG.md` section as the release notes, and builds the member zip once
-as a dry run against a throwaway clone of the pushed commit, all BEFORE any
-tag exists. Only then does it tag the commit with `VERSION` (an annotated
-tag, `ICOR for Life Scaffold <version>`), build the zip again from that tag
-on GitHub through `build-release-zip.sh` and every gate in it, create the
-release as a draft, upload the zip under a fixed name and under its version
+The `release` workflow in `.github/workflows/release.yml` runs on that tag.
+It refuses a tag that does not equal `VERSION` or that is not on `main`,
+runs the same `--check`, the structure check and the red tests, extracts
+this version's `CHANGELOG.md` section as the release notes, and builds the
+member zip once as a dry run against a throwaway clone of the tagged commit,
+all BEFORE anything is published. Only then does it build the zip again from
+that tag on GitHub through `build-release-zip.sh` and every gate in it,
+create the release as a draft, upload the zip under a fixed name and under its version
 plus this version's `manifest.json`, read every digest back, publish the
 release as latest, and go green only after the public download URLs were
 read back and their digests compared with the zip it built. Members download
@@ -73,8 +76,9 @@ section. And an asset is never replaced: the same version with different
 bytes fails the run too. Both are the same rule, that a version number names
 one tree.
 
-Recovery. A red after the tag step is re-run with `workflow_dispatch` on
-`main`; every step is idempotent, so it picks up where it stopped. A red that
+Recovery. A red after the tag exists is re-run with `workflow_dispatch` on
+`main`; every step is idempotent, so it picks up where it stopped. The
+dispatch never creates a tag: with no tag at that commit it stops red. A red that
 needs a code change is fixed by bumping to the next patch version and pushing
 again. A tag is never deleted or moved.
 
