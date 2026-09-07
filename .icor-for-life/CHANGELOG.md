@@ -51,6 +51,22 @@ on `type: document` and highlights never appear in it.
 Interface 0.6.5 inside: the status bar fold button points the way it moves
 and hides until the pointer nears it.
 
+### Changed: a plugin folder in the download holds only what Obsidian loads
+
+The zip builder stages each first-party plugin from its repo by path:
+`main.js`, `manifest.json`, `styles.css` (the INKLINE theme:
+`manifest.json`, `theme.css`) and nothing else. Until now a whole-repo
+archive put each plugin's sources, tests, `package.json` and, from
+2026-09-07, its own GitHub release workflow into the vault, where the
+builder's residue scan rightly refused the workflow. The staged shape is
+asserted before the residue scan, no `.github` directory may survive
+anywhere in the download, and the builder's self-test can plant the
+2026-09-07 shape to watch all three gates go red. The release workflow's
+dry run also gains the `main` ref a tag push's detached checkout never
+carried, the cause of the 1.11.2 tag's red before any plugin was staged.
+The third-party notices for the libraries inside the plugins live in the
+root `THIRD-PARTY-NOTICES.md`, as before.
+
 Minor bump: a new plugin and a new note type. The 1.11.2 section that sat
 on `main` untagged (the Interface swap) folds in here.
 

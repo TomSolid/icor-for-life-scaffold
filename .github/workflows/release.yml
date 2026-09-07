@@ -178,6 +178,15 @@ jobs:
           # red here costs nothing: no tag, no release, nothing to undo.
           mkdir -p "$RUNNER_TEMP/dry/out"
           git clone --quiet --bare "$GITHUB_WORKSPACE" "$ICOR_SCAFFOLD_REMOTE"
+          # On a tag push the checkout is detached with no local main, and a
+          # bare clone copies local heads and tags only, never the
+          # remote-tracking refs. So the throwaway remote would have no
+          # refs/heads/main, and the builder's mirror refresh fetches exactly
+          # that ref before it stages anything (run 34107157719, the 1.11.2
+          # tag: "fatal: couldn't find remote ref refs/heads/main"). The
+          # version step above proved this commit is on main, so main is set
+          # to it here; the builder stages the tag, not main, either way.
+          git --git-dir "$ICOR_SCAFFOLD_REMOTE" update-ref refs/heads/main "$GITHUB_SHA"
           git --git-dir "$ICOR_SCAFFOLD_REMOTE" \
             -c user.name="release workflow" -c user.email="release@localhost" \
             tag -f -a "$VERSION" -m "ICOR for Life Scaffold $VERSION" "$GITHUB_SHA"

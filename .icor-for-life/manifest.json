@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.12.0",
-  "built": "2026-09-07T09:32:23Z",
-  "commit": "20b39a8",
+  "built": "2026-09-07T09:53:51Z",
+  "commit": "e9c97d7",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -972,6 +972,13 @@
         ".obsidian/plugins/icor-for-life-pdf-annotation/styles.css",
         "04 Inner World/Documents/Highlights/.gitkeep"
       ]
+    },
+    {
+      "version": "1.11.2",
+      "date": "2026-09-07",
+      "removed": [],
+      "renamed": [],
+      "added": []
     },
     {
       "version": "1.11.1",

@@ -9,7 +9,11 @@
 #      .env / workspace.json / our plugin folders (whose data.json holds
 #      tokens) are gitignored, so they cannot be tracked.
 #   2. The ICOR plugins and the INKLINE theme are added from their own
-#      repos via `git archive` too; those repos gitignore data.json.
+#      repos via `git archive` too, BY PATH: a plugin folder gets main.js,
+#      manifest.json and styles.css, the theme gets manifest.json and
+#      theme.css, and nothing else in those repos (sources, tests, their
+#      own release workflows) can reach the zip. Those repos gitignore
+#      data.json, and the shape is asserted again in the residue gate.
 #   3. A secret scan runs over the staged tree and aborts on any hit.
 #   4. THE ARTIFACT GATE: every bundled plugin and the theme is compared,
 #      byte for byte, against the assets of its latest published GitHub
@@ -36,9 +40,10 @@
 #     of CSS, both called 1.2.4, while it was live in the community
 #     directory. Every version number agreed. Only the bytes disagreed.
 #   - a test vault held a folder labelled 0.1.0 whose bytes were not 0.1.0.
-# This script stages five of the six artifacts with `git archive main`, so
-# without gate 4 the next unbumped commit to any of them silently re-creates
-# that defect inside the zip, where nobody is looking at git.
+# This script stages seven of the nine artifacts with `git archive main`
+# (by path), so without gate 4 the next unbumped commit to any of them
+# silently re-creates that defect inside the zip, where nobody is looking
+# at git.
 #
 # Usage: bash build-release-zip.sh [output-dir]   (default: ~/Desktop)
 #
@@ -145,8 +150,25 @@ echo "==> adding first-party plugins and theme from their repos"
 # 2026-08-30 all five sat behind origin/main while the zip staged from them.
 # A mirror that cannot be refreshed blocks the build rather than shipping
 # whatever it happens to hold.
+# What a staged plugin or theme folder holds, and all it holds. A member's
+# vault loads exactly these files; everything else in a plugin repo is the
+# repo, not the artifact. On 2026-09-07 every plugin repo gained a
+# `.github/workflows/release.yml` and a whole-repo archive carried six of
+# them into the staged tree, where the residue scan's `runs-on:` pattern
+# rightly refused them. Archiving by path means a new file in a plugin repo
+# can never ride into the zip, and a path that is missing fails `git
+# archive` and blocks, which is right: the artifact gate would refuse that
+# folder anyway.
+shipped_files() {  # $1 kind -> the space-separated file list
+  case "$1" in
+    theme) echo "manifest.json theme.css" ;;
+    *)     echo "main.js manifest.json styles.css" ;;
+  esac
+}
+declare -a STAGED_SHAPES=()   # "dest|files", asserted in the residue gate
+
 for spec in "${SPECS[@]}"; do
-  IFS='|' read -r repo remote dest _kind <<< "$spec"
+  IFS='|' read -r repo remote dest kind <<< "$spec"
   ensure_mirror "$MIRRORS/$repo.git" "https://github.com/myICOR/$remote.git"
   if ! git --git-dir "$HOME/.icor-git/$repo.git" fetch --quiet --tags --force origin \
        "+refs/heads/main:refs/remotes/origin/main"; then
@@ -163,7 +185,13 @@ for spec in "${SPECS[@]}"; do
     exit 1
   fi
   mkdir -p "$STAGE/$dest"
-  git --git-dir "$HOME/.icor-git/$repo.git" archive origin/main | tar -x -C "$STAGE/$dest"
+  ship="$(shipped_files "$kind")"
+  # shellcheck disable=SC2086
+  if ! git --git-dir "$HOME/.icor-git/$repo.git" archive origin/main -- $ship | tar -x -C "$STAGE/$dest"; then
+    echo "BLOCKED: $repo origin/main does not carry every shipped file ($ship); nothing else is staged from it" >&2
+    exit 1
+  fi
+  STAGED_SHAPES+=("$dest|$ship")
 done
 
 # The chat and terminal plugins are full source repos that do NOT track their
@@ -254,6 +282,7 @@ declare -a RESIDUE_PATHS=(
 # makes it safe to leave in a release script. Run it before trusting a green:
 #   ICOR_ZIP_SELFTEST=residue bash build-release-zip.sh   # expect: BLOCKED
 #   ICOR_ZIP_SELFTEST=rename  bash build-release-zip.sh   # expect: BLOCKED
+#   ICOR_ZIP_SELFTEST=plugin-workflow bash build-release-zip.sh   # expect: BLOCKED
 case "${ICOR_ZIP_SELFTEST:-}" in
   residue)
     echo "    SELFTEST: planting residue in the staged tree; this build must fail"
@@ -265,7 +294,32 @@ case "${ICOR_ZIP_SELFTEST:-}" in
     mv "$STAGE/06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh" \
        "$STAGE/06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh.bak"
     ;;
+  plugin-workflow)
+    # The 2026-09-07 shape: a plugin repo's own release workflow inside a
+    # staged plugin folder. Three gates below must each refuse it: the
+    # folder shape, the .github directory scan, and the `runs-on:` pattern.
+    echo "    SELFTEST: planting a plugin repo's release workflow in a staged plugin folder; this build must fail"
+    mkdir -p "$STAGE/.obsidian/plugins/icor-for-life-planner/.github/workflows"
+    printf 'jobs:\n  release:\n    runs-on: ubuntu-latest\n' \
+      > "$STAGE/.obsidian/plugins/icor-for-life-planner/.github/workflows/release.yml"
+    ;;
 esac
+
+# The first-party plugin and theme folders were staged by path above. Here
+# each one is asserted to hold exactly those files, so a loosened archive
+# line, or anything else that lands a file in one of them, goes red on its
+# own, before the content scan below gets its turn.
+for shape in "${STAGED_SHAPES[@]}"; do
+  IFS='|' read -r dest ship <<< "$shape"
+  # shellcheck disable=SC2086
+  want="$(printf '%s\n' $ship | LC_ALL=C sort)"
+  have="$(cd "$STAGE/$dest" && find . -type f | sed 's|^\./||' | LC_ALL=C sort)"
+  if [ "$have" != "$want" ]; then
+    echo "BLOCKED residue: $dest must hold exactly [$ship] and holds:"
+    while IFS= read -r f; do echo "                 $f"; done <<< "$have"
+    fail=1
+  fi
+done
 
 for rp in "${RESIDUE_PATHS[@]}"; do
   if [ ! -e "$STAGE/$rp" ]; then
@@ -281,6 +335,15 @@ done
 # The workflow's folders are empty once it is gone, and an empty .github/
 # inside a vault is an invitation to put something in it.
 [ -d "$STAGE/.github" ] && find "$STAGE/.github" -depth -type d -empty -delete
+# And no .github directory anywhere in the member download, whatever is in
+# it: the scaffold's own is emptied and gone above, and a plugin's never
+# reaches the stage now that plugins are archived by path. The release
+# workflow refuses `.github/` inside the finished zip as well; this is the
+# same rule one step earlier, where the folder is named.
+while IFS= read -r d; do
+  [ -n "$d" ] || continue
+  echo "BLOCKED residue: a .github directory survives at ${d#$STAGE/}"; fail=1
+done < <(find "$STAGE" -type d -name ".github")
 
 # Now the part that does not know the filename.
 declare -a RESIDUE_PATTERNS=(
