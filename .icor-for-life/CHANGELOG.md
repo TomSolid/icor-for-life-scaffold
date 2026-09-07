@@ -10,6 +10,19 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.11.2
+
+Released 2026-09-07.
+
+### Changed: Interface 0.6.5 inside
+
+Interface 0.6.5 inside: the status bar fold button points the way it moves
+and hides until the pointer nears it.
+
+Patch bump: a bundled plugin swap, no tracked vault file changes.
+
+No file is removed or moved.
+
 ## 1.11.1
 
 Released 2026-09-07.
