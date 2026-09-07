@@ -10,7 +10,20 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## Unreleased
+## 1.14.0
+
+Released 2026-09-07.
+
+### Changed: Planner 0.11.0 inside
+
+ICOR for Life - Planner 0.11.0 inside: dates and times on the board follow
+the Date format and Time format from Obsidian's Templates settings, or the
+planner's own when that core plugin is off. The habit import keeps the YAML
+comment lines of the My Life note, writes `started_on` as the local calendar
+date instead of the UTC day, and leaves an absent `month_day` absent instead
+of writing the 1st.
+
+Minor bump: a bundled plugin feature, with the four script fixes below.
 
 ### Fixed: four defects reported from a live 1.10.2 vault
 
