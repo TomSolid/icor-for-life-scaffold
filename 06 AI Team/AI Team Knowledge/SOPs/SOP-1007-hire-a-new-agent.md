@@ -39,7 +39,7 @@ ruling is DEFER with the precondition named, not DROP.
      the model, not the user.
    - Before anything else in `AGENT.md`, mint the agent's identity:
      `uuidgen | tr A-Z a-z`, written as `myicor_id`, the first
-     frontmatter field, replacing the template's placeholder
+     frontmatter field after `type:`, replacing the template's placeholder
      ([[GL-1002-frontmatter-conventions|GL-1002]]). Minted once at
      hire, never another agent's id, never changed once written; the
      name may change later, the id never does.
