@@ -31,6 +31,7 @@ tags: []     # optional, lowercase, hyphenated
 | company | name | industry, people, website |
 | document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into |
 | goal | status (not-achieved/achieved) | target_date, key_elements |
+| pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) |
 | key-element | - | people, goals |
 | topic | - | related_topics |
 | project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements |
@@ -82,6 +83,76 @@ cards view; leave it off until a preview exists, never fabricate.
 contacts a document belongs to. Generate wrapper notes deliberately,
 one document at a time, never as a bulk backfill over thousands of
 files (a mass backfill is a known Obsidian indexer killer).
+
+## PDF highlights: one note per highlight (ruling 2026-09-07)
+
+ICOR for Life - PDF Annotation writes one markdown note per highlight made
+on a PDF in Obsidian's built-in viewer, `type: pdf-highlight`. The
+wrapper-note pattern above holds one level down: the PDF is never changed
+and never carries metadata; the highlight note does. The plugin owns the
+frontmatter and the first lines of the body; everything under `## Note`
+is the user's.
+
+Home: `04 Inner World/Documents/Highlights/<pdf-basename>/<YYYY-MM-DD-HHMMSS>-p<page>-<4 chars of the id>.md`,
+the plugin's default folder (a setting), one subfolder per PDF. The
+scaffold ships the folder empty. A note may be renamed or moved: the
+plugin finds highlights by their frontmatter, never by name or folder.
+
+```yaml
+type: pdf-highlight
+highlight_id: k3f9x2mq7a1b               # 12 characters, made once, never re-derived
+source_file: "[[05 Assets/Documents/paper.pdf]]"   # wikilink to the PDF
+document: "[[paper]]"                    # optional: the type: document wrapper note for the PDF
+page: 3                                  # 1-based
+anchor: selection                        # selection (text) | rect (a drawn box)
+selection: [16, 0, 18, 42]               # selection anchors only: core's own PDF link contract
+rects: [[72, 640.2, 402.5, 654.9]]       # [x0, y0, x1, y1] in PDF user space; one per line of text, one box for rect
+color: yellow                            # yellow | red | orange | green | blue | purple
+quote: "the exact selected text"         # selection anchors; for rect, the text inside the box, or empty
+image: "[[05 Assets/Images/paper-p3-k3f9x2mq7a1b.png]]"   # rect anchors only
+created: 2026-09-07T10:15:00
+canvases: ["[[Maps/Reading.canvas]]"]    # plugin-owned: the canvases the note is on
+linked_notes: ["[[Notes/A]]"]            # plugin-owned: notes whose canvas cards connect to this one by an edge
+cssclasses: [icor-pdf-highlight]
+```
+
+| Field | Value | Required |
+| --- | --- | --- |
+| `type` | `pdf-highlight` | yes |
+| `highlight_id` | 12 character opaque id, made once, never re-derived | yes |
+| `source_file` | wikilink to the PDF | yes |
+| `document` | wikilink to the `type: document` wrapper note for the PDF | optional |
+| `page` | 1-based integer | yes |
+| `anchor` | `selection` or `rect` | yes |
+| `selection` | `[beginIdx, beginOffset, endIdx, endOffset]`, core's own PDF link contract | selection anchors only |
+| `rects` | list of `[x0, y0, x1, y1]` in PDF user space | yes |
+| `color` | `yellow`, `red`, `orange`, `green`, `blue`, `purple` | yes |
+| `quote` | the selected text | selection anchors |
+| `image` | wikilink to the cropped PNG | rect anchors |
+| `created` | ISO datetime | yes |
+| `canvases` | list of wikilinks to `.canvas` files | plugin-owned |
+| `linked_notes` | list of wikilinks to notes whose canvas cards connect to this highlight's card by an edge, either direction | plugin-owned |
+| `cssclasses` | `[icor-pdf-highlight]` | yes |
+
+- **Body shape.** `> quote ^quote` first, then `![[image]] ^image` for a
+  rect anchor, then `## Note`. The two block ids are what a canvas card
+  or an embed (`![[<note>#^quote]]`) points at; keep them.
+- **Flat wikilink lists, never maps.** `canvases` and `linked_notes` are
+  lists of wikilink strings. The graph, backlinks and Bases read a flat
+  wikilink list, so a canvas edge becomes a visible edge in the vault; a
+  list of maps is text to the Properties panel and invisible to everything
+  else. `selection` is Obsidian's own contract (the four numbers the
+  viewer's "Copy link to selection" writes), so a highlight opens in the
+  built-in viewer without the plugin.
+- **Wikilinks, not bare names.** Every link field carries the wikilink the
+  plugin writes, so Obsidian follows a PDF or note rename. Nothing here is
+  typed by hand: the plugin writes the frontmatter, and an agent that needs
+  a highlight's facts reads them.
+- **Not in `Documents.base`, and no `Highlights.base` yet.** `Documents.base`
+  filters `note.type == "document"`, so highlights never crowd it. The
+  plugin's sidebar answers "what did I highlight in this PDF"; a
+  cross-PDF Base goes through `Scripts/new-base.py`'s registry
+  ([[GL-1006-bases-and-live-views|GL-1006]]) once there is a corpus to read.
 
 ## Progress reports (ruling 2026-08-29)
 

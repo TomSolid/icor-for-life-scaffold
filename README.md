@@ -53,7 +53,7 @@ cannot hold.
    and enable plugins" so the bundled plugins activate: the ICOR for
    Life suite, every one of them our own plugin (Planner, Focus,
    Connect, AI Chat, Interface, Scaffold Check, SQLite Viewer,
-   Terminal, Outliner; see `LICENSE.md`). Then run Settings ->
+   Terminal, Outliner, PDF Annotation; see `LICENSE.md`). Then run Settings ->
    Community plugins -> Check for updates to get their latest
    versions. It opens in the ICOR for Life - INKLINE theme, which
    draws the rooms with icons and colors (the 00-06 prefixes only

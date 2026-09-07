@@ -14,5 +14,11 @@ pattern") and [[GL-1006-bases-and-live-views|GL-1006]].
 (and as cards once a document has a `preview_image`). Open it like
 any note; edit properties right in the table.
 
+`Highlights/` is where ICOR for Life - PDF Annotation puts one note per
+highlight you make on a PDF in Obsidian's viewer (one subfolder per PDF,
+`type: pdf-highlight`, per [[GL-1002-frontmatter-conventions|GL-1002]]
+"PDF highlights"). It ships empty; the plugin fills it. `Documents.base`
+shows wrapper notes only, so highlights never crowd the table.
+
 The AI Team creates wrapper notes when documents are processed from
 `01 Inbox/Scanner Inbox/`; ask and a scan becomes a findable record.

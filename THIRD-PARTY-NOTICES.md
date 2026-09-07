@@ -18,9 +18,14 @@ license, whichever plugin folder it ships in.
 
 The ICOR plugins are our own work. Several of them bundle no
 third-party code at all: ICOR Focus, ICOR Interface and myICOR Connect are
-hand-written JavaScript against the Obsidian plugin API, and ICOR for
+hand-written JavaScript against the Obsidian plugin API, ICOR for
 Life - Outliner is hand-written TypeScript against the CodeMirror and
-Obsidian editor APIs.
+Obsidian editor APIs, and ICOR for Life - PDF Annotation is hand-written
+TypeScript against the Obsidian plugin API and the built-in PDF viewer's
+own objects (the pdf.js inside Obsidian, not a bundled copy). The `rect=`
+and `color=` parameters in the links it copies use the names the PDF++
+plugin (Ryota Ushio, MIT) uses, so a link reads the same in both; that is
+two parameter names, no code.
 
 **ICOR Planner** embeds the source-tool glyphs (Todoist, ClickUp) as SVG
 path data from the Simple Icons project (https://simpleicons.org),

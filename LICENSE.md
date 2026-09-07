@@ -28,6 +28,7 @@ Machine-readable identifier, used in every plugin repository's
 | ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | ICOR for Life Source-Available License (Code) v1.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
 | ICOR Terminal plugin (`icor-for-life-terminal`) | ICOR for Life Source-Available License (Code) v1.0 (bundles xterm.js and its addons under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
 | ICOR Outliner plugin (`icor-for-life-outliner`) | ICOR for Life Source-Available License (Code) v1.0 (bundles no third-party code) | Same as above | Same as above |
+| ICOR PDF Annotation plugin (`icor-for-life-pdf-annotation`) | ICOR for Life Source-Available License (Code) v1.0 (bundles no third-party code) | Same as above | Same as above |
 | Scaffold content (structure, templates, AI-team files, prose) | ICOR for Life Source-Available License (Content) v1.0 | Use as your personal vault, adapt and extend your own copy without limit, quote brief excerpts with attribution, apply the ICOR Journey method freely | Publish or share the vault, adapted versions, or substantial parts; build commercial products, courses, or templates from the files |
 
 "Personal use" means use by you, for you, in vaults you control. Your license
