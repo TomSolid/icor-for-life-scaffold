@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.12.0",
-  "built": "2026-09-07T09:53:51Z",
-  "commit": "e9c97d7",
+  "version": "1.13.0",
+  "built": "2026-09-07T09:58:30Z",
+  "commit": "a9e92ba",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -36,6 +36,7 @@
     "06 AI Team/AI Sessions"
   ],
   "plugins": [
+    "icor-for-life-canvases",
     "icor-for-life-chat",
     "icor-for-life-connect",
     "icor-for-life-focus",
@@ -123,7 +124,7 @@
     },
     {
       "path": ".obsidian/community-plugins.json",
-      "sha256": "c18e56cb75e441a035d4ef6fb3414e4c4e4d126814eb15bdba32c8c647f0b277",
+      "sha256": "4b8e4e5b2d04a7b86e8f7c92a84ee2e2dfdf3884d1e29935383515dd676a12c2",
       "kind": "config",
       "example": false
     },
@@ -867,19 +868,19 @@
     },
     {
       "path": "LICENSE.md",
-      "sha256": "31123658a359a454d2e771805eaed2943f9542ee114f4b95e9da7362253b2585",
+      "sha256": "b4b219a68256a7950064db18c2a96b1fcdea9c04a38cadb03fb903130096606b",
       "kind": "doc",
       "example": false
     },
     {
       "path": "README.md",
-      "sha256": "40d7564877717d0b9207d458cd38ae80b7afa62dcbb075aa49af20165cda112a",
+      "sha256": "25ca3bee064f9f3c1cd9b7e7b4f438ab0a34c5c060f22945fcef2661fb63290b",
       "kind": "doc",
       "example": false
     },
     {
       "path": "THIRD-PARTY-NOTICES.md",
-      "sha256": "a47f989b5c0550c6897f935bc2fc3b025491b76aabfceed2f4cab08529ddfeb4",
+      "sha256": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575",
       "kind": "doc",
       "example": false
     }
@@ -961,6 +962,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.13.0",
+      "date": "2026-09-07",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.12.0",
       "date": "2026-09-07",
