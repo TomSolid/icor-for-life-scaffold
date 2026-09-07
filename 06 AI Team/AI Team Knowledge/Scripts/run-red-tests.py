@@ -14,6 +14,35 @@ PY = sys.executable
 fails = []
 
 checks = 0  # counted as they run; a hardcoded total is a green that cannot go stale
+skips = []  # (guard, reason): guards that could not run HERE; printed and counted, never green
+
+# The manifest guards clone ROOT for its tag history, which assumes the
+# scaffold repo. A member's vault is a plain folder (no .git), or their own
+# repo with no release tags, and until 2026-09-07 the clone died there with
+# CalledProcessError exit 128 instead of skipping (Andrew Gillley, from a
+# 1.10.2 vault). Those guards run only when ROOT is the top of a git work
+# tree that carries at least one N.N.N tag; otherwise they are skipped, by
+# name, with the reason, and the summary counts them.
+def git_skip_reason():
+    try:
+        r = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"],
+                           capture_output=True, text=True)
+    except FileNotFoundError:
+        return "git is not installed; the manifest guards need the scaffold repo's tag history"
+    if r.returncode != 0 or Path(r.stdout.strip() or "/nonexistent").resolve() != ROOT:
+        return ("this folder is not a git checkout (a member's vault is a plain folder); "
+                "the manifest guards need the scaffold repo's tag history")
+    import re as _re
+    tags = subprocess.run(["git", "-C", str(ROOT), "tag"], capture_output=True, text=True).stdout.split()
+    if not any(_re.fullmatch(r"\d+\.\d+\.\d+", t) for t in tags):
+        return ("this git checkout carries no release tag (N.N.N); "
+                "the manifest guards need the scaffold repo's tag history")
+    return None
+GIT_SKIP = git_skip_reason()
+
+def skip(name, reason):
+    skips.append((name, reason))
+    print(f"SKIP {name}: {reason}")
 
 def expect_fail(name, argv, cwd=None):
     global checks
@@ -219,96 +248,106 @@ with tempfile.TemporaryDirectory() as td:
     checks += 1
     if penn_c.read_bytes() != before:
         fails.append("mint-agent-ids/refuse-to-change: refused, but still wrote the contract")
-    # 2c. build-scaffold-manifest --check must reject a manifest that is stale
-    #     against the tree. Runs against a git clone of THIS repo so the check
-    #     sees a real history; the tampered README is untracked noise to git
-    #     but a changed hash to the manifest, which is the whole point.
-    #     A clone only carries what is committed, so the version folder and
-    #     the builder are copied over from the working tree afterwards. This
-    #     keeps the test true before AND after those files are committed: a
-    #     clone missing manifest.json would go red for the wrong reason, and
-    #     a red for the wrong reason is a green nobody looked at.
-    def manifest_clone(name):
-        """A clone (for the tag history) carrying ROOT's CURRENT tree: every
-        file ROOT's index lists, copied from the working tree, then staged, so
-        the clone sees exactly what the builder saw in ROOT. A clone of HEAD
-        alone would go stale the moment a tracked file was edited but not yet
-        committed, and the clean control would fail on a good tree."""
-        c = tmp / name
-        subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(ROOT), str(c)], check=True)
-        def listed(repo):
-            out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z"],
-                                 capture_output=True, text=True, check=True).stdout
-            return set(filter(None, out.split("\0")))
-        root_files, clone_files = listed(ROOT), listed(c)
-        # Files the clone's HEAD tracks that ROOT's index no longer lists are
-        # staged deletions or the OLD half of a staged rename. Without this
-        # step a renamed doc exists twice in the clone and the control fails
-        # on a good tree.
-        for rel in clone_files - root_files:
-            (c / rel).unlink(missing_ok=True)
-        for rel in root_files:
-            src = ROOT / rel
-            if src.is_file():
-                (c / rel).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, c / rel)
-        subprocess.run(["git", "-C", str(c), "add", "-A"], check=True)
-        return c
-    builder = "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py"
-    clone = manifest_clone("manifest-stale")
-    (clone / "README.md").write_text((clone / "README.md").read_text() + "\ntampered\n")
-    expect_fail("build-scaffold-manifest/stale-tree", [str(clone / builder), "--check"])
-    # 2d. ...and a removal the changelog does not explain. The tag history is
-    #     real, so removing the snippet lines from the changelog leaves three
-    #     removals with no reason, and that must be red, not a warning.
-    clone2 = manifest_clone("manifest-unexplained")
-    cl = clone2 / ".icor-for-life/CHANGELOG.md"
-    cl.write_text("\n".join(l for l in cl.read_text().splitlines() if "snippets/icor-" not in l) + "\n")
-    expect_fail("build-scaffold-manifest/unexplained-removal", [str(clone2 / builder), "--check"])
-    # 2e. And the control: an untampered clone must PASS, or the two reds
-    #     above prove nothing.
-    clone3 = manifest_clone("manifest-clean")
-    r = subprocess.run([PY, str(clone3 / builder), "--check"], capture_output=True, text=True)
-    if r.returncode != 0:
-        fails.append("build-scaffold-manifest/clean-control: rejected a good tree, so its reds are meaningless: "
-                     + (r.stderr.strip().splitlines() or ["?"])[-1])
-    # 2f. the manifest reads the zip builder's RESIDUE_PATHS so it never
-    #     describes a file the download strips. A builder without that array
-    #     must be a refusal, not a manifest that quietly lists build tooling
-    #     as canonical files again.
-    clone4 = manifest_clone("manifest-no-residue-list")
-    bz = clone4 / "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
-    import re as _re
-    bz.write_text(_re.sub(r"^declare -a RESIDUE_PATHS=\(\n.*?^\)\n", "", bz.read_text(), flags=_re.M | _re.S))
-    expect_refusal("build-scaffold-manifest/no-residue-list", [str(clone4 / builder), "--check"])
-    # 2g. the manifest lists the shipped agents by identity (GL-1002, Agents:
-    #     the stable identity), and the id is READ from each contract, never
-    #     generated here. A contract whose myicor_id is not a UUID v4 must
-    #     fail the BUILD with a FAIL line that names the agent, and the
-    #     manifest on disk must be byte-identical afterwards: a build that
-    #     quietly shipped a manifest missing one agent is exactly what Scaffold
-    #     Check would then trust.
-    clone5 = manifest_clone("manifest-agent-malformed-id")
-    mack = clone5 / "06 AI Team/Agents/Mack/AGENT.md"
-    mack.write_text(set_id("not-a-uuid")(mack.read_text(encoding="utf-8")), encoding="utf-8")
-    m5 = clone5 / ".icor-for-life/manifest.json"
-    m5_before = m5.read_bytes()
-    r = expect_refusal("build-scaffold-manifest/agent-malformed-id", [str(clone5 / builder)])
-    checks += 1
-    if r.returncode != 0 and "Mack" not in (r.stderr or ""):
-        fails.append("build-scaffold-manifest/agent-malformed-id: refused, but the FAIL line does not name the agent")
-    if m5.read_bytes() != m5_before:
-        fails.append("build-scaffold-manifest/agent-malformed-id: refused, but still wrote manifest.json")
-    # 2h. ...and --check must call the manifest stale when an agent's identity
-    #     changed under it: a valid but different id on Penn is a different
-    #     agents entry, so the manifest on disk no longer describes the tree.
-    clone6 = manifest_clone("manifest-agent-id-changed")
-    penn6 = clone6 / "06 AI Team/Agents/Penn/AGENT.md"
-    penn6.write_text(set_id("11111111-1111-4111-8111-111111111111")(penn6.read_text(encoding="utf-8")), encoding="utf-8")
-    r = expect_fail("build-scaffold-manifest/agent-id-changed", [str(clone6 / builder), "--check"])
-    checks += 1
-    if r.returncode != 0 and "agents" not in (r.stderr or ""):
-        fails.append("build-scaffold-manifest/agent-id-changed: went red, but not for the agents list")
+    MANIFEST_GUARDS = ("build-scaffold-manifest/stale-tree",
+                       "build-scaffold-manifest/unexplained-removal",
+                       "build-scaffold-manifest/clean-control",
+                       "build-scaffold-manifest/no-residue-list",
+                       "build-scaffold-manifest/agent-malformed-id",
+                       "build-scaffold-manifest/agent-id-changed")
+    if GIT_SKIP is not None:
+        for name in MANIFEST_GUARDS:
+            skip(name, GIT_SKIP)
+    else:
+        # 2c. build-scaffold-manifest --check must reject a manifest that is stale
+        #     against the tree. Runs against a git clone of THIS repo so the check
+        #     sees a real history; the tampered README is untracked noise to git
+        #     but a changed hash to the manifest, which is the whole point.
+        #     A clone only carries what is committed, so the version folder and
+        #     the builder are copied over from the working tree afterwards. This
+        #     keeps the test true before AND after those files are committed: a
+        #     clone missing manifest.json would go red for the wrong reason, and
+        #     a red for the wrong reason is a green nobody looked at.
+        def manifest_clone(name):
+            """A clone (for the tag history) carrying ROOT's CURRENT tree: every
+            file ROOT's index lists, copied from the working tree, then staged, so
+            the clone sees exactly what the builder saw in ROOT. A clone of HEAD
+            alone would go stale the moment a tracked file was edited but not yet
+            committed, and the clean control would fail on a good tree."""
+            c = tmp / name
+            subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(ROOT), str(c)], check=True)
+            def listed(repo):
+                out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z"],
+                                     capture_output=True, text=True, check=True).stdout
+                return set(filter(None, out.split("\0")))
+            root_files, clone_files = listed(ROOT), listed(c)
+            # Files the clone's HEAD tracks that ROOT's index no longer lists are
+            # staged deletions or the OLD half of a staged rename. Without this
+            # step a renamed doc exists twice in the clone and the control fails
+            # on a good tree.
+            for rel in clone_files - root_files:
+                (c / rel).unlink(missing_ok=True)
+            for rel in root_files:
+                src = ROOT / rel
+                if src.is_file():
+                    (c / rel).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src, c / rel)
+            subprocess.run(["git", "-C", str(c), "add", "-A"], check=True)
+            return c
+        builder = "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py"
+        clone = manifest_clone("manifest-stale")
+        (clone / "README.md").write_text((clone / "README.md").read_text() + "\ntampered\n")
+        expect_fail("build-scaffold-manifest/stale-tree", [str(clone / builder), "--check"])
+        # 2d. ...and a removal the changelog does not explain. The tag history is
+        #     real, so removing the snippet lines from the changelog leaves three
+        #     removals with no reason, and that must be red, not a warning.
+        clone2 = manifest_clone("manifest-unexplained")
+        cl = clone2 / ".icor-for-life/CHANGELOG.md"
+        cl.write_text("\n".join(l for l in cl.read_text().splitlines() if "snippets/icor-" not in l) + "\n")
+        expect_fail("build-scaffold-manifest/unexplained-removal", [str(clone2 / builder), "--check"])
+        # 2e. And the control: an untampered clone must PASS, or the two reds
+        #     above prove nothing.
+        clone3 = manifest_clone("manifest-clean")
+        r = subprocess.run([PY, str(clone3 / builder), "--check"], capture_output=True, text=True)
+        if r.returncode != 0:
+            fails.append("build-scaffold-manifest/clean-control: rejected a good tree, so its reds are meaningless: "
+                         + (r.stderr.strip().splitlines() or ["?"])[-1])
+        # 2f. the manifest reads the zip builder's RESIDUE_PATHS so it never
+        #     describes a file the download strips. A builder without that array
+        #     must be a refusal, not a manifest that quietly lists build tooling
+        #     as canonical files again.
+        clone4 = manifest_clone("manifest-no-residue-list")
+        bz = clone4 / "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
+        import re as _re
+        bz.write_text(_re.sub(r"^declare -a RESIDUE_PATHS=\(\n.*?^\)\n", "", bz.read_text(), flags=_re.M | _re.S))
+        expect_refusal("build-scaffold-manifest/no-residue-list", [str(clone4 / builder), "--check"])
+        # 2g. the manifest lists the shipped agents by identity (GL-1002, Agents:
+        #     the stable identity), and the id is READ from each contract, never
+        #     generated here. A contract whose myicor_id is not a UUID v4 must
+        #     fail the BUILD with a FAIL line that names the agent, and the
+        #     manifest on disk must be byte-identical afterwards: a build that
+        #     quietly shipped a manifest missing one agent is exactly what Scaffold
+        #     Check would then trust.
+        clone5 = manifest_clone("manifest-agent-malformed-id")
+        mack = clone5 / "06 AI Team/Agents/Mack/AGENT.md"
+        mack.write_text(set_id("not-a-uuid")(mack.read_text(encoding="utf-8")), encoding="utf-8")
+        m5 = clone5 / ".icor-for-life/manifest.json"
+        m5_before = m5.read_bytes()
+        r = expect_refusal("build-scaffold-manifest/agent-malformed-id", [str(clone5 / builder)])
+        checks += 1
+        if r.returncode != 0 and "Mack" not in (r.stderr or ""):
+            fails.append("build-scaffold-manifest/agent-malformed-id: refused, but the FAIL line does not name the agent")
+        if m5.read_bytes() != m5_before:
+            fails.append("build-scaffold-manifest/agent-malformed-id: refused, but still wrote manifest.json")
+        # 2h. ...and --check must call the manifest stale when an agent's identity
+        #     changed under it: a valid but different id on Penn is a different
+        #     agents entry, so the manifest on disk no longer describes the tree.
+        clone6 = manifest_clone("manifest-agent-id-changed")
+        penn6 = clone6 / "06 AI Team/Agents/Penn/AGENT.md"
+        penn6.write_text(set_id("11111111-1111-4111-8111-111111111111")(penn6.read_text(encoding="utf-8")), encoding="utf-8")
+        r = expect_fail("build-scaffold-manifest/agent-id-changed", [str(clone6 / builder), "--check"])
+        checks += 1
+        if r.returncode != 0 and "agents" not in (r.stderr or ""):
+            fails.append("build-scaffold-manifest/agent-id-changed: went red, but not for the agents list")
     # 3. stamp-processed must reject a note without frontmatter
     plain = tmp / "plain.md"; plain.write_text("no frontmatter here\n")
     expect_fail("stamp-processed/no-frontmatter",
@@ -539,4 +578,6 @@ if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)
     sys.exit(1)
-print(f"OK {checks}/{checks} guards went red on bad input (plus the manifest and capture clean controls stayed green)")
+controls = "the capture clean control" if skips else "the manifest and capture clean controls"
+tail = f", {len(skips)} skipped ({skips[0][1]})" if skips else ""
+print(f"OK {checks}/{checks} guards went red on bad input{tail} (plus {controls} stayed green)")

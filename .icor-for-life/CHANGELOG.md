@@ -60,6 +60,17 @@ scaffold's scripts inside his own vault. All four were still present at
   SKIPPED on stdout and in the JSON, an unreadable selector is red), all
   watched red against the old check.
 
+- `06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py` could not run in a
+  member's vault: its manifest guards `git clone` the vault root for the tag
+  history, which assumes the scaffold repo, and in a plain folder the run
+  died with `CalledProcessError ... exit status 128`. The six manifest guards
+  now run only when the root is the top of a git work tree that carries a
+  release tag; otherwise each prints `SKIP <guard>: <reason>` and the summary
+  counts them (`OK 55/55 guards went red on bad input, 6 skipped (...)`),
+  never a silent pass. Exit stays 0 when everything that ran passed. The
+  three other fixes in this section add seven guards, so the repo's own run
+  reports 62.
+
 No file is removed or moved.
 
 ## 1.13.1
