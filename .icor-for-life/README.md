@@ -6,7 +6,7 @@ The version of this vault, in a form both people and machines can read.
 | --- | --- | --- |
 | `VERSION` | everyone | one line, the version this copy of the scaffold is. Hand-bumped by the maintainer before a release. |
 | `CHANGELOG.md` | people | what each version added, changed, and, above all, removed or moved. |
-| `manifest.json` | machines | this version described as data: every canonical file with its hash, the required rooms, the plugins and snippets the vault expects, every Base and the folder it points at, and the removal history back through the tags. Generated, never hand-edited. |
+| `manifest.json` | machines | this version described as data: every canonical file with its hash, the required rooms, the plugins and snippets the vault expects, every Base and the folder it points at, the shipped agents with their `myicor_id` (so Scaffold Check can recognise a shipped agent by identity even after a member renames it; since 1.11.1), and the removal history back through the tags. Generated, never hand-edited. |
 
 ## Why a vault carries its own version
 

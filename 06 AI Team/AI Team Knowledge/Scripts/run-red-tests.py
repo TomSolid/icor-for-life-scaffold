@@ -175,6 +175,34 @@ with tempfile.TemporaryDirectory() as td:
     import re as _re
     bz.write_text(_re.sub(r"^declare -a RESIDUE_PATHS=\(\n.*?^\)\n", "", bz.read_text(), flags=_re.M | _re.S))
     expect_refusal("build-scaffold-manifest/no-residue-list", [str(clone4 / builder), "--check"])
+    # 2g. the manifest lists the shipped agents by identity (GL-1002, Agents:
+    #     the stable identity), and the id is READ from each contract, never
+    #     generated here. A contract whose myicor_id is not a UUID v4 must
+    #     fail the BUILD with a FAIL line that names the agent, and the
+    #     manifest on disk must be byte-identical afterwards: a build that
+    #     quietly shipped a manifest missing one agent is exactly what Scaffold
+    #     Check would then trust.
+    clone5 = manifest_clone("manifest-agent-malformed-id")
+    mack = clone5 / "06 AI Team/Agents/Mack/AGENT.md"
+    mack.write_text(set_id("not-a-uuid")(mack.read_text(encoding="utf-8")), encoding="utf-8")
+    m5 = clone5 / ".icor-for-life/manifest.json"
+    m5_before = m5.read_bytes()
+    r = expect_refusal("build-scaffold-manifest/agent-malformed-id", [str(clone5 / builder)])
+    checks += 1
+    if r.returncode != 0 and "Mack" not in (r.stderr or ""):
+        fails.append("build-scaffold-manifest/agent-malformed-id: refused, but the FAIL line does not name the agent")
+    if m5.read_bytes() != m5_before:
+        fails.append("build-scaffold-manifest/agent-malformed-id: refused, but still wrote manifest.json")
+    # 2h. ...and --check must call the manifest stale when an agent's identity
+    #     changed under it: a valid but different id on Penn is a different
+    #     agents entry, so the manifest on disk no longer describes the tree.
+    clone6 = manifest_clone("manifest-agent-id-changed")
+    penn6 = clone6 / "06 AI Team/Agents/Penn/AGENT.md"
+    penn6.write_text(set_id("11111111-1111-4111-8111-111111111111")(penn6.read_text(encoding="utf-8")), encoding="utf-8")
+    r = expect_fail("build-scaffold-manifest/agent-id-changed", [str(clone6 / builder), "--check"])
+    checks += 1
+    if r.returncode != 0 and "agents" not in (r.stderr or ""):
+        fails.append("build-scaffold-manifest/agent-id-changed: went red, but not for the agents list")
     # 3. stamp-processed must reject a note without frontmatter
     plain = tmp / "plain.md"; plain.write_text("no frontmatter here\n")
     expect_fail("stamp-processed/no-frontmatter",

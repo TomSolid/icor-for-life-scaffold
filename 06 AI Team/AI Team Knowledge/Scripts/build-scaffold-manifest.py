@@ -35,6 +35,18 @@ Sources of truth, none of them duplicated here:
             from build-release-zip.sh, not copied)
   history   `git diff --name-status -M` between consecutive tags
   notes     .icor-for-life/CHANGELOG.md, matched by exact backticked path
+  agents    06 AI Team/Agents/<Name>/AGENT.md frontmatter, one entry per
+            shipped agent that is not a template, sorted by name:
+              {"name", "myicor_id", "path", "shim"}
+            `name` is the folder name; `myicor_id` is READ from the
+            contract (GL-1002, Agents: the stable identity) and never
+            generated here; `shim` is the tracked .claude/agents/<slug>.md
+            or null. The reader is mint-agent-ids.py's, loaded from this
+            folder, so the UUID rule has one home. A contract without a
+            valid id fails the build by name: Scaffold Check matches a
+            shipped agent by identity, so a manifest missing one agent
+            would teach it that the agent is not shipped. Additive under
+            schema 1; a checker must accept a manifest without `agents`.
 
 Exit 0 = manifest written (or --check passed). Exit 1 = see stderr.
 """
@@ -165,6 +177,70 @@ for f in files:
     txt = (ROOT / f["path"]).read_text(encoding="utf-8", errors="ignore")
     bases.append({"path": f["path"], "folders": sorted(set(IN_FOLDER.findall(txt)))})
 
+# ------------------------------------------------------------------- agents --
+# The shipped agents by identity (GL-1002, Agents: the stable identity). The
+# Scaffold Check plugin matches an agent in a member's vault by myicor_id, so
+# a renamed folder is still the shipped agent and a fresh hire never is. The
+# frontmatter reader is mint-agent-ids.py's own, imported from this folder
+# (the file name has hyphens, hence importlib); the UUID regex, the nil
+# placeholder and the template rule therefore have exactly one home.
+import importlib.util
+
+def load_mint():
+    src = HERE / "mint-agent-ids.py"
+    if not src.is_file():
+        die("%s is missing; the agents list needs its frontmatter reader" % src.relative_to(ROOT))
+    spec = importlib.util.spec_from_file_location("mint_agent_ids", src)
+    mod = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(mod)
+    except Exception as exc:  # noqa: BLE001
+        die("cannot load %s: %s" % (src.relative_to(ROOT), exc))
+    for attr in ("frontmatter", "read_value", "is_template", "UUID4_RE", "NIL"):
+        if not hasattr(mod, attr):
+            die("mint-agent-ids.py no longer defines %s; the manifest's agents reader depends on it" % attr)
+    return mod
+
+mint = load_mint()
+AGENTS_PREFIX = "06 AI Team/Agents/"
+shipped = {f["path"] for f in files}
+
+def shim_of(name):
+    """The tracked Claude Code shim for this agent, or None. Shims are named
+    after the agent in lowercase kebab-case (.claude/agents/penn.md)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    path = ".claude/agents/%s.md" % slug
+    return path if path in shipped else None
+
+agents = []
+ids_seen = {}
+for p in sorted(shipped):
+    if not (p.startswith(AGENTS_PREFIX) and p.endswith("/AGENT.md")):
+        continue
+    parts = p[len(AGENTS_PREFIX):].split("/")
+    if len(parts) != 2:
+        continue  # only <Name>/AGENT.md is a contract
+    name = parts[0]
+    if mint.is_template(name):
+        continue  # Agent 01 carries the nil placeholder by design
+    fm = mint.frontmatter((ROOT / p).read_text(encoding="utf-8"))
+    if fm is None:
+        die("agent %s: %s has no frontmatter, so it carries no myicor_id" % (name, p))
+    idx, val = mint.read_value(fm[0])
+    if idx is None:
+        die("agent %s: %s lacks myicor_id; run mint-agent-ids.py (GL-1002, Agents: the stable identity)" % (name, p))
+    if val == mint.NIL:
+        die("agent %s: myicor_id is the nil placeholder; a shipped agent needs a real id" % name)
+    if not mint.UUID4_RE.fullmatch(val):
+        die("agent %s: myicor_id %r is not a lowercase UUID v4" % (name, val))
+    if val in ids_seen:
+        die("agent %s: myicor_id %s is already carried by %s; an identity names one agent" % (name, val, ids_seen[val]))
+    ids_seen[val] = name
+    agents.append({"name": name, "myicor_id": val, "path": p, "shim": shim_of(name)})
+agents.sort(key=lambda a: a["name"])
+if not agents:
+    die("no shipped agent contract found under %s; a scaffold with no agents is not one" % AGENTS_PREFIX)
+
 # ------------------------------------------------------------------ history --
 # Machine facts from git: what each tagged version removed, renamed and added
 # relative to the tag before it. HEAD counts as the version in VERSION when it
@@ -274,6 +350,7 @@ manifest = {
     "snippets": snippets,
     "files": files,
     "bases": bases,
+    "agents": agents,
     "history": history,
 }
 
@@ -290,7 +367,10 @@ if CHECK:
             on_disk = json.loads(MANIFEST.read_text(encoding="utf-8"))
         except ValueError as exc:
             fails.append("manifest.json is not valid JSON: %s" % exc); on_disk = {}
-        if strip_volatile(on_disk) != strip_volatile(manifest):
+        if on_disk.get("agents") != agents:
+            fails.append("manifest.json is stale: the agents list changed (a folder renamed, a myicor_id changed, "
+                         "an agent added or removed, or a shim moved); run build-scaffold-manifest.py")
+        elif strip_volatile(on_disk) != strip_volatile(manifest):
             fails.append("manifest.json is stale: the tree changed since it was built; run build-scaffold-manifest.py")
     for ver, path in unexplained:
         fails.append("%s removes `%s` and CHANGELOG.md's %s section has no line naming it" % (ver, path, ver))
@@ -299,12 +379,13 @@ if CHECK:
     if fails:
         for f in fails: print("FAIL " + f, file=sys.stderr)
         sys.exit(1)
-    print("OK manifest %s is current: %d files, %d bases, %d versions of history" % (version, len(files), len(bases), len(history)))
+    print("OK manifest %s is current: %d files, %d bases, %d agents, %d versions of history"
+          % (version, len(files), len(bases), len(agents), len(history)))
     sys.exit(0)
 
 META.mkdir(exist_ok=True)
 MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-print("OK wrote %s: version %s, %d files, %d bases, %d versions of history"
-      % (MANIFEST.relative_to(ROOT), version, len(files), len(bases), len(history)))
+print("OK wrote %s: version %s, %d files, %d bases, %d agents, %d versions of history"
+      % (MANIFEST.relative_to(ROOT), version, len(files), len(bases), len(agents), len(history)))
 for ver, path in unexplained:
     print("WARN %s removes `%s` and CHANGELOG.md does not say why; --check will fail until it does" % (ver, path), file=sys.stderr)
