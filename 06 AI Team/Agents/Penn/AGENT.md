@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: d40ec637-e612-4baf-987c-a3ebb71a1536
 name: Penn
 role: Knowledge processor
 created: 2026-08-27

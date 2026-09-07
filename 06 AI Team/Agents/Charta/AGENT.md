@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 351cc2e5-529c-44af-93b8-34cfce04f4fc
 name: Charta
 role: Structured visual content
 created: 2026-09-04

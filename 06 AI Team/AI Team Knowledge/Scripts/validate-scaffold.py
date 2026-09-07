@@ -14,6 +14,10 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      name, cadence, status, cadence_days/month_day value sets).
   8. Every note in 02 Planner/Routines/ has the planner-routine shape
      (type, routine_type, HH:MM start before end, weekdays, active).
+  9. Every agent contract carries a well-formed, unique myicor_id and the
+     template carries the nil placeholder (GL-1002, Agents: the stable
+     identity), checked by mint-agent-ids.py --check so the rule has one
+     home.
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 """
 import re, sys
@@ -204,6 +208,20 @@ if agents.is_dir():
                 fails.append(f"agent folder missing AGENT.md: {d.name}")
             if not (d / f"{d.name}.md").is_file():
                 fails.append(f"agent folder missing user-facing bio {d.name}.md: {d.name}")
+    # 9. The stable identity. The rule (shape, uniqueness, the template's
+    #    placeholder) lives in mint-agent-ids.py; this runs it rather than
+    #    restating it, and relays its FAIL lines.
+    import subprocess
+    r = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve().parent / "mint-agent-ids.py"),
+         "--check", "--root", str(ROOT)],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        relayed = [l[5:] for l in (r.stderr or "").splitlines() if l.startswith("FAIL ")]
+        if not relayed:
+            tail = ((r.stderr or r.stdout).strip().splitlines() or ["no output"])[-1]
+            relayed = [f"mint-agent-ids.py --check failed without a FAIL line: {tail}"]
+        fails.extend(relayed)
 
 for area in ("Session Logs", "Tasks/done", "Tasks/cancelled"):
     base = ROOT / "06 AI Team/AI Team Knowledge" / area

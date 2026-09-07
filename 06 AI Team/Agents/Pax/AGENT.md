@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 7cb91c69-150c-46f0-ad78-eb2f7a220b80
 name: Pax
 role: Researcher
 created: 2026-08-27

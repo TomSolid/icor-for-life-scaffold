@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 9a23e8a4-8d9f-4893-bd91-0950f26015c9
 name: Larry
 role: Orchestrator
 created: 2026-08-27

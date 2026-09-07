@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 00000000-0000-0000-0000-000000000000  # placeholder: the hiring SOP mints the real id at hire time
 name: Agent 01
 role: TEMPLATE - copy me, never dispatch me
 created: 2026-08-27

@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 5d6edd41-e178-41db-a7e4-79cddabee8cb
 name: Iris
 role: Design system architect
 created: 2026-09-04

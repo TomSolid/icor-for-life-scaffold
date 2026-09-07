@@ -41,7 +41,7 @@ tags: []     # optional, lowercase, hyphenated
 | sop / workstream / guideline | id, title | - |
 | agent-journal | date, agent | - |
 | agent-bio | agent, role | - |
-| agent | name, role | - |
+| agent | myicor_id (uuid v4, lowercase, immutable), name, role | - |
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) |
 | planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) |
@@ -412,3 +412,45 @@ what stops self-reported streaks from drifting. The Planner's check-in
 writes exactly this: `Y` on check, `_` on uncheck (or `N` when the row
 already carries a note), and it creates the `## Log` section with the
 `streak` sentinel when the note has none.
+
+## Agents: the stable identity `myicor_id` (ruling 2026-09-07)
+
+Every agent contract (`06 AI Team/Agents/<Name>/AGENT.md`, `type: agent`)
+carries `myicor_id`, a UUID v4 in lowercase, written first after `type:`:
+
+```yaml
+type: agent
+myicor_id: 5d1c6f2e-3a4b-4c7d-8e9f-0a1b2c3d4e5f   # minted once, never changed
+name: Penn
+role: Knowledge processor
+created: 2026-08-27
+```
+
+- **Minted once, immutable.** The id is minted when the agent is hired
+  (`Scripts/mint-agent-ids.py`, or `uuidgen | tr A-Z a-z`, per
+  [[SOP-1007-hire-a-new-agent|SOP-1007]]) and never changed afterwards.
+  Everything else about the agent may change under the user's hands, the
+  name, the avatar, the whole contract; the id stays. It is the one fact by
+  which an installer (ICOR for Life - Connect, for agents delivered from
+  the myICOR library) can tell an agent that is already in the vault from
+  one that is not, and it is the same UUID the library row for that agent
+  carries as its primary key.
+- **Never the name.** The id is never shown as the agent's name and never
+  appears in a filename, a folder name or a wikilink. `name` and the folder
+  stay the human handle.
+- **One identity across vaults.** The nine agents this scaffold ships
+  (Charta, Flint, Iris, Larry, Mack, Nolan, Pax, Penn, Silas) carry their
+  ids in this repository, and every copy of one of those contracts, in a
+  later scaffold release or in any vault that carries it, keeps the same
+  id. A new hire in a vault gets a fresh id; an agent that arrives already
+  carrying one keeps it ([[SOP-1011-import-or-align-an-external-agent|SOP-1011]]).
+- **The template placeholder.** `Agents/Agent 01/AGENT.md` carries the
+  literal nil UUID `00000000-0000-0000-0000-000000000000` with a comment
+  that the hiring SOP replaces it. A real contract still on the nil value
+  fails validation, so no hire can ship without an identity.
+- **Plain, unquoted.** The hyphens make the value a string for every YAML
+  parser; no quotes.
+- **The guard.** `Scripts/mint-agent-ids.py --check` refuses a contract
+  without the field, a malformed or shared value, or a template off the
+  placeholder; `validate-scaffold.py` runs it. `--export` prints the
+  name-to-id map, the way the nine carry their identity into another vault.

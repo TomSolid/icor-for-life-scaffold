@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: eabd5af5-115c-49d5-83cd-9e3b150465a7
 name: Mack
 role: Automation specialist
 created: 2026-09-04

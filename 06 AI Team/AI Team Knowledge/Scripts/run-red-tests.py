@@ -73,6 +73,46 @@ with tempfile.TemporaryDirectory() as td:
     shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))
     (bad2 / "06 AI Team/Agents/Penn/Penn.md").unlink()
     expect_fail("validate-scaffold/missing-agent-bio", [str(HERE / "validate-scaffold.py"), str(bad2)])
+    # 2d. The stable identity (GL-1002, Agents: the stable identity). Three
+    #     bad shapes, each in its own copy so every red is for its own
+    #     reason: the field removed, a value that is not a UUID v4, and a
+    #     real contract still on the template's nil placeholder. The first
+    #     goes through validate-scaffold (which relays the check), the rest
+    #     through mint-agent-ids --check directly, as FAIL lines, never a
+    #     traceback.
+    def agent_copy(name, agent, edit):
+        c = tmp / name
+        shutil.copytree(ROOT, c, ignore=shutil.ignore_patterns(".obsidian"))
+        p = c / "06 AI Team/Agents" / agent / "AGENT.md"
+        p.write_text(edit(p.read_text(encoding="utf-8")), encoding="utf-8")
+        return c
+    def drop_id(text):
+        return "\n".join(l for l in text.split("\n") if not l.startswith("myicor_id:"))
+    def set_id(value):
+        return lambda text: "\n".join(
+            (f"myicor_id: {value}" if l.startswith("myicor_id:") else l) for l in text.split("\n"))
+    mint = HERE / "mint-agent-ids.py"
+    b_missing = agent_copy("bad-agent-id-missing", "Penn", drop_id)
+    expect_fail("validate-scaffold/agent-without-myicor-id", [str(HERE / "validate-scaffold.py"), str(b_missing)])
+    expect_refusal("mint-agent-ids/check-missing", [str(mint), "--check", "--root", str(b_missing)])
+    b_malformed = agent_copy("bad-agent-id-malformed", "Mack", set_id("not-a-uuid"))
+    expect_refusal("mint-agent-ids/check-malformed", [str(mint), "--check", "--root", str(b_malformed)])
+    b_nil = agent_copy("bad-agent-id-nil", "Pax", set_id("00000000-0000-0000-0000-000000000000"))
+    expect_refusal("mint-agent-ids/check-placeholder-on-real-agent", [str(mint), "--check", "--root", str(b_nil)])
+    # 2e. And the mint must refuse to CHANGE an id: a --map that names a
+    #     different id for an agent already carrying one is a conflict, and
+    #     the file on disk must be byte-identical afterwards (a refusal that
+    #     wrote anyway would be the worst of both).
+    b_conflict = tmp / "bad-agent-id-conflict"
+    shutil.copytree(ROOT, b_conflict, ignore=shutil.ignore_patterns(".obsidian"))
+    conflict_map = tmp / "conflict-map.json"
+    conflict_map.write_text('{"Penn": "11111111-1111-4111-8111-111111111111"}')
+    penn_c = b_conflict / "06 AI Team/Agents/Penn/AGENT.md"
+    before = penn_c.read_bytes()
+    expect_refusal("mint-agent-ids/refuse-to-change", [str(mint), "--root", str(b_conflict), "--map", str(conflict_map)])
+    checks += 1
+    if penn_c.read_bytes() != before:
+        fails.append("mint-agent-ids/refuse-to-change: refused, but still wrote the contract")
     # 2c. build-scaffold-manifest --check must reject a manifest that is stale
     #     against the tree. Runs against a git clone of THIS repo so the check
     #     sees a real history; the tampered README is untracked noise to git

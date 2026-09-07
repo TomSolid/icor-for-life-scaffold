@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: 11842f86-c826-423d-b399-d1ddfea6e5b3
 name: Flint
 role: Obsidian platform specialist
 created: 2026-09-06

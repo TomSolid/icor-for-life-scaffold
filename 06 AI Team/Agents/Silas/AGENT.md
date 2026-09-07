@@ -1,5 +1,6 @@
 ---
 type: agent
+myicor_id: c01a330d-5075-45dd-9040-c0c14827aec1
 name: Silas
 role: Structure and database architect
 created: 2026-09-04
