@@ -10,6 +10,34 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.11.1
+
+Released 2026-09-07.
+
+### Changed: the manifest lists the shipped agents with their `myicor_id`
+
+`manifest.json` gains a top-level `agents` key: an array sorted by name,
+one entry per shipped agent that is not a template, each carrying the
+agent's `name` (the folder name), its `myicor_id` read from the contract,
+the `path` of the contract and the `shim` (`.claude/agents/<slug>.md`, or
+null where none ships). The manifest lists the shipped agents with their
+`myicor_id`, so Scaffold Check can recognise a shipped agent by identity
+even after a member renames it; a fresh hire is never mistaken for one.
+The schema number stays 1: the key is additive, and a checker must accept
+a manifest without it.
+
+`06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py` reads
+the id through `mint-agent-ids.py`'s own frontmatter reader, so the UUID
+rule keeps one home, and a contract without a valid id fails the build by
+name rather than shipping a manifest that is missing an agent. `--check`
+names the agents list as its own stale reason. `run-red-tests.py` keeps
+two refusals red: a malformed id fails the build and leaves the manifest
+untouched, and a changed id makes `--check` go red for the agents list.
+
+Patch bump: the manifest's content changes, no vault file does.
+
+No file is removed or moved.
+
 ## 1.11.0
 
 Released 2026-09-07.

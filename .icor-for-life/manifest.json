@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.11.0",
-  "built": "2026-09-07T07:30:17Z",
-  "commit": "295695e",
+  "version": "1.11.1",
+  "built": "2026-09-07T08:12:11Z",
+  "commit": "93470c1",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -572,7 +572,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py",
-      "sha256": "436d9ac51b69e2dbe17cc0633da14555fbeb72173153058f3682d4f84c7bac39",
+      "sha256": "818e8ff794f023d265c84c590d8171bf0e94a9248efa7fc27c59bd0e3ca87564",
       "kind": "script",
       "example": false
     },
@@ -650,7 +650,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "4dc4347fee7b3cbe7ef34638c88122ebe8e562b612589c5150644a3f65e94e85",
+      "sha256": "db8008d07e680d1790d450f06407d4cfc294c805957897613005c2faaa5a0bae",
       "kind": "script",
       "example": false
     },
@@ -885,7 +885,70 @@
       ]
     }
   ],
+  "agents": [
+    {
+      "name": "Charta",
+      "myicor_id": "351cc2e5-529c-44af-93b8-34cfce04f4fc",
+      "path": "06 AI Team/Agents/Charta/AGENT.md",
+      "shim": ".claude/agents/charta.md"
+    },
+    {
+      "name": "Flint",
+      "myicor_id": "11842f86-c826-423d-b399-d1ddfea6e5b3",
+      "path": "06 AI Team/Agents/Flint/AGENT.md",
+      "shim": ".claude/agents/flint.md"
+    },
+    {
+      "name": "Iris",
+      "myicor_id": "5d6edd41-e178-41db-a7e4-79cddabee8cb",
+      "path": "06 AI Team/Agents/Iris/AGENT.md",
+      "shim": ".claude/agents/iris.md"
+    },
+    {
+      "name": "Larry",
+      "myicor_id": "9a23e8a4-8d9f-4893-bd91-0950f26015c9",
+      "path": "06 AI Team/Agents/Larry/AGENT.md",
+      "shim": null
+    },
+    {
+      "name": "Mack",
+      "myicor_id": "eabd5af5-115c-49d5-83cd-9e3b150465a7",
+      "path": "06 AI Team/Agents/Mack/AGENT.md",
+      "shim": ".claude/agents/mack.md"
+    },
+    {
+      "name": "Nolan",
+      "myicor_id": "7ebf4b50-1027-4726-b69e-005e93c95cf0",
+      "path": "06 AI Team/Agents/Nolan/AGENT.md",
+      "shim": ".claude/agents/nolan.md"
+    },
+    {
+      "name": "Pax",
+      "myicor_id": "7cb91c69-150c-46f0-ad78-eb2f7a220b80",
+      "path": "06 AI Team/Agents/Pax/AGENT.md",
+      "shim": ".claude/agents/pax.md"
+    },
+    {
+      "name": "Penn",
+      "myicor_id": "d40ec637-e612-4baf-987c-a3ebb71a1536",
+      "path": "06 AI Team/Agents/Penn/AGENT.md",
+      "shim": ".claude/agents/penn.md"
+    },
+    {
+      "name": "Silas",
+      "myicor_id": "c01a330d-5075-45dd-9040-c0c14827aec1",
+      "path": "06 AI Team/Agents/Silas/AGENT.md",
+      "shim": ".claude/agents/silas.md"
+    }
+  ],
   "history": [
+    {
+      "version": "1.11.1",
+      "date": "2026-09-07",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.11.0",
       "date": "2026-09-07",
