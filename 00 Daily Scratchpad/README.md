@@ -29,7 +29,7 @@ From [Note-Taking like a Pro](https://app.myicor.com/courses/digital-note-taking
 The new-note button (and Cmd+N) drops every new note here automatically,
 named with a full timestamp like `2026-08-28-143005.md`. Write your thought
 and move on: quick captures are processed exactly like daily scratchpads
-([[SOP-1001-process-a-daily-scratchpad|SOP-1001]]) - stamped, extracted,
+([[SOP-1001-process-the-daily-scratchpad|SOP-1001]]) - stamped, extracted,
 never deleted. Rename freely if you want; the timestamp is only a
 no-friction default.
 
@@ -37,4 +37,4 @@ no-friction default.
 
 Folder creation is the AI Team's job, so the new-folder button is hidden.
 Tell Larry what you need ("I need a place for X") and the team creates it
-in the right room, named per [[GL-1004-naming-and-linking|GL-1004]].
+in the right room, named per [[GL-1004-naming-rules|GL-1004]].

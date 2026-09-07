@@ -10,6 +10,22 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## Unreleased
+
+### Fixed: four defects reported from a live 1.10.2 vault
+
+Reported by community member Andrew Gillley, 2026-09-07, from running the
+scaffold's scripts inside his own vault. All four were still present at
+1.13.0 and none is specific to his vault.
+
+- `00 Daily Scratchpad/README.md` linked `SOP-1001-process-a-daily-scratchpad`
+  and `GL-1004-naming-and-linking`; the files are
+  `SOP-1001-process-the-daily-scratchpad` and `GL-1004-naming-rules`. Both
+  links fixed; a sweep of every `[[SOP-`, `[[GL-` and `[[WS-` link in the
+  download found no other unresolved variant.
+
+No file is removed or moved.
+
 ## 1.13.1
 
 Released 2026-09-07.
