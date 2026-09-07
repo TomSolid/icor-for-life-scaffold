@@ -10,16 +10,49 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## 1.11.2
+## 1.12.0
 
 Released 2026-09-07.
+
+### Added: the ICOR for Life - PDF Annotation plugin
+
+**ICOR for Life - PDF Annotation** (`icor-for-life-pdf-annotation`, 0.1.2)
+ships and is enabled in this download: highlights on Obsidian's built-in
+PDF viewer that are notes in the vault. Select text in a PDF and a toolbar
+appears: pick one of six colors, copy a deep link, add a note; hold Cmd
+(Ctrl) and drag to highlight an area, saved as a PNG. Every highlight is
+one markdown note (`type: pdf-highlight`): position, color and quote in
+the frontmatter, your own thoughts under `## Note`. Highlights are painted
+back over the PDF, open from a deep link, drag onto a canvas as a card,
+and are listed in a sidebar for the open PDF. The PDF itself is never
+changed. Desktop and mobile.
+
+`.obsidian/plugins/icor-for-life-pdf-annotation/` (`main.js`,
+`manifest.json`, `styles.css`) is tracked the way the Outliner's folder
+is, byte-identical to the 0.1.2 release assets. The plugin joins
+`community-plugins.json`, the license table in `LICENSE.md` under the
+ICOR for Life Source-Available License (Code) v1.0 (it bundles no
+third-party code; the `rect=` and `color=` link parameters share the
+PDF++ plugin's names, MIT, two names and no code, said so in
+`THIRD-PARTY-NOTICES.md`), the suite list in `README.md`, and the zip
+builder's plugin inventory. `04 Inner World/Documents/Highlights/` ships
+empty as the plugin's default folder (a setting), one subfolder per PDF
+once you highlight; `04 Inner World/Documents/README.md` says so.
+
+`GL-1002` gains the `pdf-highlight` type: the field table, the home path,
+the body shape (`> quote ^quote`, `![[image]] ^image` for an area
+highlight, `## Note`) and two rulings: `canvases` and `linked_notes` are
+flat wikilink lists, so a canvas edge is a real edge in the graph and in
+Bases; and no `Highlights.base` ships yet, since `Documents.base` filters
+on `type: document` and highlights never appear in it.
 
 ### Changed: Interface 0.6.5 inside
 
 Interface 0.6.5 inside: the status bar fold button points the way it moves
 and hides until the pointer nears it.
 
-Patch bump: a bundled plugin swap, no tracked vault file changes.
+Minor bump: a new plugin and a new note type. The 1.11.2 section that sat
+on `main` untagged (the Interface swap) folds in here.
 
 No file is removed or moved.
 

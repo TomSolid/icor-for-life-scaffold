@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.11.2",
-  "built": "2026-09-07T09:20:07Z",
-  "commit": "d35a67b",
+  "version": "1.12.0",
+  "built": "2026-09-07T09:32:23Z",
+  "commit": "20b39a8",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -41,6 +41,7 @@
     "icor-for-life-focus",
     "icor-for-life-interface",
     "icor-for-life-outliner",
+    "icor-for-life-pdf-annotation",
     "icor-for-life-planner",
     "icor-for-life-scaffold-check",
     "icor-for-life-sqlite-viewer",
@@ -122,7 +123,7 @@
     },
     {
       "path": ".obsidian/community-plugins.json",
-      "sha256": "e29f602c0281a4c1a5e0a44e7774c3d9a520939fe78cf87d2cc9994376362b56",
+      "sha256": "c18e56cb75e441a035d4ef6fb3414e4c4e4d126814eb15bdba32c8c647f0b277",
       "kind": "config",
       "example": false
     },
@@ -159,6 +160,24 @@
     {
       "path": ".obsidian/plugins/icor-for-life-outliner/styles.css",
       "sha256": "87240ff7ddba80af9e643b8912e2274454bc3e5d974262573a0c533018c792a6",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/icor-for-life-pdf-annotation/main.js",
+      "sha256": "206fe0c7682bceae707f4e061e834b26433ce7df52d526f39cde34c8b346ddff",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/icor-for-life-pdf-annotation/manifest.json",
+      "sha256": "9095b58db4805148d0976f87e22e370b5ced880b634be561542733d7aeb87cce",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/plugins/icor-for-life-pdf-annotation/styles.css",
+      "sha256": "7cb2ad3a3d7c630657c439c0a525f53178f0405bc14d15070ad9391c5b182fd2",
       "kind": "config",
       "example": false
     },
@@ -248,7 +267,7 @@
     },
     {
       "path": "04 Inner World/Documents/README.md",
-      "sha256": "e31c0c5c602a8ac59fcc4d68463fd1bcc1b564a1951104efe6824d456816439e",
+      "sha256": "948f2f0872b44b5904c32c7fbb0af4fd38ad3ed4d9bccb91656d947a1bf4314a",
       "kind": "doc",
       "example": false
     },
@@ -458,7 +477,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "9e179eb5be18c75d578d374cfbf3f7f884e03696d6a51dd9f1ae731c0f50bd95",
+      "sha256": "73f9b362b4faa987967c2774d15ece8932a4bbdb6b9bc296e320ab25d4513e11",
       "kind": "guideline",
       "example": false
     },
@@ -848,19 +867,19 @@
     },
     {
       "path": "LICENSE.md",
-      "sha256": "bd06637bfcda07d9d19753f499ffcb7179db91fc9a96e6ce4dee787ac648e08c",
+      "sha256": "31123658a359a454d2e771805eaed2943f9542ee114f4b95e9da7362253b2585",
       "kind": "doc",
       "example": false
     },
     {
       "path": "README.md",
-      "sha256": "c189600594ab95ecc54abc6117c250e9246dc04ec1950a70816b9a699a37df97",
+      "sha256": "40d7564877717d0b9207d458cd38ae80b7afa62dcbb075aa49af20165cda112a",
       "kind": "doc",
       "example": false
     },
     {
       "path": "THIRD-PARTY-NOTICES.md",
-      "sha256": "4449fac3d2c0b08718664c9e12afe6a7f3280bb75d7c3a70596ed5814695f081",
+      "sha256": "a47f989b5c0550c6897f935bc2fc3b025491b76aabfceed2f4cab08529ddfeb4",
       "kind": "doc",
       "example": false
     }
@@ -943,11 +962,16 @@
   ],
   "history": [
     {
-      "version": "1.11.2",
+      "version": "1.12.0",
       "date": "2026-09-07",
       "removed": [],
       "renamed": [],
-      "added": []
+      "added": [
+        ".obsidian/plugins/icor-for-life-pdf-annotation/main.js",
+        ".obsidian/plugins/icor-for-life-pdf-annotation/manifest.json",
+        ".obsidian/plugins/icor-for-life-pdf-annotation/styles.css",
+        "04 Inner World/Documents/Highlights/.gitkeep"
+      ]
     },
     {
       "version": "1.11.1",
