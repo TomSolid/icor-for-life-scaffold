@@ -68,6 +68,35 @@ with tempfile.TemporaryDirectory() as td:
             fails.append("checkpoint/wip-candidate: a 400-day-old unreferenced WiP folder was not flagged to leave")
     except Exception as e:
         fails.append(f"checkpoint/wip-candidate: report unreadable ({e})")
+    # 1d. checkpoint must see a task that already shipped. A task closed
+    #     earlier in the same session sits in Tasks/done/YYYY/MM/ (hard rule
+    #     6) by the time the checkpoint runs; until 2026-09-07 the scan read
+    #     only open/ and in-progress/ and reported `tasks touched : 0`.
+    #     Positive AND negative: a done task newer than the last log must be
+    #     listed with state "done", a done task older than it must not be,
+    #     so a scan that lists every closed task ever cannot pass either.
+    tk = nolog / "06 AI Team/AI Team Knowledge/Tasks"
+    lg = nolog / "06 AI Team/AI Team Knowledge/Session Logs/2026/09"
+    lg.mkdir(parents=True, exist_ok=True)
+    plog = lg / "2026-09-06-10-00_larry_probe.md"; plog.write_text("---\ntype: session-log\n---\n")
+    day_ago = _time.time() - 86400
+    _os.utime(plog, (day_ago, day_ago))
+    fresh = tk / "done/2026/09/2026-09-07-001-shipped-probe.md"
+    fresh.parent.mkdir(parents=True, exist_ok=True); fresh.write_text("---\ntype: task\nstatus: done\n---\n")
+    ancient = tk / "done/2020/01/2020-01-01-002-ancient-probe.md"
+    ancient.parent.mkdir(parents=True, exist_ok=True); ancient.write_text("---\ntype: task\nstatus: done\n---\n")
+    _os.utime(ancient, (old_t, old_t))
+    r = subprocess.run([PY, str(HERE / "checkpoint.py"), str(nolog), "--json"], capture_output=True, text=True)
+    checks += 1
+    try:
+        rep = _json.loads(r.stdout)
+        seen = {(e["state"], e["file"]) for e in rep["tasks_touched_since_last_log"]}
+        if ("done", fresh.name) not in seen:
+            fails.append("checkpoint/done-task-visible: a task closed to done/2026/09/ after the last log is not in the report")
+        if ("done", ancient.name) in seen:
+            fails.append("checkpoint/done-task-visible: a done task older than the last log is listed, so the scan ignores the log's time")
+    except Exception as e:
+        fails.append(f"checkpoint/done-task-visible: report unreadable ({e})")
     # 2b. validate-scaffold must reject an agent folder without its bio
     bad2 = tmp / "bad-scaffold-2"
     shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))

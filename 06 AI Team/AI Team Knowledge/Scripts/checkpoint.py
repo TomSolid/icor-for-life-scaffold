@@ -3,8 +3,13 @@
 
 Answers, from the files alone, the questions a checkpoint asks:
 
-  1. Which tasks moved this session?  Every file in Tasks/open/ and
-     Tasks/in-progress/ changed since the last session log.
+  1. Which tasks moved this session?  Every task file changed since the
+     last session log, in all four states: Tasks/open/, Tasks/in-progress/,
+     and the date-nested Tasks/done/YYYY/MM/ and Tasks/cancelled/YYYY/MM/.
+     A task closed earlier in the same session lives in done/ by the time
+     the checkpoint runs, and until 2026-09-07 it was invisible here (the
+     report said `tasks touched : 0` for a session that shipped one;
+     reported by Andrew Gillley from a 1.10.2 vault).
   2. Which WiP folders could leave?  Every folder in 03 WiP/ (not _archive)
      whose newest file is older than --window days AND which no open or
      in-progress task mentions. Both facts are printed for every folder;
@@ -57,17 +62,26 @@ last_log_time = mtime(last_log) if last_log else datetime.datetime.min
 todays = [p for p in logs if p.name.startswith(today.isoformat())]
 
 # --- 2. tasks touched since the last log ----------------------------------
+# open/ and in-progress/ are flat; done/ and cancelled/ nest by YYYY/MM/
+# (hard rule 6), so those two are walked recursively. Only open and
+# in-progress tasks can still reference a WiP folder, so only their text
+# feeds the WiP check below.
+STATES = ("open", "in-progress", "done", "cancelled")
 touched = []
 task_texts = []
-for state in ("open", "in-progress"):
+touched_by_state = {s: 0 for s in STATES}
+for state in STATES:
     d = TASKS / state
     if not d.exists():
         continue
-    for f in sorted(d.glob("*.md")):
-        text = f.read_text(errors="ignore")
-        task_texts.append(text)
+    live = state in ("open", "in-progress")
+    for f in sorted(d.glob("*.md") if live else d.rglob("*.md")):
+        if live:
+            task_texts.append(f.read_text(errors="ignore"))
         if mtime(f) > last_log_time:
-            touched.append({"state": state, "file": f.name})
+            touched.append({"state": state, "file": f.name,
+                            "path": f.relative_to(TASKS).as_posix()})
+            touched_by_state[state] += 1
 all_task_text = "\n".join(task_texts)
 
 # --- 3. WiP folders: age and task references -------------------------------
@@ -91,6 +105,7 @@ report = {
     "last_session_log": str(last_log.relative_to(ROOT)) if last_log else None,
     "session_log_today": bool(todays),
     "tasks_touched_since_last_log": touched,
+    "tasks_touched_by_state": touched_by_state,
     "wip": wip,
     "window_days": a.window,
 }
@@ -101,9 +116,10 @@ else:
     print(f"checkpoint {today.isoformat()}  (window {a.window} days)")
     print(f"  last session log : {report['last_session_log'] or 'none yet'}")
     print(f"  log for today    : {'yes' if report['session_log_today'] else 'NO'}")
-    print(f"  tasks touched    : {len(touched)}")
+    print(f"  tasks touched    : {len(touched)}"
+          + (" (" + ", ".join(f"{s} {n}" for s, n in touched_by_state.items() if n) + ")" if touched else ""))
     for t in touched:
-        print(f"    - [{t['state']}] {t['file']}")
+        print(f"    - [{t['state']}] {t['path']}")
     cands = [w for w in wip if w["candidate_to_leave"]]
     print(f"  wip folders      : {len(wip)}, candidates to leave: {len(cands)}")
     for w in wip:

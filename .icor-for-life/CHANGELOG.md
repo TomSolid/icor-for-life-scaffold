@@ -24,6 +24,19 @@ scaffold's scripts inside his own vault. All four were still present at
   links fixed; a sweep of every `[[SOP-`, `[[GL-` and `[[WS-` link in the
   download found no other unresolved variant.
 
+- `06 AI Team/AI Team Knowledge/Scripts/checkpoint.py` scanned only
+  `Tasks/open/` and `Tasks/in-progress/` for files changed since the last
+  session log, so a task closed to `Tasks/done/YYYY/MM/` earlier in the same
+  session was invisible and the report printed `tasks touched : 0`. It now
+  walks the date-nested `Tasks/done/` and `Tasks/cancelled/` trees as well,
+  prints every touched task with its state and path, and the JSON report
+  keeps its shape: each entry gains `path`, and a `tasks_touched_by_state`
+  count is added; nothing is renamed. Only open and in-progress tasks still
+  feed the WiP reference check. `run-red-tests.py` gains
+  `checkpoint/done-task-visible`: a done task newer than the last log must
+  be listed, a done task older than it must not, watched red against the
+  old scan.
+
 No file is removed or moved.
 
 ## 1.13.1
