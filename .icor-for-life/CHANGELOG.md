@@ -36,6 +36,9 @@ untouched, and a changed id makes `--check` go red for the agents list.
 
 Patch bump: the manifest's content changes, no vault file does.
 
+Scaffold Check 0.2.0 inside: it reads the agents list and reports
+identity, not just paths.
+
 No file is removed or moved.
 
 ## 1.11.0
