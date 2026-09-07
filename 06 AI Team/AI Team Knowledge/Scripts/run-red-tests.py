@@ -102,6 +102,83 @@ with tempfile.TemporaryDirectory() as td:
     shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))
     (bad2 / "06 AI Team/Agents/Penn/Penn.md").unlink()
     expect_fail("validate-scaffold/missing-agent-bio", [str(HERE / "validate-scaffold.py"), str(bad2)])
+    # 2i-2l. validate-scaffold check 6 (file-tree styling) must READ a rule
+    #     source or SAY it read none. From 1.4.0 to 1.13.0 it read the retired
+    #     icor-rooms.css snippet behind `is_file()` and passed every vault by
+    #     covering nothing (Andrew Gillley, 2026-09-07). The fixture below is
+    #     the INKLINE theme's own selector grammar (src/60-rooms.css: the
+    #     :is() mechanism rule, :not([data-icor-kind]) data rules, --room-icon
+    #     as the glyph, the family floor's :not(:where([data-path*="/20"])))
+    #     with the data URIs shortened, planted where a member's vault holds
+    #     the theme.
+    ROOMS = ["00", "01", "02", "03", "04", "05", "06", "07"]
+    room_sel = ", ".join(f':not([data-icor-kind])[data-path^="{n} "]:not([data-path*="/"])' for n in ROOMS)
+    fam_sel = ", ".join(f':not([data-icor-kind])[data-path^="{n} "][data-path*="/"]:not(:where([data-path*="/20"]))' for n in ROOMS)
+    G = "body:not(.icor-rooms-off) "
+    theme_css = "\n".join(
+        [f'{G}.nav-folder-title:is([data-icor-kind="room"], {room_sel}) .nav-folder-title-content::before{{ content: ""; -webkit-mask-image: var(--room-icon); mask-image: var(--room-icon); }}',
+         f'{G}.nav-folder-title:is([data-icor-kind="family"], {fam_sel}) .nav-folder-title-content::before{{ content: ""; mask-image: var(--room-icon); }}']
+        + [f'{G}.nav-folder-title:not([data-icor-kind])[data-path^="{n} "]:not([data-path*="/"]){{ --room-color: #{n}{n}{n}; --room-color-paper: #000; --room-label: "R{n}"; --room-icon: url("data:image/svg+xml,x"); }}' for n in ROOMS]
+        + [f'{G}.nav-folder-title:not([data-icor-kind])[data-path^="{n} "][data-path*="/"]:not(:where([data-path*="/20"])) {{ --room-color: #{n}{n}{n}; --room-color-paper: #000; }}' for n in ROOMS]
+        + [f'{G}.nav-folder-title:is({fam_sel}){{ --room-icon: url("data:image/svg+xml,folder"); }}',
+           f'{G}.nav-folder-title:not([data-icor-kind])[data-path^="04 "][data-path$="/Journal"]{{ --room-color: #444; --room-icon: url("data:image/svg+xml,book"); }}',
+           ""])
+    def styled_vault(name, css=theme_css, rogue=True):
+        v = tmp / name
+        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        if css is not None:
+            th = v / ".obsidian/themes/ICOR for Life - INKLINE"
+            th.mkdir(parents=True); (th / "theme.css").write_text(css)
+        if rogue:
+            (v / "08 Rogue").mkdir()
+        return v
+    vs = HERE / "validate-scaffold.py"
+    def report(v):
+        """The validator's --json report; {} when it printed none, which the
+        callers treat as a report that names no source and no skip."""
+        r = subprocess.run([PY, str(vs), str(v), "--json"], capture_output=True, text=True)
+        try:
+            return r, _json.loads(r.stdout)
+        except ValueError:
+            return r, {}
+    # 2i. with the theme present, an unstyled 08 room is red, by name
+    r = expect_fail("validate-scaffold/unstyled-room-with-theme", [str(vs), str(styled_vault("styled-rogue"))])
+    checks += 1
+    if r.returncode != 0 and "08 Rogue" not in (r.stderr or ""):
+        fails.append("validate-scaffold/unstyled-room-with-theme: went red, but not for 08 Rogue")
+    # 2j. the control: the same theme over the shipped tree passes, and the
+    #     JSON names the theme as what check 6 read; a green that read
+    #     nothing would make 2i's red meaningless.
+    r, rep = report(styled_vault("styled-clean", rogue=False))
+    checks += 1
+    if r.returncode != 0:
+        fails.append("validate-scaffold/theme-clean-control: rejected the shipped tree under the theme: "
+                     + (r.stderr.strip().splitlines() or ["?"])[-1])
+    elif rep.get("sources", {}).get("6", "") != ".obsidian/themes/ICOR for Life - INKLINE/theme.css":
+        fails.append(f"validate-scaffold/theme-clean-control: passed, but check 6 did not read the theme (sources={rep.get('sources')})")
+    elif rep.get("skipped"):
+        fails.append("validate-scaffold/theme-clean-control: the theme is present, yet check 6 reports itself skipped")
+    # 2k. with NO rule source, the very same rogue room is not caught, and
+    #     the run must say so: SKIPPED on stdout, check 6 in the JSON's
+    #     skipped list, and still exit 0. A silent pass here (exit 0, no
+    #     SKIPPED, nothing in skipped) is the 1.10.2 defect and fails this.
+    v = styled_vault("styled-none", css=None)
+    r_txt = subprocess.run([PY, str(vs), str(v)], capture_output=True, text=True)
+    r, rep = report(v)
+    checks += 1
+    if r_txt.returncode != 0 or r.returncode != 0:
+        fails.append("validate-scaffold/no-rule-source-is-skipped: exit 1 with no rule source; the skip must stay green")
+    elif "SKIPPED check 6" not in r_txt.stdout:
+        fails.append("validate-scaffold/no-rule-source-is-skipped: passed without a SKIPPED line, so check 6 covered nothing and said nothing")
+    elif not any(s.get("check") == 6 for s in rep.get("skipped", [])):
+        fails.append("validate-scaffold/no-rule-source-is-skipped: --json does not list check 6 as skipped")
+    # 2l. a selector shape the evaluator cannot read is red and named, never
+    #     a rule silently dropped (the theme build has the same rule)
+    weird = styled_vault("styled-unreadable", css=theme_css + '\n' + G + '.nav-folder-title:has([data-path^="04 "]) { --room-color: #123; }\n', rogue=False)
+    r = expect_fail("validate-scaffold/unreadable-selector", [str(vs), str(weird)])
+    checks += 1
+    if r.returncode != 0 and "cannot read" not in (r.stderr or ""):
+        fails.append("validate-scaffold/unreadable-selector: went red, but not for the unreadable selector")
     # 2d. The stable identity (GL-1002, Agents: the stable identity). Three
     #     bad shapes, each in its own copy so every red is for its own
     #     reason: the field removed, a value that is not a UUID v4, and a

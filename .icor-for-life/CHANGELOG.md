@@ -37,6 +37,29 @@ scaffold's scripts inside his own vault. All four were still present at
   be listed, a done task older than it must not, watched red against the
   old scan.
 
+- `06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py` check 6 (every
+  folder inside a room gets a colour and a glyph in the file tree) read
+  `.obsidian/snippets/icor-rooms.css`, which 1.4.0 retired into the theme,
+  behind an `is_file()` guard: in every shipped vault the read was skipped
+  and the check passed by covering nothing. It now reads the rules where
+  they live: the theme `appearance.json` names first, then any
+  `.obsidian/themes/*/theme.css` carrying room rules, then the snippet as a
+  fallback; and with none of them present it prints
+  `SKIPPED check 6 (file-tree styling): <reason>` and exits 0, never a
+  silent pass. The theme's selector grammar (`:is()`, `:not([data-icor-kind])`,
+  `:not(:where(...))`, the glyph as `--room-icon`) is evaluated the way CSS
+  does instead of by a regex that only knew the snippet's shape, and a
+  selector shape it cannot read is a named FAIL, not a dropped rule.
+  Confirmed on INKLINE 1.6.0's `theme.css`: the shipped tree passes, an
+  unstyled `08` room fails, dated folders are declined by the floor exactly
+  as before, and the same rules through the snippet path give the same
+  answer. New `--json` flag: `{root, ok, fails, skipped, sources}`, so a
+  caller can tell a pass from a skip. `run-red-tests.py` gains four guards
+  (an unstyled room under the theme is red by name, the shipped tree under
+  the theme is green and names the theme as read, no rule source is
+  SKIPPED on stdout and in the JSON, an unreadable selector is red), all
+  watched red against the old check.
+
 No file is removed or moved.
 
 ## 1.13.1

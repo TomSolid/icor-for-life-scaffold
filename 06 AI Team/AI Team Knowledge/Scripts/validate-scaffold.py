@@ -7,9 +7,12 @@ Checks (all deterministic, per GL-1001 and GL-1004):
   3. Daily Scratchpads are named YYYY-MM-DD.md.
   4. Journal entries sit in YYYY/MM/ and are named YYYY-MM-DD_<slug>.md.
   5. Session logs and done/cancelled tasks sit in YYYY/MM/.
-  6. Every folder inside a room resolves a colour and a glyph from
-     the icor-rooms snippet, so a new folder can never ship as bare
-     text in the file tree the way "AI Sessions" did (2026-08-30).
+  6. Every folder inside a room resolves a colour and a glyph from the
+     file-tree rules of the INKLINE theme (.obsidian/themes/*/theme.css,
+     since 1.4.0; the icor-rooms.css snippet before that), so a new
+     folder can never ship as bare text in the file tree the way
+     "AI Sessions" did (2026-08-30). With NO rule source in the vault the
+     check is reported SKIPPED, on stdout and in --json, never as passed.
   7. Every note in 02 Planner/Habits/ has the planner-habit shape (type,
      name, cadence, status, cadence_days/month_day value sets).
   8. Every note in 02 Planner/Routines/ has the planner-routine shape
@@ -19,12 +22,20 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      identity), checked by mint-agent-ids.py --check so the rule has one
      home.
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
+
+Usage: validate-scaffold.py [<vault-root>] [--json]
+  --json  print {"root", "ok", "fails", "skipped", "sources"} on stdout
+          instead of the OK / SKIPPED lines; FAIL lines still go to stderr.
 """
-import re, sys
+import json, re, sys
 from pathlib import Path
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[3]
+JSON = "--json" in sys.argv[1:]
+args = [a for a in sys.argv[1:] if a != "--json"]
+ROOT = Path(args[0]) if args else Path(__file__).resolve().parents[3]
 fails = []
+skipped = []   # {"check", "name", "reason"}: a check that could not run here
+sources = {}   # check -> the file it read
 
 REQUIRED = [
     "01 Inbox/Outer World/archive",
@@ -232,45 +243,197 @@ for area in ("Session Logs", "Tasks/done", "Tasks/cancelled"):
                 fails.append(f"{area} entry not in YYYY/MM/: {rel}")
 
 # --- 6. no folder inside a room renders unstyled -----------------------
-# Every selector in icor-rooms.css that targets the file tree reduces to
-# predicates on one string, the folder's data-path, so a match can be
-# decided exactly here without a browser. The snippet derives the family
-# treatment from the room prefix and enumerates only glyphs, so this
-# check fails when a room exists that the derived floor does not cover,
-# or when a named rule has drifted off the folder it was written for.
-snippet = ROOT / ".obsidian/snippets/icor-rooms.css"
-if snippet.is_file():
-    css = re.sub(r"/\*.*?\*/", "", snippet.read_text(encoding="utf-8"), flags=re.S)
-    ATTR = re.compile(r'\[data-path(\^|\$|\*)?="([^"]*)"\]')
+# Every rule that colours the file tree reduces to predicates on one string,
+# the folder's data-path, so a match can be decided exactly here without a
+# browser. The rules live in the ICOR for Life - INKLINE theme since 1.4.0
+# (src/60-rooms.css there; the icor-rooms.css snippet carried them before).
+#
+# WHY THIS CHECK READS A SOURCE OR SAYS SO. From 1.4.0 to 1.13.0 it read the
+# retired snippet behind `if snippet.is_file()`, so in every shipped vault
+# the read was skipped and the check passed by covering nothing, the exact
+# failure the comment below warns about (reported by Andrew Gillley,
+# 2026-09-07, from a 1.10.2 vault). Now: the active theme first (the one
+# appearance.json names), then any theme whose css carries room rules,
+# then the snippet; and with NONE of them present the check is SKIPPED,
+# said so on stdout and in --json, and never counted as passed.
+#
+# THE THEME'S GRAMMAR, which the snippet's regex could not read: the
+# folder-title compound is `.nav-folder-title:is(A, B, ...)` or
+# `.nav-folder-title:not([data-icor-kind])[data-path...]`, under a body-level
+# guard (`body:not(.icor-rooms-off)`), and the glyph is no longer a literal
+# `mask-image:` on a `::before` rule but `--room-icon` set on the title and
+# drawn by one mechanism rule. So this evaluates the compound as CSS does
+# (:is/:where = any, :not = none, attribute selectors on data-path; a
+# `data-icor-kind` attribute is never present, because that is the plugin
+# speaking and this check models the theme alone), and a compound it cannot
+# read is a FAIL naming the selector, never a silent miss: a new selector
+# shape in the theme must stop this check the way it stops the theme build.
 
-    def hit(path, op, val):
-        return (path.startswith(val) if op == "^" else
-                path.endswith(val)   if op == "$" else
-                val in path          if op == "*" else path == val)
+def room_css_source():
+    """The file whose rules decide how the tree renders, or None."""
+    themes = sorted((ROOT / ".obsidian/themes").glob("*/theme.css"))
+    active = None
+    app = ROOT / ".obsidian/appearance.json"
+    if app.is_file():
+        try:
+            active = json.loads(app.read_text(encoding="utf-8")).get("cssTheme")
+        except (ValueError, AttributeError):
+            active = None
+    themes.sort(key=lambda p: (p.parent.name != active, p.parent.name))
+    for th in themes:
+        if "--room-color" in th.read_text(encoding="utf-8", errors="ignore"):
+            return th
+    snippet = ROOT / ".obsidian/snippets/icor-rooms.css"
+    return snippet if snippet.is_file() else None
 
-    def selector_matches(sel, path):
-        head = sel.split(" .nav-folder-title-content")[0]
-        for m in re.finditer(r":not\(:where\((\[data-path[^\]]*\])\)\)", head):
-            op, val = ATTR.match(m.group(1)).groups()
-            if hit(path, op, val):
-                return False
-        bare = re.sub(r":not\(:where\([^)]*\)\)", "", head)
-        return all(hit(path, op, val) for op, val in ATTR.findall(bare))
+class Unparseable(Exception):
+    pass
 
-    rules = [(sel.strip(), body)
-             for sel_text, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
-             for sel in sel_text.split(",")
-             if ".nav-folder-title[" in sel]
+ATTR = re.compile(r'\[([a-zA-Z-]+)(?:(\^|\$|\*|~|\|)?="([^"]*)")?\]')
+
+def split_top(s, sep):
+    """Split on `sep` outside brackets and parentheses."""
+    parts, depth, cur = [], 0, []
+    for ch in s:
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        if depth == 0 and ch in sep:
+            parts.append("".join(cur)); cur = []
+        else:
+            cur.append(ch)
+    parts.append("".join(cur))
+    return [x.strip() for x in parts if x.strip()]
+
+def simples(comp):
+    """A compound selector as its simple selectors, brackets honoured."""
+    out, i = [], 0
+    while i < len(comp):
+        ch = comp[i]
+        if ch == "[":
+            j = comp.find("]", i)
+            if j == -1:
+                raise Unparseable(comp)
+            out.append(comp[i:j + 1]); i = j + 1
+        elif ch == ":":
+            m = re.match(r"::?[a-zA-Z-]+", comp[i:])
+            if not m:
+                raise Unparseable(comp)
+            k = i + len(m.group(0))
+            if k < len(comp) and comp[k] == "(":
+                depth, j = 0, k
+                while j < len(comp):
+                    depth += (comp[j] == "(") - (comp[j] == ")")
+                    if depth == 0:
+                        break
+                    j += 1
+                if depth != 0:
+                    raise Unparseable(comp)
+                out.append(comp[i:j + 1]); i = j + 1
+            else:
+                out.append(m.group(0)); i = k
+        else:
+            m = re.match(r"[.#]?[a-zA-Z0-9_*-]+", comp[i:])
+            if not m:
+                raise Unparseable(comp)
+            out.append(m.group(0)); i += len(m.group(0))
+    return out
+
+def hit(value, op, val):
+    return (value.startswith(val) if op == "^" else
+            value.endswith(val)   if op == "$" else
+            val in value          if op == "*" else
+            value == val          if op is None else
+            val in value.split()  if op == "~" else
+            value == val or value.startswith(val + "-"))
+
+def compound_matches(comp, attrs):
+    """Does a compound (no combinators) match an element with `attrs`?
+    States this check does not model (:hover, .is-collapsed, a type
+    selector) are False; the two logical pseudo-classes evaluate."""
+    ok = True
+    for s in simples(comp):
+        if s.startswith("["):
+            name, op, val = ATTR.fullmatch(s).groups() if ATTR.fullmatch(s) else (None, None, None)
+            if name is None:
+                raise Unparseable(comp)
+            v = (name in attrs) and (val is None or hit(attrs[name], op, val))
+        elif s.startswith("::"):
+            v = True   # a pseudo-element paints the element; it does not filter it
+        elif s.startswith(":"):
+            m = re.fullmatch(r":([a-z-]+)\((.*)\)", s, re.S)
+            if m and m.group(1) in ("is", "where", "matches"):
+                v = any(compound_matches(c, attrs) for c in split_top(m.group(2), ","))
+            elif m and m.group(1) == "not":
+                v = not any(compound_matches(c, attrs) for c in split_top(m.group(2), ","))
+            elif m:
+                raise Unparseable(comp)
+            else:
+                v = False  # :hover, :focus, :active: a state, not a folder
+        elif s in (".nav-folder-title", "*"):
+            v = True
+        else:
+            v = False      # another class, an id, a type: not the title as such
+        ok = ok and v
+    return ok
+
+def title_rule(sel):
+    """(the folder-title compound, the parts after it) for one selector,
+    or (None, None) when the selector is not about a folder title."""
+    parts = [p for p in split_top(sel, " \t\n") if p not in (">", "+", "~")]
+    for i, part in enumerate(parts):
+        try:
+            first = simples(part)[0]
+        except Unparseable:
+            first = None
+        if first == ".nav-folder-title":
+            return part, parts[i + 1:]
+    return None, None
+
+source = room_css_source()
+if source is None:
+    skipped.append({
+        "check": 6, "name": "file-tree styling",
+        "reason": "no rule source in the vault: no .obsidian/themes/*/theme.css "
+                  "carries room rules (--room-color) and "
+                  ".obsidian/snippets/icor-rooms.css is absent; "
+                  "folder colours and glyphs were not checked"})
+else:
+    sources["6"] = source.relative_to(ROOT).as_posix()
+    css = re.sub(r"/\*.*?\*/", "", source.read_text(encoding="utf-8"), flags=re.S)
+    rules = []   # (title compound, descendant parts, body)
+    unreadable = []
+    for sel_text, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+        if "data-path" not in sel_text:
+            continue
+        for sel in split_top(sel_text, ","):
+            sel = sel.strip()
+            if not sel or sel.startswith("@"):
+                continue
+            try:
+                comp, rest = title_rule(sel)
+                if comp is not None:
+                    compound_matches(comp, {"data-path": ""})   # parse it once, now
+                    rules.append((comp, rest, body))
+            except Unparseable:
+                if sel not in unreadable:
+                    unreadable.append(sel)
+    for sel in unreadable:
+        fails.append(f"check 6 cannot read a file-tree selector in {sources['6']}: {sel}")
 
     def resolves(path):
         colour = glyph = False
-        for sel, body in rules:
-            if not selector_matches(sel, path):
+        attrs = {"data-path": path}
+        for comp, rest, body in rules:
+            if not compound_matches(comp, attrs):
                 continue
             if "--room-color:" in body:
                 colour = True
-            if "::before" in sel and "mask-image:" in body:
-                glyph = True
+            if "--room-icon:" in body:
+                glyph = True     # the theme: the glyph is a custom property
+            if any("::before" in r for r in rest) and re.search(r"(?<![\w-])mask-image:\s*(?!var\()", body):
+                glyph = True     # the snippet: a literal mask on ::before
         return colour, glyph
 
     rooms = sorted(d.name for d in ROOT.iterdir()
@@ -288,12 +451,12 @@ if snippet.is_file():
     # The standing rule, so the two can never disagree again: THE CSS IS THE
     # AUTHORITY. It cannot express "path segment", so its approximation IS the
     # rule, and this check may only ever be LOOSER than the CSS, never
-    # stricter. `selector_matches` already parses the `:not()` correctly, so
+    # stricter. `compound_matches` evaluates the `:not()` as CSS does, so
     # `colour` below is the floor's own answer and there is nothing left to
     # restate.
     #
     # Two clauses, and the first is why the check keeps its purpose. A room
-    # folder is ALWAYS in scope, so a new `07 ` room nobody styled still
+    # folder is ALWAYS in scope, so a new `08 ` room nobody styled still
     # fails. The room itself was previously never evaluated at all - `rglob`
     # yields descendants only - so an unstyled room was caught indirectly
     # through its children, and dropping the regex without adding the room
@@ -311,11 +474,17 @@ if snippet.is_file():
                     x for x, ok in (("colour", colour), ("glyph", glyph)) if not ok)
                 fails.append(
                     f"folder renders unstyled in the file tree (no {missing} "
-                    f"from icor-rooms.css): {rel}")
+                    f"from {sources['6']}): {rel}")
 
-
-if fails:
-    for msg in fails:
-        print(f"FAIL {msg}", file=sys.stderr)
-    sys.exit(1)
-print(f"OK scaffold at {ROOT} is compliant")
+for msg in fails:
+    print(f"FAIL {msg}", file=sys.stderr)
+if JSON:
+    print(json.dumps({"root": str(ROOT), "ok": not fails, "fails": fails,
+                      "skipped": skipped, "sources": sources}, indent=2))
+else:
+    for s in skipped:
+        print(f"SKIPPED check {s['check']} ({s['name']}): {s['reason']}")
+    if not fails:
+        print(f"OK scaffold at {ROOT} is compliant"
+              + (f" ({len(skipped)} check skipped, see above)" if skipped else ""))
+sys.exit(1 if fails else 0)
