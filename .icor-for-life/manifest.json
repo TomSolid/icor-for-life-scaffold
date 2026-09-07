@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.11.0",
-  "built": "2026-09-07T07:25:07Z",
-  "commit": "389616c",
+  "built": "2026-09-07T07:30:17Z",
+  "commit": "295695e",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -524,7 +524,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
-      "sha256": "6cac1a5758183051e0c7dbc86decd6026a9ba17b12d3cb2599d68819c7bab5a5",
+      "sha256": "ede78cc063b814fc92fff618afef6205fa6e59874fa43ec2d6f80f9540ef7f83",
       "kind": "sop",
       "example": false
     },
