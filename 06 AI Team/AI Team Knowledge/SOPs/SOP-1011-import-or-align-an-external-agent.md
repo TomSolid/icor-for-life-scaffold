@@ -4,7 +4,7 @@ id: SOP-1011
 title: Import or align an external agent
 created: 2026-08-28
 owner: nolan
-uses: ["[[SOP-1007-hire-a-new-agent]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
+uses: ["[[SOP-1007-hire-a-new-agent]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
 # SOP-1011 Import or align an external agent
@@ -35,3 +35,8 @@ Rules that hold for all three:
   reported, not silently resolved.
 - Every touched agent keeps the two-file pattern plus dispatch shim
   ([[SOP-1007-hire-a-new-agent|SOP-1007]] steps 3-6).
+- Identity follows [[GL-1002-frontmatter-conventions|GL-1002]]: an
+  agent that arrives carrying a `myicor_id` (one delivered from the
+  myICOR library) keeps it unchanged, and on MERGE the existing agent
+  keeps its own. One that arrives without gets a fresh id minted at
+  import (`uuidgen | tr A-Z a-z`), never an existing agent's id.

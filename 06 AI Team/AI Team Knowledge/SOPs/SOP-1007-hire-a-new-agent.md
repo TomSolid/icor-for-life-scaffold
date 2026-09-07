@@ -4,7 +4,7 @@ id: SOP-1007
 title: Hire a new agent from the Agent 01 template
 created: 2026-08-27
 owner: nolan
-uses: ["[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
+uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
 # SOP-1007 Hire a new agent from the Agent 01 template
@@ -37,6 +37,12 @@ ruling is DEFER with the precondition named, not DROP.
    - `AGENT.md` is the SYSTEM PROMPT: mission, ownership, boundaries,
      never-rules, links to the knowledge it executes by. Written for
      the model, not the user.
+   - Before anything else in `AGENT.md`, mint the agent's identity:
+     `uuidgen | tr A-Z a-z`, written as `myicor_id`, the first
+     frontmatter field, replacing the template's placeholder
+     ([[GL-1002-frontmatter-conventions|GL-1002]]). Minted once at
+     hire, never another agent's id, never changed once written; the
+     name may change later, the id never does.
 5. Store the agent's profile avatar as
    `AI Team Knowledge/Avatars/<name>.png` (lowercase) and embed it at
    the top of `<Name>.md`. Team avatars live in AI Team Knowledge, not
