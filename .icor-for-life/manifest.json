@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.10.2",
-  "built": "2026-09-06T21:38:19Z",
-  "commit": "2c9273c",
+  "version": "1.11.0",
+  "built": "2026-09-07T07:25:07Z",
+  "commit": "389616c",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -458,7 +458,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "039efdb621b1ce19dfd3f78bf30891d9963c7316b0113b3bdfb83d3b77ea3ab1",
+      "sha256": "9e179eb5be18c75d578d374cfbf3f7f884e03696d6a51dd9f1ae731c0f50bd95",
       "kind": "guideline",
       "example": false
     },
@@ -524,7 +524,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
-      "sha256": "309f3cf057c29404b19b32d9188de384e1ff2c0bf9579776d4715b3c20f71f33",
+      "sha256": "6cac1a5758183051e0c7dbc86decd6026a9ba17b12d3cb2599d68819c7bab5a5",
       "kind": "sop",
       "example": false
     },
@@ -548,7 +548,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
-      "sha256": "a6437826140b0a3848b277e913bf058d6ad02779ee6ea0a9695f348ce8a3e854",
+      "sha256": "dbe17c376f4f5472aca980c5442a521c45fc434e524548f53239badffb789119",
       "kind": "sop",
       "example": false
     },
@@ -607,6 +607,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py",
+      "sha256": "0efc269edc54852c6533c75063025db35c6da9ea7aa5317603269b95f07a3403",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
       "sha256": "6772ca5f5970bbd312c506dd25b6779df083fa6f65b9da81a14abe9f3b9dcc5d",
       "kind": "script",
@@ -644,7 +650,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "3361df5956f5ec21af6ca8f7d03def96ddc65da6b8b9e75196e8478af3b36e5e",
+      "sha256": "4dc4347fee7b3cbe7ef34638c88122ebe8e562b612589c5150644a3f65e94e85",
       "kind": "script",
       "example": false
     },
@@ -656,7 +662,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "6ff61ba500286eb067b5606261b52298dfe5ebd9737d7e5d8f9c47de9f2c6e0b",
+      "sha256": "cbdcb92aa38914f63b3bf2cfa10ccd81a128e7a7d469f2f4df113bc7d12ab7e1",
       "kind": "script",
       "example": false
     },
@@ -692,7 +698,7 @@
     },
     {
       "path": "06 AI Team/Agents/Agent 01/AGENT.md",
-      "sha256": "df39f17ff6ad90a7fd075747c8bb870532c54deb69372a37bec14931083a9bec",
+      "sha256": "37b8806c761075dc0a97a3b56caa551131639110a8826100d7fc15df655620a2",
       "kind": "agent",
       "example": false
     },
@@ -704,7 +710,7 @@
     },
     {
       "path": "06 AI Team/Agents/Charta/AGENT.md",
-      "sha256": "dc5f32d20b41baaba46e51907c742f72a98342d0e0cf859c610be09369c1900e",
+      "sha256": "1237a844e3265eba28e7d2b7a8449df5f2db1ec48b770f1cfd488e6444fdb3af",
       "kind": "agent",
       "example": false
     },
@@ -716,7 +722,7 @@
     },
     {
       "path": "06 AI Team/Agents/Flint/AGENT.md",
-      "sha256": "40a1985444a8fb7caa4270d36fb9d26684c192fc04e807f26ff233905a14fc48",
+      "sha256": "7e87ed36b5e6c8d210497cbfceb7eacf1d605dfa0e41fbf43d180d8efec06365",
       "kind": "agent",
       "example": false
     },
@@ -728,7 +734,7 @@
     },
     {
       "path": "06 AI Team/Agents/Iris/AGENT.md",
-      "sha256": "7c6b24620858e8cf033ac5e95f5ef3c32fcec46789aaed4ae5fd67fc98bf98a8",
+      "sha256": "e390ed100cbf0f4f1739d8674e8eae2f5a2c2dd16ddd27d897f18bcbc05f195f",
       "kind": "agent",
       "example": false
     },
@@ -740,7 +746,7 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "f187f6eda6919f020482c65e5374e4cbca336015e44372940d28363c2b19fad0",
+      "sha256": "9e2ecae836540f117ae2a28138bef8f1db90105cf4632f681d7e7500d00dc476",
       "kind": "agent",
       "example": false
     },
@@ -758,7 +764,7 @@
     },
     {
       "path": "06 AI Team/Agents/Mack/AGENT.md",
-      "sha256": "32cffc3ab6c3f53338191f91846598b9ef7c2c5c5484fba8b426643f3e26140c",
+      "sha256": "e2016ca97411257881ca4d11ca39784635ddf5cbc5b1f5b4468fa409a3cfe5d8",
       "kind": "agent",
       "example": false
     },
@@ -770,7 +776,7 @@
     },
     {
       "path": "06 AI Team/Agents/Nolan/AGENT.md",
-      "sha256": "1f41dd4d127a571c3eb67de324ac493f44df1c04a49f977e346e5a968347edeb",
+      "sha256": "c6d1bc4d5d5b7ef01e462489ecf4ee74b622df5763d2d16cf4b5b4c1ff5867b1",
       "kind": "agent",
       "example": false
     },
@@ -782,7 +788,7 @@
     },
     {
       "path": "06 AI Team/Agents/Pax/AGENT.md",
-      "sha256": "60c7f7384096db595bbfbf705079ec99f22d81251d2ba624ef8a44b116cd3965",
+      "sha256": "0e8464a50b29ac282b63fab08eb66f9c0fe17c296e6cd44afa0e6c671b33a31e",
       "kind": "agent",
       "example": false
     },
@@ -794,7 +800,7 @@
     },
     {
       "path": "06 AI Team/Agents/Penn/AGENT.md",
-      "sha256": "ed5b12326786d3d189201809158ef15df995f8d546762dac6d0009dac17b3647",
+      "sha256": "efff2ae34107a5f16b3b1afbb480675ac80c03cbb96a2c506e480f1b51bd2461",
       "kind": "agent",
       "example": false
     },
@@ -806,7 +812,7 @@
     },
     {
       "path": "06 AI Team/Agents/Silas/AGENT.md",
-      "sha256": "51e4082a439f60aae789b69251832d3cc6de9695a1fa0c39eb973b1ae313dba7",
+      "sha256": "6cbf74ad8f5b227e65bcddbe4f5c1e4779c08c340969accd4c64e97f3f4d1c0b",
       "kind": "agent",
       "example": false
     },
@@ -880,6 +886,15 @@
     }
   ],
   "history": [
+    {
+      "version": "1.11.0",
+      "date": "2026-09-07",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py"
+      ]
+    },
     {
       "version": "1.10.2",
       "date": "2026-09-06",

@@ -10,6 +10,39 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.11.0
+
+Released 2026-09-07.
+
+### Added: every agent contract carries a stable `myicor_id`
+
+Every `06 AI Team/Agents/<Name>/AGENT.md` now carries `myicor_id`, a UUID
+v4 in lowercase, minted once and never changed, written first after
+`type:`. The hiring SOP mints one per hire; the nine shipped agents keep
+the same identity across scaffold releases and inside any vault that
+carries them. The name, the avatar and the contract text can all change
+under a member's hands; the id is the one fact by which a future install
+(ICOR for Life - Connect, for agents delivered from the myICOR library)
+can tell an agent that is already in the vault from one that is not, and
+it is the same UUID the library row for that agent carries as its primary
+key. Defined in
+`06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md`
+(ruling 2026-09-07, plus the `agent` row of the per-type table);
+`SOP-1007` mints it at hire and `SOP-1011` keeps one that arrives with an
+imported agent.
+
+`06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py` is new: it inserts
+the field where it is missing, refuses to change an existing value, prints
+the name-to-id map with `--export`, and validates with `--check` (missing,
+malformed, shared, or a template off its placeholder).
+`validate-scaffold.py` runs that check as its ninth item, watched red on a
+contract with the field removed before it went green; `run-red-tests.py`
+keeps four of its refusals red, including the refusal to change an id.
+`06 AI Team/Agents/Agent 01/AGENT.md` carries the nil placeholder
+`00000000-0000-0000-0000-000000000000` that the hiring SOP replaces.
+
+No file is removed or moved.
+
 ## 1.10.2
 
 Released 2026-09-06.
