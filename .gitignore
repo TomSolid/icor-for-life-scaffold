@@ -33,3 +33,7 @@
 
 # ICOR Terminal is its own git repository (data.json holds shell profiles and their environment)
 .obsidian/plugins/icor-for-life-terminal/
+
+# ICOR Canvases is its own git repository (its main.js is untracked there too;
+# the zip stages it from the plugin's latest GitHub release, like Chat and Terminal)
+.obsidian/plugins/icor-for-life-canvases/

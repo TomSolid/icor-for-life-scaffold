@@ -10,6 +10,34 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.13.0
+
+Released 2026-09-07.
+
+### Added: the ICOR for Life - Canvases plugin
+
+**ICOR for Life - Canvases** (`icor-for-life-canvases`, 0.3.0) ships and
+is enabled in this download: Obsidian's canvas the way Heptabase does
+it. Draw on a canvas with a pen and the ink saves into the .canvas file;
+Select, Hand, Pen and Eraser in the canvas's controls column; shapes,
+outline, fill and text colours for text cards; canvases inside canvases
+with a breadcrumb back up; a zoom bar and a minimap; and under every
+note, and in the Backlinks pane, the canvases the note is on and what
+its card connects to there. Every key it writes into a .canvas file is
+documented in the plugin's `docs/canvas-format.md`; other plugins' keys
+are kept.
+
+The plugin joins `community-plugins.json` and the license table in
+`LICENSE.md`, under the ICOR for Life Source-Available License (Code)
+v1.0; it bundles no third-party code. `README.md` names it among the
+first-party suite. The zip builder stages it from the plugin's latest
+GitHub release, the way it stages AI Chat and Terminal, and its plugin
+inventory names it.
+
+Minor bump: a new plugin out of the box. No tracked vault file changes.
+
+No file is removed or moved.
+
 ## 1.12.0
 
 Released 2026-09-07.
