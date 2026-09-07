@@ -10,6 +10,21 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.13.1
+
+Released 2026-09-07.
+
+### Changed: Canvases 0.3.1 inside
+
+ICOR for Life - Canvases 0.3.1 inside: the shapes on text cards are SVG
+geometry with no `clip-path`, and the index finds canvas files through
+Obsidian's metadata cache instead of enumerating the vault. Both answer
+the community directory's scan of 0.3.0.
+
+Patch bump: a bundled plugin update, no tracked vault file changes.
+
+No file is removed or moved.
+
 ## 1.13.0
 
 Released 2026-09-07.
