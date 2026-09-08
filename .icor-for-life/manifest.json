@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.15.0",
-  "built": "2026-09-08T22:31:45Z",
-  "commit": "f0ff9e0",
+  "version": "1.16.0",
+  "built": "2026-09-08T22:40:00Z",
+  "commit": "91c43ac",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -962,6 +962,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.16.0",
+      "date": "2026-09-09",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.15.0",
       "date": "2026-09-09",
