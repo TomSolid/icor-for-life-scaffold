@@ -10,6 +10,37 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.16.0
+
+Released 2026-09-09.
+
+### Changed: AI Chat 0.13.0 inside
+
+ICOR for Life - AI Chat 0.13.0 inside: keys move to Obsidian secret storage.
+The own-key engine's Anthropic and OpenRouter keys live in Obsidian's
+keychain (Settings, General, Keychain; Obsidian 1.11.4 or newer) under
+`icor-for-life-chat-anthropic-api-key` and
+`icor-for-life-chat-openrouter-api-key`, or, by choice, in an env file in the
+vault (`06 AI Team/AI Team Knowledge/.env` by default, variables
+`ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY`). One dropdown picks the place
+and the plugin reads that place only; the settings tab says where each key
+is and moves it between the two on a button. The paste field is write-only
+and empties after Save, and no key is ever shown back. A key left in the
+pre-release local-storage record is moved into the keychain on load. This is
+the fourth and last plugin of the suite on the "Where your keys live"
+setting that 1.15.0 introduced for Connect, Scaffold Check and Planner.
+
+AI Chat's minimum Obsidian version is now 1.8.7 (it was 1.7.2 for 0.12.0 and
+0.12.1, which keep that floor in the plugin's `versions.json`). The own-key
+engine's per-device settings are kept with `App.loadLocalStorage` and
+`App.saveLocalStorage`, both added in Obsidian 1.8.7 and called at load. The
+keychain needs 1.11.4; below that the env file is the only backend and the
+settings tab says so.
+
+Minor bump: one bundled plugin feature, no scaffold file changes.
+
+No file is removed or moved.
+
 ## 1.15.0
 
 Released 2026-09-09.
