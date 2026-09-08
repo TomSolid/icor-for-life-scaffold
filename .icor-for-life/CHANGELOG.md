@@ -10,6 +10,56 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.15.0
+
+Released 2026-09-09.
+
+### Changed: Connect 0.15.0, Scaffold Check 0.3.0 and Planner 0.12.0 inside
+
+Three bundled plugins move on one theme: where a member's keys live. Each
+gains a "Where your keys live" setting with two backends, Obsidian's keychain
+(Settings, General, Keychain; the default on Obsidian 1.11.4 and newer) or a
+`KEY=value` env file inside the vault (`06 AI Team/AI Team Knowledge/.env` by
+default, the path is a setting). Only the selected backend is read, there is
+no fallback to the other, and the settings tab shows per key where a value
+exists with a "Move to ..." button. The env file writer edits exactly its own
+lines and leaves every other byte of the file as it was. The keychain is per
+device and Obsidian Sync skips files whose name starts with a dot, so a key
+set on the desktop reaches a phone through the env file only where the sync
+carries hidden files (iCloud Drive, git, Dropbox), or by pasting it again on
+that device; each plugin's README says so.
+
+ICOR for Life - Connect 0.15.0 inside: the access token and the refresh token
+leave `data.json` for Obsidian secret storage, with the env file as the
+option (`MYICOR_ACCESS_TOKEN`, `MYICOR_REFRESH_TOKEN`); a vault that connected
+with an older Connect has its keys moved out of `data.json` the first time
+this version loads, once, and never back. No key ever appears in a notice or
+in the console, not even masked. And the loop percent on the Overview now
+matches the app: a member reported 15% in the plugin against 98% on the Your
+Loop page, because the plugin computed its own mean of course progress; the
+percent and "Courses closed n of m" now come from the server's
+`get_my_journey`, fixed on the server and in the plugin.
+
+ICOR for Life - Scaffold Check 0.3.0 inside: the GitHub token leaves
+`data.json` for Obsidian secret storage or the env file (`GITHUB_TOKEN`), is
+moved into the keychain once on first load, and is entered through a password
+field that is cleared once saved. The env file path refuses an absolute path,
+a `~` and any `..` segment, and the file is split by a loop that keeps each
+line's terminator, so the plugin loads on iOS before 16.4.
+
+ICOR for Life - Planner 0.12.0 inside: the env file as the second place for
+the Todoist, ClickUp, IMAP, Outlook and per-calendar keys, Obsidian's keychain
+stays the default and unchanged for everyone who already has keys there. The
+env file is read again before every sync, so a line edited by hand is picked
+up without a restart, and a key is blanked in `data.json` only after its line
+is on the env file's disk; a write that fails leaves the key where it was and
+the settings tab says so once.
+
+Minor bump: three bundled plugin features, no scaffold file changes. AI Chat
+stays at 0.12.1; its next version is not released.
+
+No file is removed or moved.
+
 ## 1.14.0
 
 Released 2026-09-07.
