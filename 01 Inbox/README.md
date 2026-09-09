@@ -12,7 +12,12 @@ to everything created from it) and moved to `Outer World/archive/`,
 where the original stays verbatim forever. A scan or any other binary
 cannot carry a stamp: it moves to `05 Assets/` (that move is its
 archive, never a second copy), and the wrapper note that describes it
-in `04 Inner World/Documents/` carries the stamp.
+in `04 Inner World/Notes/` carries the stamp.
+
+Two doors, one rule: what you wrote yourself goes to
+`00 Daily Scratchpad/`, what someone else made goes to `Outer World/`.
+Add one line of why you kept it. Where things go after processing is
+one page: [[GL-1007-capture-and-where-things-go|GL-1007]].
 
 Processing runs per [[SOP-1002-process-an-inbox-capture]].
 

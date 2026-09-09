@@ -4,7 +4,7 @@ id: SOP-1002
 title: Process an Inbox capture
 created: 2026-08-27
 owner: penn
-uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]"]
+uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1007-capture-and-where-things-go]]"]
 ---
 
 # SOP-1002 Process an Inbox capture
@@ -26,11 +26,15 @@ Two shapes of capture, two routes, never both on one item:
 1. [SCRIPT] List every file in the active Inbox (excluding
    `Outer World/archive/`).
 2. [JUDGEMENT] Per item, identify what it is: a clip with the user's
-   thought, a document, an audio memo, a loose file.
+   thought, a document, an audio memo, a loose file. The user's thought
+   is read from the `my_thought` property when the clip came through
+   the Web Clipper template (`Templates/web-clipper-outer-world.json`),
+   else from the body; an empty `my_thought` and no line of the user's
+   own in the body is a capture without a thought (step 5).
 3. Binary files: [SCRIPT] copy to the matching `05 Assets/` subfolder
    via `Scripts/import-file.py <binary> --dest "05 Assets/<Subfolder>/<name>"`.
    Then [JUDGEMENT] create the wrapper note that explains it: a
-   `type: document` note in `04 Inner World/Documents/` whose
+   `type: document` note in `04 Inner World/Notes/` whose
    `source_file` wikilinks the shelf copy (`doc_type: other` for a photo
    or an audio memo), and connect it to the right Topic, Key Element,
    Project or Contact. Then [SCRIPT] stamp the wrapper note and finish
@@ -43,8 +47,16 @@ Two shapes of capture, two routes, never both on one item:
    entry via `Scripts/new-journal-entry.py` (the thought is the
    `--original`), then [JUDGEMENT] connect it to the right Topic, Key
    Element, or Project, updating those notes.
-5. Captures without a thought: [JUDGEMENT] connect the reference to the
-   right Topic; no journal entry is invented for the user.
+5. Captures without a thought: no journal entry is invented for the
+   user. [JUDGEMENT] Decide which Topic, Key Element or Project the
+   reference serves. If it serves one, create a `type: note`,
+   `note_type: reference` note in `04 Inner World/Notes/` carrying
+   `source_url` (from the capture), `consumed: false`, and the wikilink
+   in `topics`, `key_elements` or `projects`; the clip's text stays in
+   the archived capture, the note holds the reference and the link, and
+   the entity note shows it through `Notes.base`. If it serves none, it
+   failed the Capturing Beast ([[GL-1007-capture-and-where-things-go|GL-1007]]):
+   archive it in step 6 without a note. Either way the clip is archived.
 6. [SCRIPT] Stamp and archive each processed MARKDOWN capture (steps 4
    and 5): `Scripts/stamp-processed.py <capture> --summary "..."
    --into "[[...]]" --archive`. The original moves verbatim to

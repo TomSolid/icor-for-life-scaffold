@@ -8,12 +8,21 @@ connected knowledge. Four shapes live here:
   links back.
 - `Journal/` - journal entries, date-nested `YYYY/MM/`. Created on
   purpose, your original text preserved verbatim, expanded by AI.
-- `Documents/` - one wrapper note per important document; the binary
-  lives in `05 Assets/Documents/`, the metadata lives here. Browsed
-  through `Documents.base`.
+- `Notes/` - notes that live on and keep changing: outlines, saved
+  references, meeting notes, drafts (`type: note`), and one wrapper note
+  per important document, the file itself on the shelf in
+  `05 Assets/Documents/` (`type: document`). Every note links to the
+  Project, Key Element or Topic it serves. Browsed through `Notes.base`
+  and `Documents.base`.
 - `My Life/` - the five ICOR life concepts: Goals, Key Elements, Topics,
   Projects, Habits. One note per entity; frontmatter carries the
   relations, wikilinks carry the narrative.
+
+Journal or Notes is the fork people trip on. The test: does it have a
+date as its identity, or a subject? A date is a Journal entry and is
+never rewritten; a subject is a Note and gets edited for as long as it
+lives. The whole map of where things go is
+[[GL-1007-capture-and-where-things-go|GL-1007]].
 
 Only the AI Team files things here, following the SOPs. You read, link,
 and edit freely; the structure stays.

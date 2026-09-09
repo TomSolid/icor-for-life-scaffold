@@ -4,7 +4,7 @@ id: SOP-1010
 title: Convert an external note into scaffold format
 created: 2026-08-28
 owner: penn
-uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1004-naming-rules]]"]
+uses: ["[[GL-1001-the-six-rooms]]", "[[GL-1002-frontmatter-conventions]]", "[[GL-1003-journal-entry-anatomy]]", "[[GL-1004-naming-rules]]", "[[GL-1007-capture-and-where-things-go]]"]
 ---
 
 # SOP-1010 Convert an external note into scaffold format
@@ -14,8 +14,12 @@ mapping. Output: one native note in the right room.
 
 1. [JUDGEMENT] Decide what the note IS in scaffold terms: journal
    entry, person, company, goal, key element, topic, project, habit,
-   or reference material for a topic. The approved mapping constrains
-   this; ambiguity goes to the user in batches, never guessed.
+   note (an outline, a reference, meeting notes, a draft; `type: note`
+   in `04 Inner World/Notes/`, linked to the Project, Key Element or
+   Topic it serves), or document (a file with a wrapper note). The
+   date-or-subject test in [[GL-1007-capture-and-where-things-go|GL-1007]]
+   splits journal from note. The approved mapping constrains this;
+   ambiguity goes to the user in batches, never guessed.
 2. [JUDGEMENT] Translate frontmatter: foreign keys to [[GL-1002-frontmatter-conventions|GL-1002]] fields,
    dropping what has no home (record dropped keys in the manifest).
    Foreign dates are preserved as `created`, never re-stamped.

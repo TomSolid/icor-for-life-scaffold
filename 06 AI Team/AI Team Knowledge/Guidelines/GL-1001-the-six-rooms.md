@@ -34,7 +34,9 @@ Guidelines, or Scripts in AI Team Knowledge.
 
 ## Sorting rules
 
-1. A markdown note with knowledge -> Inner World.
+1. A markdown note with knowledge -> Inner World; see
+   [[GL-1007-capture-and-where-things-go|GL-1007]] for the homes inside
+   Inner World (Journal, Notes, My Life, Contacts).
 2. A binary file -> Assets, embedded from wherever it is used.
 3. Something to work ON -> a dated WiP folder.
 4. Something for the team to handle -> Inbox.

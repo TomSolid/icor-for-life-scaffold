@@ -21,6 +21,13 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      template carries the nil placeholder (GL-1002, Agents: the stable
      identity), checked by mint-agent-ids.py --check so the rule has one
      home.
+ 10. Every `type: note` file in 04 Inner World/Notes/ carries a note_type
+     from GL-1002's set (reference, outline, meeting, draft, other) and at
+     least one non-empty link list among projects / key_elements / topics
+     (GL-1007: a note that lives on is filed under something).
+ 11. .obsidian/daily-notes.json carries no `template` key: the daily
+     scratchpad stays blank (GL-1007), so no journal properties leak into
+     raw capture.
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 
 Usage: validate-scaffold.py [<vault-root>] [--json]
@@ -44,7 +51,7 @@ REQUIRED = [
     "05 Assets/Images", "05 Assets/Audio", "05 Assets/Documents",
     "04 Inner World/Contacts/People", "04 Inner World/Contacts/Companies",
     "04 Inner World/Journal",
-    "04 Inner World/Documents",
+    "04 Inner World/Notes",
     "04 Inner World/My Life/Goals", "04 Inner World/My Life/Key Elements",
     "04 Inner World/My Life/Topics", "04 Inner World/My Life/Projects",
     "04 Inner World/My Life/Habits",
@@ -210,6 +217,50 @@ if routines.is_dir():
         am = re.search(r"^active:\s*(\S+)", front, re.M)
         if not am or am.group(1) not in ("true", "false"):
             fails.append(f"routine active must be true|false: {f.name}")
+
+# --- 10. type: note shape (GL-1002 Notes; GL-1007) --------------------------
+# A note that lives on must say what kind it is and what it is filed under.
+# The set of kinds is fixed here AND in GL-1002; a fifth kind is a guideline
+# edit first. The link lists are read with fm_list: `[]`, an empty inline
+# value and an absent key all count as "no link".
+NOTE_TYPES = ("reference", "outline", "meeting", "draft", "other")
+NOTE_LINK_FIELDS = ("projects", "key_elements", "topics")
+notes_dir = ROOT / "04 Inner World/Notes"
+if notes_dir.is_dir():
+    for f in notes_dir.rglob("*.md"):
+        if f.name in ("README.md", "_template.md"):
+            continue
+        front = fm(f)
+        t = re.search(r"^type:\s*(\S+)", front, re.M)
+        if not t or t.group(1) != "note":
+            continue
+        nt = re.search(r"^note_type:\s*(\S+)", front, re.M)
+        if not nt:
+            fails.append(f"note without a note_type (GL-1002: reference|outline|meeting|draft|other): {f.name}")
+        elif nt.group(1).strip("'\"") not in NOTE_TYPES:
+            fails.append(f"note_type must be reference|outline|meeting|draft|other: {f.name} has '{nt.group(1)}'")
+        linked = any(
+            any(v.strip() for v in (fm_list(front, k) or []))
+            for k in NOTE_LINK_FIELDS)
+        if not linked:
+            fails.append(f"note filed under nothing (GL-1007: at least one of projects/key_elements/topics): {f.name}")
+
+# --- 11. the daily scratchpad stays blank (GL-1007) -------------------------
+# Obsidian's Daily notes core plugin applies `template` to every new daily
+# note. The scaffold ships without that key so raw capture starts from an
+# empty page; a template sneaking back in would stamp journal properties
+# onto every scratchpad. A `template` key with ANY value (even "") is red:
+# the key is the setting, the value is not what is being guarded.
+dn = ROOT / ".obsidian/daily-notes.json"
+if dn.is_file():
+    try:
+        dn_cfg = json.loads(dn.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        fails.append(f".obsidian/daily-notes.json is not valid JSON: {exc}")
+    else:
+        if isinstance(dn_cfg, dict) and "template" in dn_cfg:
+            fails.append(".obsidian/daily-notes.json carries a template key "
+                         f"({dn_cfg['template']!r}); the daily scratchpad stays blank (GL-1007)")
 
 agents = ROOT / "06 AI Team/Agents"
 if agents.is_dir():

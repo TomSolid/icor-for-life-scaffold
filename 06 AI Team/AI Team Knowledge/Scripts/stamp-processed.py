@@ -50,7 +50,7 @@ if not note.is_file():
     sys.exit(f"FAIL no such note: {note}")
 if note.suffix.lower() != ".md":
     sys.exit(f"FAIL {note.name} is not a markdown note and a binary cannot carry the stamp; "
-             "stamp its wrapper note in 04 Inner World/Documents/ and pass the binary as --capture")
+             "stamp its wrapper note in 04 Inner World/Notes/ and pass the binary as --capture")
 if not a.summary.strip():
     sys.exit("FAIL empty --summary")
 if not a.into:
@@ -63,7 +63,7 @@ try:
     text = note.read_text(encoding="utf-8")
 except UnicodeDecodeError:
     sys.exit(f"FAIL {note.name} is not UTF-8 text and a binary cannot carry the stamp; "
-             "stamp its wrapper note in 04 Inner World/Documents/ and pass the binary as --capture")
+             "stamp its wrapper note in 04 Inner World/Notes/ and pass the binary as --capture")
 if not text.startswith("---\n"):
     sys.exit("FAIL note has no frontmatter block")
 end = text.find("\n---\n", 4)

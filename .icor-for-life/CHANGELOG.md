@@ -10,6 +10,97 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.17.0
+
+Released 2026-09-09.
+
+### Changed: `04 Inner World/Documents` is now `04 Inner World/Notes`
+
+The room for a note that lives on. ICOR has one atomic unit, the Note, and
+the scaffold had no home for one: an outline you keep editing, a reference
+you saved, notes from a meeting, a draft on its way somewhere else. The
+`Documents` folder held only file wrappers (`type: document`, a binary
+behind every note) and became the catch-all for everything else. It is
+renamed to `Notes` and holds two types side by side: `type: note` (new) and
+`type: document` (unchanged: a document is a note with a file attached, not
+a second kind of thing). `05 Assets/Documents/`, the shelf for the binaries
+themselves, keeps its name.
+
+**Updating by hand: rename the folder, do not create a second one.**
+Scaffold Check on 1.17.0 reports "Required folder is missing:
+`04 Inner World/Notes`" until the folder exists; the fix is to rename your
+`04 Inner World/Documents` to `04 Inner World/Notes` in Obsidian's file tree
+(Obsidian rewrites every wikilink for you), then replace the four files
+below. Creating a new empty `Notes` folder next to the old one leaves you
+with both, your wrapper notes in the wrong place, and `Documents.base`
+pointing at a folder the scaffold no longer describes.
+
+Every moved file, and where it went:
+
+- `04 Inner World/Documents/README.md`: rewritten and moved to `04 Inner World/Notes/README.md` (git sees a delete and an add because the text changed as well as the path)
+- `04 Inner World/Documents/Documents.base`: moved to `04 Inner World/Notes/Documents.base` (its folder filter now reads `04 Inner World/Notes`; still the `type == document` view)
+- `04 Inner World/Documents/Example Invoice.md`: moved to `04 Inner World/Notes/Example Invoice.md`
+- `04 Inner World/Documents/Highlights/.gitkeep`: moved to `04 Inner World/Notes/Highlights/.gitkeep` (the PDF Annotation plugin's default highlights folder moves with it, see below)
+
+### Added: the note schema, the capture guide, a Web Clipper template
+
+- `04 Inner World/Notes/Notes.base`: the `type == note` view (Kind,
+  Projects, Key Elements, Topics, Source, Consumed). It sits next to
+  `Documents.base` in the same folder; one folder, two collections split by
+  type.
+- `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`:
+  the capture guide in ICOR's words. Two doors (`00 Daily Scratchpad` for
+  what comes out of you, `01 Inbox/Outer World` for what someone else
+  made), the Capturing Beast filter (Project, Key Element, Topic), then one
+  home per kind of note. `README.md` "First steps" gains step 4 and links
+  it; `WS-1003` adds the Notes README as a tour stop and says the two-door
+  sentence; `GL-1001` rule 1 links it.
+- `06 AI Team/AI Team Knowledge/Templates/web-clipper-outer-world.json`: an
+  Obsidian Web Clipper template (import under the extension's Settings,
+  Templates, Import). It files into `01 Inbox/Outer World` as
+  `YYYY-MM-DD-<title>` with `type: capture`, `source_url`, `author`,
+  `published`, `captured` and a `my_thought` field you fill in the popup;
+  the clipper's default properties (`source`, `created`, `tags: clippings`)
+  are not what `SOP-1002` reads.
+- `GL-1002`: `type: note` with a required, closed `note_type` (`reference`,
+  `outline`, `meeting`, `draft`, `other`) and at least one of `projects`,
+  `key_elements`, `topics`; `source_url` and `consumed` on a `reference`;
+  the same three link lists as optional fields on `document`; `author`,
+  `published` and `my_thought` as optional fields on `capture`. The
+  "Documents" section becomes "Notes: notes and the wrapper-note pattern".
+- `Scripts/validate-scaffold.py`, two new checks: 10, every `type: note`
+  under `04 Inner World/Notes/` carries a `note_type` from the set and at
+  least one non-empty link list; 11, `.obsidian/daily-notes.json` carries
+  no `template` key, so the daily scratchpad stays blank. The required
+  room list reads `04 Inner World/Notes`. `Scripts/run-red-tests.py`
+  watches both go red (a note with no kind, a fifth kind, a note filed
+  under nothing, a template key with a path and with an empty value) and
+  a good note stay green.
+- `Scripts/check-bases.py`: a collection is (folder, `note.type`), not the
+  folder alone, so `Documents.base` and `Notes.base` may share a folder;
+  two bases in one folder that do not both name a distinct type are still
+  one collection claimed twice, and the red test covers it.
+  `Scripts/new-base.py` gains the `note` entry and the same rule;
+  `Scripts/stamp-processed.py` names the new path in its two messages.
+- Prose follows the rename in `CLAUDE.md` rule 2, `SOP-1002` step 3 and
+  step 5 (a capture without a thought becomes a `reference` note with
+  `consumed: false`, linked to its Topic), `SOP-1010` step 1, `GL-1006`,
+  `00 Daily Scratchpad/README.md` (no template, no properties),
+  `01 Inbox/README.md`, `01 Inbox/Outer World/README.md` and
+  `04 Inner World/README.md`.
+
+### Changed: PDF Annotation 0.1.3 inside
+
+ICOR for Life - PDF Annotation 0.1.3 inside: the default highlights folder
+follows the rename (`04 Inner World/Notes/Highlights`). An install that
+still holds the old default in its settings is moved to the new one on
+load; a folder you chose yourself is left as it is. Existing highlight
+notes keep working wherever they are.
+
+Minor bump: a room rename with the files above, one new Guideline, one new
+Base, one new template, two new validator checks, and one bundled plugin
+fix.
+
 ## 1.16.0
 
 Released 2026-09-09.

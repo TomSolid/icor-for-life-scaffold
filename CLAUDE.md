@@ -85,7 +85,7 @@ offer costs one sentence, the diagram often IS the answer.
    stamped (`processed: true` + summary + wikilinks) and moved to
    `01 Inbox/Outer World/archive/`, never deleted. A binary capture (a
    scan, a photo, an audio memo) cannot carry the stamp: its wrapper
-   note in `04 Inner World/Documents/` is stamped instead, and the
+   note in `04 Inner World/Notes/` is stamped instead, and the
    binary is MOVED to `05 Assets/`, which is its archive, never a second
    copy in `Outer World/archive/` ([[GL-1002-frontmatter-conventions]],
    ruling 2026-09-04).
@@ -131,12 +131,14 @@ offer costs one sentence, the diagram often IS the answer.
 | `01 Inbox/` | anything handed to the team; empties on processing |
 | `00 Daily Scratchpad/` | the user's raw daily notes; persistent, stamped when processed |
 | `05 Assets/` | binary files only (Images, Audio, Documents) |
-| `04 Inner World/` | processed knowledge: Contacts, Journal, My Life |
+| `04 Inner World/` | processed knowledge: Contacts, Journal, Notes, My Life |
 | `03 WiP/` | active work in dated folders; finished work goes to `_archive/` |
 | `06 AI Team/` | agent contracts, SOPs, Workstreams, Guidelines, Scripts, Tasks, Session Logs |
 | `07 Databases/` | SQLite databases with no markdown source; read-only via the SQLite Viewer plugin, never a mirror of the notes |
 
 Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-1001-the-six-rooms]].
+Where a thought, a link, a file or a draft goes, and the two doors it
+enters through: [[GL-1007-capture-and-where-things-go]].
 
 ## Session start ritual
 

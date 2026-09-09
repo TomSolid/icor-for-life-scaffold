@@ -9,11 +9,15 @@ Checks (all deterministic):
      (a mapping with at least one view, each view carrying a type).
   2. Every note property a base references (note.X / a bare X in a
      view order) is declared for that collection's type in GL-1002.
-  3. No folder carries two .base files, and no two .base files filter
-     on the same folder - one collection, one Base. (Found live in a
-     sibling vault: a tracked People/People.base and an untracked
+  3. No two .base files claim the same collection, where a collection
+     is (folder, note.type) - one collection, one Base. (Found live in
+     a sibling vault: a tracked People/People.base and an untracked
      People.base with different columns, each plausible, neither
-     canonical.)
+     canonical.) A folder MAY carry two bases when they filter on
+     different types: 04 Inner World/Notes holds Documents.base (type
+     document) and Notes.base (type note) side by side. Two bases in
+     one folder that do not both name a type are still one collection
+     claimed twice.
 Exit 0 = clean. Exit 1 = violations on stderr.
 """
 import re, sys
@@ -41,10 +45,12 @@ try:
 except OSError as exc:
     sys.exit("FAIL cannot read GL-1002: %s" % exc)
 
-# folder (as filtered) -> the base that claims it
+# (folder as filtered, note.type as filtered or None) -> the base that claims it
 claimed = {}
 # containing directory -> bases sitting in it
 per_dir = {}
+# base -> the type it filters on (None when it names none)
+base_type = {}
 
 bases = sorted(p for p in ROOT.rglob("*.base") if ".obsidian" not in p.parts)
 for b in bases:
@@ -70,13 +76,15 @@ for b in bases:
     blob = yaml.safe_dump(doc)
     folders = re.findall(r'file\.inFolder\("([^"]+)"\)', blob)
     types = re.findall(r'note\.type\s*==\s*"([^"]+)"', blob)
+    base_type[rel] = types[0] if types else None
     for f in folders:
-        if f in claimed and claimed[f] != rel:
-            fails.append("two bases claim the same collection %r: %s and %s "
+        key = (f, base_type[rel])
+        if key in claimed and claimed[key] != rel:
+            fails.append("two bases claim the same collection %r (type %s): %s and %s "
                          "(GL-1006: one collection, one Base)"
-                         % (f, claimed[f], rel))
+                         % (f, base_type[rel] or "any", claimed[key], rel))
         else:
-            claimed[f] = rel
+            claimed[key] = rel
 
     # every referenced note property must be GL-1002-declared
     if types:
@@ -97,9 +105,15 @@ for b in bases:
 
 for d, blist in per_dir.items():
     if len(blist) > 1:
-        fails.append("folder %s carries %d base files (%s); GL-1006 allows one"
-                     % (d.relative_to(ROOT), len(blist),
-                        ", ".join(b.name for b in blist)))
+        # Two bases in one folder are two collections only when every one
+        # of them names a distinct note.type; a base with no type filter
+        # claims the whole folder.
+        seen = [base_type.get(b) for b in blist]
+        if None in seen or len(set(seen)) != len(seen):
+            fails.append("folder %s carries %d base files (%s) that do not "
+                         "split by note.type; GL-1006 allows one Base per collection"
+                         % (d.relative_to(ROOT), len(blist),
+                            ", ".join(b.name for b in blist)))
 
 if fails:
     for m in fails:

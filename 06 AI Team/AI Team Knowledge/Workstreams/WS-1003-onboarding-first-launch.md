@@ -4,7 +4,7 @@ id: WS-1003
 title: Onboarding on first launch
 created: 2026-08-28
 owner: larry
-uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[SOP-1013-connect-an-external-tool-via-mcp]]", "[[WS-1004-import-and-convert-external-knowledge]]", "[[GL-1001-the-six-rooms]]"]
+uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[SOP-1013-connect-an-external-tool-via-mcp]]", "[[WS-1004-import-and-convert-external-knowledge]]", "[[GL-1001-the-six-rooms]]", "[[GL-1007-capture-and-where-things-go]]"]
 ---
 
 # WS-1003 Onboarding on first launch
@@ -54,11 +54,19 @@ flowchart TD
    2. `00 Daily Scratchpad/README.md` - where raw thought lands; the
       new-note button drops timestamped quick captures here.
    3. `01 Inbox/README.md` - anything handed to the team; it empties.
+      Say the two-door sentence here: "There are two doors and you
+      never choose a destination at capture time: what you wrote
+      yourself goes to the Daily Scratchpad, what someone else made
+      goes to the Outer World inbox; the team files it from there."
    4. `04 Inner World/README.md` - processed knowledge: Journal,
-      My Life, Contacts.
-   5. `06 AI Team/Agents/agent-index.md` - the team roster and who to
+      Notes, My Life, Contacts.
+   5. `04 Inner World/Notes/README.md` - where a note with a subject
+      lives (outlines, references, meeting notes, documents), linked
+      to the Project, Key Element or Topic it serves; the date-or-
+      subject test that splits it from the Journal.
+   6. `06 AI Team/Agents/agent-index.md` - the team roster and who to
       ask for what.
-   6. One example note (tagged `example`) - show what a finished,
+   7. One example note (tagged `example`) - show what a finished,
       linked note looks like; offer to delete the examples once real
       content exists.
    Close the tour by pointing at the myICOR button under the folder

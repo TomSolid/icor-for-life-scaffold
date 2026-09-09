@@ -2,7 +2,7 @@
 """Stamp a house-shaped Obsidian .base file for one entity collection.
 
 Usage:
-  new-base.py <entity>            entity: person | company | document
+  new-base.py <entity>            entity: person | company | document | note
   new-base.py --list              show the registry
   new-base.py <entity> --root X   operate on another scaffold root
 
@@ -13,6 +13,12 @@ hand-authored. Guards (code, not prose):
   - refuses a registry column that GL-1002 does not declare (a drifted
     registry must lose to the guideline, never win)
   - refuses when the target folder does not exist
+
+One folder can hold more than one collection when the notes differ by
+`type`: 04 Inner World/Notes carries Documents.base (type document, the
+file wrappers) and Notes.base (type note). A collection is therefore
+(folder, type), and check-bases.py keys its one-Base-per-collection rule
+the same way.
 """
 import argparse, re, sys
 from pathlib import Path
@@ -54,7 +60,7 @@ REGISTRY = {
         "cards_image": None,
     },
     "document": {
-        "folder": "04 Inner World/Documents",
+        "folder": "04 Inner World/Notes",
         "base": "Documents.base",
         "view": "Documents",
         "type_value": "document",
@@ -69,6 +75,22 @@ REGISTRY = {
         "sort": ("note.issued_on", "DESC"),
         "cards_image": "note.preview_image",
     },
+    "note": {
+        "folder": "04 Inner World/Notes",
+        "base": "Notes.base",
+        "view": "Notes",
+        "type_value": "note",
+        "columns": [
+            ("note_type", "Kind"),
+            ("projects", "Projects"),
+            ("key_elements", "Key Elements"),
+            ("topics", "Topics"),
+            ("source_url", "Source"),
+            ("consumed", "Consumed"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
+    },
 }
 
 # Fields every note carries per GL-1002's common block.
@@ -78,7 +100,10 @@ COMMON_FIELDS = {"type", "created", "tags"}
 def gl002_fields(root):
     """Parse GL-1002's per-type table into {type: set(fields)}.
     Deterministic: reads the markdown table, strips parentheticals
-    (they hold enums and commentary, and may contain commas)."""
+    (they hold enums and commentary, and may contain commas), then splits
+    on commas AND semicolons: a cell may carry a rule clause after the
+    field list (`note_type (...); at least one of projects / ...`) and a
+    clause is prose, never a field, so it drops out of the token filter."""
     text = (root / GL002).read_text(encoding="utf-8")
     out = {}
     for line in text.splitlines():
@@ -91,7 +116,7 @@ def gl002_fields(root):
         fields = set()
         for cell in (m.group(2), m.group(3)):
             cell = re.sub(r"\([^)]*\)", "", cell)
-            for f in cell.split(","):
+            for f in re.split(r"[,;]", cell):
                 f = f.strip()
                 if re.fullmatch(r"[a-z][a-z0-9_]*", f):
                     fields.add(f)

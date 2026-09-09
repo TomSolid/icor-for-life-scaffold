@@ -33,7 +33,8 @@ Applied to this scaffold:
 | --- | --- | --- |
 | Contacts/People | **Base** (`People.base`) | the user scans and edits roles, companies, follow-ups as a set |
 | Contacts/Companies | **Base** (`Companies.base`) | same: a browsable register |
-| Documents (wrapper notes) | **Base** (`Documents.base`) | scans/PDFs are found by metadata, not read as prose |
+| Notes (`type: note`) | **Base** (`Notes.base`) | outlines, references, meeting notes are browsed by kind, link and `consumed` state, not read as a set of prose |
+| Documents (wrapper notes, `type: document`) | **Base** (`Documents.base`, inside `04 Inner World/Notes/`) | scans/PDFs are found by metadata, not read as prose |
 | My Life entities (Goals, Projects, Habits...) | later candidates | earn their Base when populated enough that the user browses them as a set |
 | Journal, Daily Scratchpad, ICOR Journey Notes | **never** | narrative; the value is the prose, not the properties |
 | SOPs, Workstreams, Guidelines, Session Logs | **never** | team-facing; agents read files, not tables |
@@ -74,14 +75,28 @@ Bases and the Scripts/ folder are not substitutes:
    folder means the next reader trusts one of them at random;
    `Scripts/check-bases.py` fails the vault when it happens, and also
    verifies every `.base` parses and references only declared fields.
+   The one sanctioned exception is `04 Inner World/Notes/`, where two
+   types share a folder and each Base filters on its own `type` (see
+   "The Notes pattern" below); a collection is a type, not a folder.
 4. The user may build additional views (new tabs) inside the existing
    `.base` in Obsidian's GUI freely - views are theirs. The canonical
    table view and its columns stay generator-shaped.
 
-## The Documents pattern
+## The Notes pattern
 
-Document rows are WRAPPER NOTES, never binaries: a PDF cannot carry
-frontmatter, so each scan gets a `type: document` note in
-`04 Inner World/Documents/` linking its binary via `source_file`.
-Canonical shape and fields: [[GL-1002-frontmatter-conventions|GL-1002]]
-section "Documents: the wrapper-note pattern".
+`04 Inner World/Notes/` is one folder with two Bases, one per type, and
+that is the sanctioned exception to "one collection, one Base": the two
+types are two collections that happen to share a room, and each Base
+filters on its own `type`, so no row can appear in both.
+
+- `Notes.base` shows `type: note` rows: kind (`note_type`), the Project,
+  Key Element and Topic links, `consumed` for references.
+- `Documents.base` shows `type: document` rows. Document rows are
+  WRAPPER NOTES, never binaries: a PDF cannot carry frontmatter, so each
+  scan gets a `type: document` note in `04 Inner World/Notes/` linking
+  its binary via `source_file`.
+
+Both are stamped by `Scripts/new-base.py` from its registry, never by
+hand. Canonical shape and fields:
+[[GL-1002-frontmatter-conventions|GL-1002]] section "Notes: notes and
+the wrapper-note pattern".

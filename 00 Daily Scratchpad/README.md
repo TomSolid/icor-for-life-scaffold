@@ -3,7 +3,8 @@
 Your post-it. One note per day, named `YYYY-MM-DD.md`, written by you all
 day long: thoughts, meeting notes, quotes, half-ideas, links. It is
 deliberately a mess; light headings help the AI parse it, but no rules
-apply while writing.
+apply while writing. The daily note is blank: no template, no
+properties; frontmatter appears only when the team stamps it.
 
 A scratchpad is NOT a journal entry. Journal entries are created on
 purpose in `04 Inner World/Journal/` and preserve your original words. When

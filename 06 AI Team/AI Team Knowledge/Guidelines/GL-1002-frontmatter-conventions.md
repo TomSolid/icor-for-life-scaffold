@@ -26,10 +26,11 @@ tags: []     # optional, lowercase, hyphenated
 | --- | --- | --- |
 | journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element (wikilink), mood, linked_people, linked_topics, linked_projects, source |
 | scratchpad | date | processed, processed_summary, processed_into |
-| capture | source_url, captured (ISO datetime) | processed, processed_summary, processed_into |
+| capture | source_url, captured (ISO datetime) | author, published, my_thought (the user's one-or-two-sentence thought, filled in the Web Clipper popup), processed, processed_summary, processed_into |
 | person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action |
 | company | name | industry, people, website |
-| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into |
+| note | note_type (reference/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`) |
+| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | projects, key_elements, topics (wikilink lists), preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into |
 | goal | status (not-achieved/achieved) | target_date, key_elements |
 | pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) |
 | key-element | - | people, goals |
@@ -62,27 +63,58 @@ lives in `linked_topics` as before.
 `category` is retired from the journal type: entries that still carry it
 keep working as untyped, but no new entry gets one.
 
-## Documents: the wrapper-note pattern (ruling 2026-08-29)
+## Notes: notes and the wrapper-note pattern (ruling 2026-08-29, extended 2026-09-09)
 
-A scanned PDF or any other binary cannot carry frontmatter, so the
-binary is never the metadata-bearing record. Every document gets TWO
-files:
+`04 Inner World/Notes/` is one flat folder, one note per subject, and
+it holds ICOR's one atomic unit, the Note. Two types share it. A plain
+note is `type: note`; a document is a note with a file attached,
+`type: document`, and lives in the same folder, because a file you keep
+is not a second kind of thing in the method. Which of the two a note is
+gets decided by one question: is there a binary behind it? Yes:
+`document`. No: `note`. Where a note goes at all, against the Journal
+and the other rooms, is taught in
+[[GL-1007-capture-and-where-things-go|GL-1007]].
+
+**`type: note`.** `note_type` is required and closed: `reference` (a
+saved source you did not write: a video, an article, a paper),
+`outline` (a structure you keep editing), `meeting` (notes from a
+meeting, kept as a subject rather than a day), `draft` (text on its way
+somewhere else), `other`. A `reference` note carries `source_url` and
+`consumed`, `false` until the user has actually read or watched it;
+`consumed` and `source_url` mean nothing on the other four kinds and
+are left off there.
+
+**`type: document`.** A scanned PDF or any other binary cannot carry
+frontmatter, so the binary is never the metadata-bearing record. Every
+document gets TWO files:
 
 - the binary itself in `05 Assets/Documents/` (the shelf, per
   [[GL-1001-the-six-rooms|GL-1001]]);
-- one markdown WRAPPER NOTE in `04 Inner World/Documents/`
+- one markdown WRAPPER NOTE in `04 Inner World/Notes/`
   (`type: document`), holding all structured metadata in frontmatter
-  and linking the binary via `source_file`.
+  and linking the binary via `source_file` (mandatory).
 
-The `Documents.base` table and cards views show the wrapper notes,
-never the binaries. `preview_image` points at a generated `.png` of
-the document's first page (in `05 Assets/Images/`) and feeds the
-cards view; leave it off until a preview exists, never fabricate.
-`amount`/`currency` are for invoices and receipts; `issued_on` and
-`expiry_date` are ISO dates; `people`/`companies` wikilink the
-contacts a document belongs to. Generate wrapper notes deliberately,
-one document at a time, never as a bulk backfill over thousands of
-files (a mass backfill is a known Obsidian indexer killer).
+**The link rule.** Every `type: note` carries at least one of
+`projects`, `key_elements`, `topics` (wikilink lists, the same value
+shape `goal` and `key_element` already use), and may carry `people` and
+`companies`. A note that links to none of the three failed the
+Capturing Beast ([[GL-1007-capture-and-where-things-go|GL-1007]]) and
+should not exist; `Scripts/validate-scaffold.py` fails a `type: note`
+without one of the three. A `document` carries the same three lists as
+optional fields, because a contract or an invoice is often filed for
+the contact it belongs to and nothing else; `people`/`companies` carry
+that.
+
+`Notes.base` shows the `type: note` rows; `Documents.base`, in the same
+folder, shows the wrapper notes, never the binaries. `preview_image`
+points at a generated `.png` of the document's first page (in
+`05 Assets/Images/`) and feeds the cards view; leave it off until a
+preview exists, never fabricate. `amount`/`currency` are for invoices
+and receipts; `issued_on` and `expiry_date` are ISO dates;
+`people`/`companies` wikilink the contacts a document belongs to.
+Generate wrapper notes deliberately, one document at a time, never as
+a bulk backfill over thousands of files (a mass backfill is a known
+Obsidian indexer killer).
 
 ## PDF highlights: one note per highlight (ruling 2026-09-07)
 
@@ -93,7 +125,7 @@ and never carries metadata; the highlight note does. The plugin owns the
 frontmatter and the first lines of the body; everything under `## Note`
 is the user's.
 
-Home: `04 Inner World/Documents/Highlights/<pdf-basename>/<YYYY-MM-DD-HHMMSS>-p<page>-<4 chars of the id>.md`,
+Home: `04 Inner World/Notes/Highlights/<pdf-basename>/<YYYY-MM-DD-HHMMSS>-p<page>-<4 chars of the id>.md`,
 the plugin's default folder (a setting), one subfolder per PDF. The
 scaffold ships the folder empty. A note may be renamed or moved: the
 plugin finds highlights by their frontmatter, never by name or folder.
@@ -201,7 +233,7 @@ originals in `01 Inbox/Outer World/archive/` forever. This ruling
 breaks the tie:
 
 - **The wrapper note carries the stamp.** The `type: document` note in
-  `04 Inner World/Documents/` (the wrapper-note pattern above) is the
+  `04 Inner World/Notes/` (the wrapper-note pattern above) is the
   metadata-bearing record, so `processed`, `processed_summary` and
   `processed_into` live there; the table declares them optional on
   `document`. A photo or an audio memo that needs a record gets the same

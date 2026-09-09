@@ -429,6 +429,70 @@ with tempfile.TemporaryDirectory() as td:
     (bad4 / "04 Inner World/My Life/Goals/rogue-goal.md").write_text(
         "---\ntype: goal\nstatus: someday\n---\n# Rogue goal\n")
     expect_fail("validate-scaffold/goal-bad-status", [str(HERE / "validate-scaffold.py"), str(bad4)])
+    # 20b-20d. validate-scaffold check 10: a `type: note` must carry a
+    #     note_type from the set and be filed under at least one of
+    #     projects / key_elements / topics (GL-1002, GL-1007). Three reds,
+    #     each for its own reason, then a control that a well-formed note
+    #     passes so the reds are about the note and not the folder.
+    def note_vault(name, front):
+        v = tmp / name
+        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        (v / "04 Inner World/Notes/probe-note.md").write_text(f"---\n{front}---\n# Probe\n")
+        return v
+    r = expect_fail("validate-scaffold/note-without-note-type",
+                    [str(HERE / "validate-scaffold.py"),
+                     str(note_vault("bad-note-1", 'type: note\nprojects: ["[[x]]"]\n'))])
+    checks += 1
+    if r.returncode != 0 and "note_type" not in (r.stderr or ""):
+        fails.append("validate-scaffold/note-without-note-type: went red, but not for note_type")
+    expect_fail("validate-scaffold/note-bad-note-type",
+                [str(HERE / "validate-scaffold.py"),
+                 str(note_vault("bad-note-2", 'type: note\nnote_type: rant\ntopics:\n  - "[[t]]"\n'))])
+    r = expect_fail("validate-scaffold/note-filed-under-nothing",
+                    [str(HERE / "validate-scaffold.py"),
+                     str(note_vault("bad-note-3", "type: note\nnote_type: reference\nprojects: []\nkey_elements:\ntopics: []\n"))])
+    checks += 1
+    if r.returncode != 0 and "filed under nothing" not in (r.stderr or ""):
+        fails.append("validate-scaffold/note-filed-under-nothing: went red, but not for the missing link")
+    r = subprocess.run([PY, str(HERE / "validate-scaffold.py"),
+                        str(note_vault("good-note", 'type: note\nnote_type: meeting\nkey_elements:\n  - "[[k]]"\n'))],
+                       capture_output=True, text=True)
+    checks += 1
+    if r.returncode != 0:
+        fails.append("validate-scaffold/note-clean-control: rejected a well-formed note, so the three reds prove nothing: "
+                     + (r.stderr.strip().splitlines() or ["?"])[-1])
+    # 20e. validate-scaffold check 11: .obsidian/daily-notes.json must not
+    #     carry a `template` key (GL-1007: the daily scratchpad stays
+    #     blank). The fixtures strip .obsidian, so the file is planted;
+    #     a key with an empty value is red too, because the KEY is the
+    #     setting. Control: the shipped file passes.
+    def daily_vault(name, cfg):
+        v = tmp / name
+        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        (v / ".obsidian").mkdir()
+        (v / ".obsidian/daily-notes.json").write_text(_json.dumps(cfg))
+        return v
+    r = expect_fail("validate-scaffold/daily-note-template-key",
+                    [str(HERE / "validate-scaffold.py"),
+                     str(daily_vault("bad-daily-1", {"folder": "00 Daily Scratchpad", "format": "YYYY-MM-DD",
+                                                     "template": "06 AI Team/AI Team Knowledge/Templates/journal.md"}))])
+    checks += 1
+    if r.returncode != 0 and "template key" not in (r.stderr or ""):
+        fails.append("validate-scaffold/daily-note-template-key: went red, but not for the template key")
+    expect_fail("validate-scaffold/daily-note-template-key-empty",
+                [str(HERE / "validate-scaffold.py"),
+                 str(daily_vault("bad-daily-2", {"folder": "00 Daily Scratchpad", "template": ""}))])
+    shipped = ROOT / ".obsidian/daily-notes.json"
+    if shipped.is_file():
+        r = subprocess.run([PY, str(HERE / "validate-scaffold.py"),
+                            str(daily_vault("good-daily", _json.loads(shipped.read_text())))],
+                           capture_output=True, text=True)
+        checks += 1
+        if r.returncode != 0:
+            fails.append("validate-scaffold/daily-note-clean-control: rejected the shipped daily-notes.json: "
+                         + (r.stderr.strip().splitlines() or ["?"])[-1])
+    else:
+        skip("validate-scaffold/daily-note-clean-control", "no .obsidian/daily-notes.json in this vault to use as the control")
 
     # 21. new-base must reject an entity type not in the registry
     expect_fail("new-base/unknown-entity",
@@ -447,7 +511,7 @@ with tempfile.TemporaryDirectory() as td:
     # 24. check-bases must reject a .base that is not valid YAML
     bad6 = tmp / "bad-scaffold-6"
     shutil.copytree(ROOT, bad6, ignore=shutil.ignore_patterns(".obsidian"))
-    (bad6 / "04 Inner World/Documents/Documents.base").write_text(
+    (bad6 / "04 Inner World/Notes/Documents.base").write_text(
         "views:\n  - type: table\n   bad indent: [unclosed\n")
     expect_fail("check-bases/invalid-yaml",
                 [str(HERE / "check-bases.py"), str(bad6)])
@@ -471,10 +535,40 @@ with tempfile.TemporaryDirectory() as td:
     # 27. check-bases must reject a base with no views
     bad9 = tmp / "bad-scaffold-9"
     shutil.copytree(ROOT, bad9, ignore=shutil.ignore_patterns(".obsidian"))
-    (bad9 / "04 Inner World/Documents/Documents.base").write_text(
+    (bad9 / "04 Inner World/Notes/Documents.base").write_text(
         "filters:\n  and:\n    - file.ext == \"md\"\n")
     expect_fail("check-bases/no-views",
                 [str(HERE / "check-bases.py"), str(bad9)])
+    # 27b-27d. A collection is (folder, note.type), not a folder (GL-1006
+    #     rule 3 exception, 2026-09-09): 04 Inner World/Notes ships
+    #     Documents.base (type document) beside Notes.base (type note).
+    #     Two reds that the loosened rule must still catch, then the
+    #     control that the shipped two-base folder passes, or the reds
+    #     are about the folder and prove nothing about the type.
+    bad10 = tmp / "bad-scaffold-10"
+    shutil.copytree(ROOT, bad10, ignore=shutil.ignore_patterns(".obsidian"))
+    nb = bad10 / "04 Inner World/Notes/Notes.base"
+    (nb.parent / "Notes 2.base").write_text(nb.read_text())
+    r = expect_fail("check-bases/duplicate-type-in-folder",
+                    [str(HERE / "check-bases.py"), str(bad10)])
+    checks += 1
+    if r.returncode != 0 and "(type note)" not in (r.stderr or ""):
+        fails.append("check-bases/duplicate-type-in-folder: went red, but not for the duplicated type")
+    bad11 = tmp / "bad-scaffold-11"
+    shutil.copytree(ROOT, bad11, ignore=shutil.ignore_patterns(".obsidian"))
+    (bad11 / "04 Inner World/Notes/All.base").write_text(
+        'filters:\n  and:\n    - file.inFolder("04 Inner World/Notes")\n'
+        '    - file.ext == "md"\nviews:\n  - type: table\n    name: All\n')
+    expect_fail("check-bases/untyped-base-beside-typed",
+                [str(HERE / "check-bases.py"), str(bad11)])
+    r = subprocess.run([PY, str(HERE / "check-bases.py"), str(ROOT)], capture_output=True, text=True)
+    checks += 1
+    if r.returncode != 0:
+        fails.append("check-bases/two-types-one-folder-control: rejected the shipped tree, so its reds are meaningless: "
+                     + (r.stderr.strip().splitlines() or ["?"])[-1])
+    elif not ((ROOT / "04 Inner World/Notes/Notes.base").is_file()
+              and (ROOT / "04 Inner World/Notes/Documents.base").is_file()):
+        fails.append("check-bases/two-types-one-folder-control: passed, but the folder does not hold both bases, so nothing was exercised")
 
     # 28-30. new-progress-report guards
     pr = HERE / "new-progress-report.py"
@@ -501,13 +595,13 @@ with tempfile.TemporaryDirectory() as td:
         """A minimal vault: the binary in the Scanner Inbox, its copy on the
         shelf, and the wrapper note in Documents that links the copy."""
         v = tmp / name
-        for d in ("01 Inbox/Scanner Inbox", "05 Assets/Documents", "04 Inner World/Documents"):
+        for d in ("01 Inbox/Scanner Inbox", "05 Assets/Documents", "04 Inner World/Notes"):
             (v / d).mkdir(parents=True)
         (v / "01 Inbox/Scanner Inbox/scan.pdf").write_bytes(BIN)
         (v / "05 Assets/Documents/scan.pdf").write_bytes(shelf)
         fm = "---\ntype: document\ndoc_type: other\n"
         fm += f"source_file: {source_file}\n" if source_file else ""
-        (v / "04 Inner World/Documents/scan.md").write_text(fm + "---\nbody\n")
+        (v / "04 Inner World/Notes/scan.md").write_text(fm + "---\nbody\n")
         return v
     STAMP = ["--summary", "x", "--into", "[[y]]"]
     # 31. a binary passed as the note is refused by name, never decoded:
@@ -523,45 +617,45 @@ with tempfile.TemporaryDirectory() as td:
     v32 = capture_vault("capture-32")
     (v32 / "01 Inbox/Scanner Inbox/clip.md").write_text("---\ntype: capture\n---\nbody\n")
     expect_refusal("stamp-processed/capture-is-markdown",
-                   [str(sp), str(v32 / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v32 / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--capture", str(v32 / "01 Inbox/Scanner Inbox/clip.md")])
     # 33. --capture with a binary outside 01 Inbox is refused
     v33 = capture_vault("capture-33")
     (tmp / "outside.pdf").write_bytes(BIN)
     expect_refusal("stamp-processed/capture-outside-inbox",
-                   [str(sp), str(v33 / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v33 / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--capture", str(tmp / "outside.pdf")])
     # 34. a wrapper note whose source_file does not resolve to one file on
     #     the shelf is refused: no source_file at all, and one that points
     #     at nothing
     v34 = capture_vault("capture-34", source_file=None)
     expect_refusal("stamp-processed/wrapper-without-source-file",
-                   [str(sp), str(v34 / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v34 / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--capture", str(v34 / "01 Inbox/Scanner Inbox/scan.pdf")])
     v34b = capture_vault("capture-34b", source_file='"[[nowhere.pdf]]"')
     expect_refusal("stamp-processed/source-file-unresolved",
-                   [str(sp), str(v34b / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v34b / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--capture", str(v34b / "01 Inbox/Scanner Inbox/scan.pdf")])
     # 35. --archive and --capture together are refused
     v35 = capture_vault("capture-35")
     expect_refusal("stamp-processed/archive-and-capture",
-                   [str(sp), str(v35 / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v35 / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--archive", "--capture", str(v35 / "01 Inbox/Scanner Inbox/scan.pdf")])
     # 36. a forced sha256 mismatch is refused AND the inbox original still
     #     exists, unstamped. A guard that refuses correctly but deletes on
     #     the way out would pass every other test in this file.
     v36 = capture_vault("capture-36", shelf=b"not the same bytes")
     expect_refusal("stamp-processed/sha256-mismatch",
-                   [str(sp), str(v36 / "04 Inner World/Documents/scan.md")] + STAMP
+                   [str(sp), str(v36 / "04 Inner World/Notes/scan.md")] + STAMP
                    + ["--capture", str(v36 / "01 Inbox/Scanner Inbox/scan.pdf")])
     if not (v36 / "01 Inbox/Scanner Inbox/scan.pdf").is_file():
         fails.append("stamp-processed/sha256-mismatch: refused, yet the inbox original is GONE")
-    if "processed: true" in (v36 / "04 Inner World/Documents/scan.md").read_text():
+    if "processed: true" in (v36 / "04 Inner World/Notes/scan.md").read_text():
         fails.append("stamp-processed/sha256-mismatch: refused, yet the wrapper note got stamped")
     # 36b. And the control: a correct --capture must PASS, stamp the
     #      wrapper and remove the original, or the six reds prove nothing.
     v36b = capture_vault("capture-clean")
-    r = subprocess.run([PY, str(sp), str(v36b / "04 Inner World/Documents/scan.md")] + STAMP
+    r = subprocess.run([PY, str(sp), str(v36b / "04 Inner World/Notes/scan.md")] + STAMP
                        + ["--capture", str(v36b / "01 Inbox/Scanner Inbox/scan.pdf")],
                        capture_output=True, text=True)
     if r.returncode != 0:
@@ -571,7 +665,7 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("stamp-processed/capture-clean-control: stamped but left the original in 01 Inbox")
     elif not (v36b / "05 Assets/Documents/scan.pdf").is_file():
         fails.append("stamp-processed/capture-clean-control: the shelf copy is gone")
-    elif "processed: true" not in (v36b / "04 Inner World/Documents/scan.md").read_text():
+    elif "processed: true" not in (v36b / "04 Inner World/Notes/scan.md").read_text():
         fails.append("stamp-processed/capture-clean-control: original removed but the wrapper is not stamped")
 
 if fails:

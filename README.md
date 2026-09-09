@@ -42,7 +42,7 @@ cannot hold.
 | `02 Planner/` | Your real task list, synced. One note per open item from Todoist, ClickUp, flagged email, and calendar, machine-tended by the ICOR Planner plugin. The team plans and executes from here. |
 | `00 Daily Scratchpad/` | Your post-it. One note per day, written by you, deliberately messy. Never deleted. The team extracts from it on your command. |
 | `05 Assets/` | The binary shelf: images, audio, documents. Notes embed them; no knowledge lives here. |
-| `04 Inner World/` | Everything that went through you: Contacts, Journal, and My Life (Goals, Key Elements, Topics, Projects, Habits). |
+| `04 Inner World/` | Everything that went through you: Contacts, Journal, Notes (outlines, references, meeting notes, documents), and My Life (Goals, Key Elements, Topics, Projects, Habits). |
 | `03 WiP/` | The workbench. One dated folder per piece of work; finished folders retire to `_archive/`. |
 | `06 AI Team/` | The staff quarters: agent contracts, shared knowledge (SOPs, Workstreams, Guidelines, Scripts), task tracking, and session logs. |
 | `07 Databases/` | The data shelf. SQLite databases with no markdown source (health archives, logs, analytics stores). Opened read-only by the ICOR for Life - SQLite Viewer plugin: browse, query, and build dashboards, on every device. Ships empty. |
@@ -68,6 +68,16 @@ cannot hold.
    own terminal (Windows Terminal by default) in the same folder.
 3. Write into today's Daily Scratchpad, then tell Larry:
    "process my scratchpad".
+4. Something someone else made? Clip it into `01 Inbox/Outer World/`
+   with one line of why. The Web Clipper template in
+   `06 AI Team/AI Team Knowledge/Templates/web-clipper-outer-world.json`
+   does it in one click: install the Obsidian Web Clipper extension,
+   import the template, fill in `my_thought` in the popup. If
+   `published` or `captured` already exist in the extension with
+   another type, change them under Settings > Properties. Two doors,
+   nothing else to decide at capture time; where everything goes
+   afterwards is one page:
+   `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`.
 
 ## Updating from an earlier download
 
