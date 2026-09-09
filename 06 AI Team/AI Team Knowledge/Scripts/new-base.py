@@ -97,31 +97,143 @@ REGISTRY = {
 COMMON_FIELDS = {"type", "created", "tags"}
 
 
-def gl002_fields(root):
-    """Parse GL-1002's per-type table into {type: set(fields)}.
-    Deterministic: reads the markdown table, strips parentheticals
-    (they hold enums and commentary, and may contain commas), then splits
-    on commas AND semicolons: a cell may carry a rule clause after the
-    field list (`note_type (...); at least one of projects / ...`) and a
-    clause is prose, never a field, so it drops out of the token filter."""
+# The two columns of GL-1002's per-type table that hold field names. The
+# table also carries a `template` column (added 2026-09-09) and may carry
+# more later; columns are found BY HEADER NAME, never by position, so a
+# new column can never shift the parse. It did once: with positional
+# `(.+)|(.+)` the required and optional cells were read as ONE cell joined
+# by a pipe, which silently ate the first field of the optional column and
+# failed all four shipped bases.
+FIELD_COLUMNS = ("required fields", "optional fields")
+TYPE_COLUMN = "type"
+
+
+def _table_row(line):
+    """The cells of a markdown table row, or None when the line is not one."""
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return None
+    return [c.strip() for c in s[1:-1].split("|")]
+
+
+def _gl002_table(root, columns):
+    """Read GL-1002's per-type table and return {type: set(field names)},
+    taking the field names from the named COLUMNS only.
+
+    Deterministic, and column-order independent: the header row that names
+    both FIELD_COLUMNS opens the table and fixes the column indices by
+    name; every row until the table ends is a type. Within a cell,
+    parentheticals are stripped (they hold enums and commentary, and may
+    contain commas), then the cell splits on commas AND semicolons: a cell
+    may carry a rule clause after the field list (`note_type (...); at
+    least one of projects / ...`) and a clause is prose, never a field, so
+    it drops out of the token filter. Other tables in GL-1002 (the
+    pdf-highlight field table, the habit-log markers) never carry both
+    header names, so they are skipped.
+    """
     text = (root / GL002).read_text(encoding="utf-8")
     out = {}
+    cols = None          # header name -> index, while inside the table
     for line in text.splitlines():
-        m = re.match(r"^\|\s*([a-z-]+(?:\s*/\s*[a-z-]+)*)\s*\|(.+)\|(.+)\|\s*$", line)
-        if not m:
+        cells = _table_row(line)
+        if cells is None:
+            cols = None  # any non-table line ends the table
             continue
-        tname = m.group(1)
-        if tname in ("type", "---", "--- "):
+        low = [c.lower() for c in cells]
+        if all(name in low for name in FIELD_COLUMNS) and TYPE_COLUMN in low:
+            cols = {name: low.index(name)
+                    for name in (TYPE_COLUMN,) + FIELD_COLUMNS}
+            continue
+        if cols is None:
+            continue
+        if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
+            continue     # the header separator row
+        if max(cols.values()) >= len(cells):
+            continue     # a malformed row: never guess at its columns
+        tname = cells[cols[TYPE_COLUMN]]
+        if not re.fullmatch(r"[a-z-]+(?:\s*/\s*[a-z-]+)*", tname):
             continue
         fields = set()
-        for cell in (m.group(2), m.group(3)):
-            cell = re.sub(r"\([^)]*\)", "", cell)
+        for name in columns:
+            cell = re.sub(r"\([^)]*\)", "", cells[cols[name]])
             for f in re.split(r"[,;]", cell):
                 f = f.strip()
                 if re.fullmatch(r"[a-z][a-z0-9_]*", f):
                     fields.add(f)
         for t in re.split(r"\s*/\s*", tname):
-            out[t] = fields | COMMON_FIELDS
+            out[t] = fields
+    return out
+
+
+def gl002_fields(root):
+    """{type: set(EVERY field GL-1002 declares)}, required and optional
+    together plus the common block. This is the "is this field invented"
+    answer: a key outside this set for its type is not in the guideline."""
+    return {t: f | COMMON_FIELDS
+            for t, f in _gl002_table(root, FIELD_COLUMNS).items()}
+
+
+def gl002_required(root):
+    """{type: set(REQUIRED fields)} from the same table, same reader.
+
+    check-quality.py asks "which fields must this note carry"; the answer
+    is the `required fields` column alone, so it cannot be taken from
+    gl002_fields (which unions both columns for the "is this field
+    invented" question). One parser, two questions, no second copy of the
+    table. `type` and `created` are common to every note GL-1002 declares
+    and are NOT added here: a required-field report is about what the
+    guideline says per type, and the common block is checked once by the
+    caller."""
+    return _gl002_table(root, ("required fields",))
+
+
+# A closed value set in GL-1002 is written as `field (a/b/c)` right after
+# the field name. That is the ONLY shape read as an enum: every token must
+# be a bare lowercase word, so `source_file (wikilink to the binary in
+# 05 Assets/Documents, MANDATORY)` (a slash inside prose) and
+# `priority (1-5)` (a range) are not enums and are left alone.
+ENUM_CELL = re.compile(r"([a-z][a-z0-9_]*)\s*\(([^)]*)\)")
+
+
+def gl002_enums(root):
+    """{type: {field: [allowed values]}} from the same table, same reader.
+
+    The value sets are stated once, in the guideline, beside the field they
+    belong to. `status` means different things on a goal, a project and a
+    habit, so the map is keyed by type first: a hardcoded copy in a checker
+    would have to repeat that distinction and would be wrong the day one of
+    them changes."""
+    text = (root / GL002).read_text(encoding="utf-8")
+    out = {}
+    cols = None
+    for line in text.splitlines():
+        cells = _table_row(line)
+        if cells is None:
+            cols = None
+            continue
+        low = [c.lower() for c in cells]
+        if all(name in low for name in FIELD_COLUMNS) and TYPE_COLUMN in low:
+            cols = {name: low.index(name)
+                    for name in (TYPE_COLUMN,) + FIELD_COLUMNS}
+            continue
+        if cols is None or max(cols.values()) >= len(cells):
+            continue
+        tname = cells[cols[TYPE_COLUMN]]
+        if not re.fullmatch(r"[a-z-]+(?:\s*/\s*[a-z-]+)*", tname):
+            continue
+        found = {}
+        for name in FIELD_COLUMNS:
+            for field, inside in ENUM_CELL.findall(cells[cols[name]]):
+                inside = inside.split(";")[0]          # drop a trailing clause
+                if "/" not in inside:
+                    continue
+                values = [v.strip() for v in inside.split("/")]
+                if all(re.fullmatch(r"[a-z][a-z0-9-]*", v) for v in values) \
+                        and len(values) > 1:
+                    found[field] = values
+        if found:
+            for t in re.split(r"\s*/\s*", tname):
+                out.setdefault(t, {}).update(found)
     return out
 
 

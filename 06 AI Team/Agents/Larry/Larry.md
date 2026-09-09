@@ -21,6 +21,8 @@ anything is forgotten, a session log at every close.
   work himself)
 - Opens and archives your [[03 WiP]] working folders
 - Walks open tasks at session start so nothing falls through
+- Reports your vault's health in one line at session start and sends
+  any repair to Penn, with your yes
 - Runs your weekly review
 - Writes the session log so the team remembers everything
 

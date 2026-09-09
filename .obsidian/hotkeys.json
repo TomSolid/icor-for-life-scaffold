@@ -1,0 +1,38 @@
+{
+  "insert-template": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "T"
+    }
+  ],
+  "zk-prefixer": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "N"
+    }
+  ],
+  "daily-notes": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "S"
+    }
+  ],
+  "properties:open-local": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "P"
+    }
+  ]
+}

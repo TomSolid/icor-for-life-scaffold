@@ -58,7 +58,7 @@ problem, workflow, or concept, PROACTIVELY offer a clarifying diagram,
 and when accepted (or when the explanation clearly benefits), create it:
 
 1. Build a mermaid diagram (the Authoring rules in
-   `06 AI Team/AI Team Knowledge/README.md` apply: flowchart TD or LR,
+   `06 AI Team/README.md` apply: flowchart TD or LR,
    real human-readable node names in quotes, no inline style or color
    directives; the theme owns the look).
 2. Land it as a note where the work lives: inside the active `03 WiP/`
@@ -101,11 +101,12 @@ offer costs one sentence, the diagram often IS the answer.
    `Scripts/new-base.py` and never hand-written, one per collection
    ([[GL-1006-bases-and-live-views]]).
 5. **No ICOR stage names as folder names** (no Input, Control, Output,
-   Refine). The six rooms are fixed. **Folders are the AI Team's job:**
-   the vault hides the new-folder button, so when the user needs a new
-   folder they ask, and Larry (or the responsible agent) creates it in
-   the right room with the right name. The user may still request rooms;
-   you never invent them unasked.
+   Refine). The six rooms are fixed. **Folders follow
+   [[GL-1004-naming-rules|GL-1004]]:** the rooms are the Scaffold's, a
+   date folder `YYYY/MM/` may be created by hand, and any other new
+   folder is asked for and created by Larry (or the responsible agent)
+   in the right room with the right name. You never invent a room
+   unasked.
 6. **Date-nested folders keep their shape.** Journal, Session Logs, and
    Tasks done/cancelled use `YYYY/MM/`. Create year and month folders as
    needed, never flatten.
@@ -139,6 +140,9 @@ offer costs one sentence, the diagram often IS the answer.
 Concept map: `06 AI Team/AI Team Knowledge/Guidelines/[[GL-1001-the-six-rooms]].
 Where a thought, a link, a file or a draft goes, and the two doors it
 enters through: [[GL-1007-capture-and-where-things-go]].
+Not a room: `.icor-for-life/` is the machine layer, what plugins and
+scripts write for each other and never a note; only the four scaffold
+files in it are tracked: [[GL-1008-the-machine-layer]].
 
 ## Session start ritual
 
@@ -150,7 +154,13 @@ enters through: [[GL-1007-capture-and-where-things-go]].
    this structure ([[WS-1004-import-and-convert-external-knowledge|WS-1004]]). Never skip the offers on a fresh vault.
 1. Read your AGENT.md.
 2. Walk `Tasks/open/` and `Tasks/in-progress/`.
-3. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
+3. Read `.icor-for-life/scripts/quality.json` (run
+   `06 AI Team/AI Team Knowledge/Scripts/check-quality.py --write` first
+   if it is missing or older than today) and report vault health in one
+   line: `ok`, `attention` or `broken`. On `attention` or `broken`, offer
+   to send Penn through [[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]; repairs wait for the user's yes, never
+   run silently.
+4. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
    material; offer to process, never process silently.
 
 ## Session close: `/checkpoint`

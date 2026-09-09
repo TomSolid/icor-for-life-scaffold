@@ -21,6 +21,13 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
    rooms; agents may not.
 3. Date-nested shapes are `YYYY/MM/` (Journal, Session Logs,
    Tasks/done, Tasks/cancelled).
+4. **Who creates a folder.** The rooms and their fixed subfolders are
+   the Scaffold's; they arrive with the download and are never renamed.
+   Date folders (`YYYY/MM/`) under Journal, Session Logs, the task
+   archives, and `05 Assets/Images` when you nest it, may be created by
+   hand (right-click the parent, New folder, `2026`, then `09`) or by
+   the scripts. Anything else asks the AI first, so the folder lands in
+   the right room with the right name.
 
 ## File names
 
@@ -67,6 +74,5 @@ blocks and this guideline's naming-example tables stay literal.
   suffix (quick capture via the Unique-note button / zk-prefixer). `Scripts/validate-scaffold.py` enforces both.
 - Canvases created from the toolbar land in `00 Daily Scratchpad/` as
   `YYYY-MM-DD_canvas.canvas` (`-N` on same-day collisions).
-- Folders are created by the AI Team on request, never by hand: the
-  vault hides the new-folder button. This keeps every folder inside the
-  six-rooms taxonomy and this guideline's naming rules.
+- Folders: rule 4 under Folder names above. A new month under Journal
+  is yours to make; a new kind of folder is a question to the AI.

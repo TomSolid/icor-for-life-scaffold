@@ -37,3 +37,12 @@
 # ICOR Canvases is its own git repository (its main.js is untracked there too;
 # the zip stages it from the plugin's latest GitHub release, like Chat and Terminal)
 .obsidian/plugins/icor-for-life-canvases/
+
+# The machine layer (GL-1008): what plugins and scripts write for each other,
+# per device and regenerated, never tracked and never shipped. Only the four
+# files that describe the scaffold version are kept.
+.icor-for-life/*
+!.icor-for-life/VERSION
+!.icor-for-life/manifest.json
+!.icor-for-life/CHANGELOG.md
+!.icor-for-life/README.md

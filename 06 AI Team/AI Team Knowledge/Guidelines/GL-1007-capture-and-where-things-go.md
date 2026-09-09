@@ -161,7 +161,7 @@ watch it and have a thought, the thought is a Journal entry linked to the
 same Topic, and `consumed` flips to true. If it hits no Project, Key
 Element or Topic, it is archived and gets no note.
 
-## Filing by hand
+## Doing it by hand, step by step
 
 You may file directly when you already know the home. Three questions,
 in order:
@@ -172,6 +172,88 @@ in order:
 
 If any of the three makes you hesitate, stop and use a door instead. The
 doors exist so that hesitation never costs you the capture.
+
+This is the one walkthrough for filing without the AI. Every other page
+links here instead of repeating it. The AI does every move below for you
+on request ("file this as a note about X", "process my scratchpad"), and
+checks or repairs what you filed yourself
+([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]).
+
+**1. Make the note in the right room.** In the file explorer, right-click
+the folder the note belongs in and choose **New note**: `Notes/` for a
+note or a document, `My Life/Projects/` (or Goals, Habits, Topics, Key
+Elements) for an entity, `Contacts/People/` or `Contacts/Companies/` for
+a contact, `Journal/YYYY/MM/` for a journal entry. The note lands in that
+folder. Cmd+N is not this move: it lands in `00 Daily Scratchpad/` on
+purpose, because that is the capture door. Name the note as
+[[GL-1004-naming-rules|GL-1004]] says: the natural title for an entity,
+a note or a contact (`Spain Holidays`, `Alex Rivera`), and
+`YYYY-MM-DD_<slug>` for a journal entry.
+
+**2. Insert the template.** Open the command palette (Cmd+P), run
+**Templates: Insert template**, pick the template for the kind of note.
+The templates live in `06 AI Team/AI Team Knowledge/Templates/` and the
+vault ships with that folder set in Settings, Templates.
+
+| Kind of note | Template |
+| --- | --- |
+| journal entry | `journal` |
+| note (outline, reference, meeting, draft) | `note` |
+| document (a note with a file) | `document` |
+| person, company | `person`, `company` |
+| project, goal, habit, topic, key element | `project`, `goal`, `habit`, `topic`, `key-element` |
+
+**3. Fill the properties.** The template's fields appear as the
+Properties panel at the top of the note. Type into a text field, pick a
+date in a date field, tick a checkbox. A wikilink in a list property
+(`projects`, `key_elements`, `topics`, `people`, `linked_topics`, and the
+like): click into the list, add an item, type `[[` and pick the note from
+the suggestions. `Health` without brackets is text, not a link;
+`[[Health]]` is the link. A single-link field such as `goal` or
+`key_element` takes the same `[[` move. Leave an optional field empty
+when you have nothing for it; never add a field of your own (the fields
+are in [[GL-1002-frontmatter-conventions|GL-1002]]).
+
+**4. Link it, or it is not a note.** A note in `Notes/` carries at least
+one of `projects`, `key_elements`, `topics`. A project carries its
+`goal`. A journal entry carries its people, topics or projects in the
+`linked_*` fields, and `key_element` when it is about one. That is the
+Capturing Beast above, applied at the keyboard.
+
+**5. A journal entry.** If the month folder does not exist yet,
+right-click `Journal/<YYYY>/` (or `Journal/` when the year is new too)
+and choose **New folder**: `2026`, then `09`. Then step 1 inside it.
+Write your own words under `## Original Text`. `## Expansion` may stay
+empty; the AI fills it when you ask.
+
+**6. A file you keep.** Move the file to the shelf first: drag it into
+`05 Assets/Documents/` (images to `Images/`, audio to `Audio/`). Then a
+note in `Notes/` with the `document` template: `doc_type`, and
+`source_file` as a wikilink to the file (`[[`, pick the file). The note
+is the record; the file is the attachment.
+
+**7. A new entity or contact.** Before you create a Project, Goal,
+Habit, Topic, Key Element, Person or Company, search for the name in the
+quick switcher (Cmd+O). One thing, one note, forever. A project needs a
+goal: make the goal first if none fits.
+
+**8. Mark the source processed.** When you carried a scratchpad or a
+capture into its homes yourself, stamp the source so it stops counting
+as waiting: in its Properties panel add `processed` (a checkbox, ticked),
+`processed_summary` (one line) and `processed_into` (a list, one `[[`
+link per note you made). The exact shape is in
+[[GL-1002-frontmatter-conventions|GL-1002]] "The processed stamp". Then
+drag a capture into `01 Inbox/Outer World/archive/`. A scratchpad stays
+where it is. A file's stamp goes on its wrapper note.
+
+**9. Check what you filed.** The **ICOR for Life - Scaffold Check**
+plugin shows the numbers for all of this (notes without a link, invented
+fields, links to nothing, documents without a file, sources still
+waiting) and writes its report to
+`06 AI Team/AI Team Knowledge/Scaffold Check/<date>-scaffold-check.md`.
+The same numbers come from `Scripts/check-quality.py`, and "check my
+notes" makes the AI read them and propose the repairs
+([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]).
 
 ## What is never a home
 

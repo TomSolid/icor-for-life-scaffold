@@ -24,8 +24,13 @@ never rewritten; a subject is a Note and gets edited for as long as it
 lives. The whole map of where things go is
 [[GL-1007-capture-and-where-things-go|GL-1007]].
 
-Only the AI Team files things here, following the SOPs. You read, link,
-and edit freely; the structure stays.
+You file here by hand, or the AI does it for you; both land in the same
+shape. By hand: right-click the folder, New note, insert the template,
+fill the properties, link it. The moves, step by step, including how to
+check what you filed: [[GL-1007-capture-and-where-things-go|GL-1007]]
+"Doing it by hand". By the AI: "process my scratchpad", "process my
+inbox", "file this as a note about X", "check my notes". You read,
+link, and edit freely; the structure stays.
 
 ## Learn the concept
 

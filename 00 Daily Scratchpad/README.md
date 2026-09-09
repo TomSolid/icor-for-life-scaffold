@@ -36,6 +36,14 @@ no-friction default.
 
 ## Need a folder?
 
-Folder creation is the AI Team's job, so the new-folder button is hidden.
-Tell Larry what you need ("I need a place for X") and the team creates it
-in the right room, named per [[GL-1004-naming-rules|GL-1004]].
+The new-folder button is hidden on purpose. A new month under Journal
+you make yourself (right-click the year, New folder); any other folder
+is a question to Larry ("I need a place for X"), and the team creates
+it in the right room, named per [[GL-1004-naming-rules|GL-1004]].
+
+## Processed it yourself?
+
+Carried a scratchpad into its homes by hand? Tick `processed` and fill
+`processed_summary` and `processed_into` in its properties, the same
+stamp the team writes ([[GL-1002-frontmatter-conventions|GL-1002]] "The
+processed stamp"). The note stays here.

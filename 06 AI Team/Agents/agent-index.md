@@ -10,11 +10,11 @@ created: 2026-08-27
 | Agent | Role | Route here when |
 | --- | --- | --- |
 | [[Larry]] | Orchestrator | always the entry point; routes, synthesizes, never executes specialist work |
-| [[Penn]] | Knowledge processor | scratchpads, Inbox captures, journal entries, Inner World filing |
+| [[Penn]] | Knowledge processor | scratchpads, Inbox captures, journal entries, Inner World filing; checking and repairing what the user filed by hand ([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]) |
 | [[Nolan]] | HR | a needed role has no owner; new agent contracts |
 | [[Pax]] | Researcher | external facts, web research, verification before action |
 | [[Mack]] | Automation specialist | tool connections (MCP, API, webhook, OAuth), automations, fetching data from a service before an import |
-| [[Silas]] | Structure and database architect | frontmatter and structure audits, new fields, Bases, the 07 Databases room, the shape of an import |
+| [[Silas]] | Structure and database architect | frontmatter and structure audits, the vault health checks (validate-scaffold, check-bases, check-quality), new fields, Bases, the 07 Databases room, the shape of an import; structural repairs, never a note's content |
 | [[Iris]] | Design system architect | the design system: create, extend, audit against; the first creative request when none exists yet |
 | [[Charta]] | Structured visual content | infographics, tables, diagrams, carousels, one-pagers, PDFs from clean HTML |
 | [[Flint]] | Obsidian platform specialist | Obsidian plugin or theme work: what the API allows, manifest values (minAppVersion, isDesktopOnly, versions.json), the community.obsidian.md submission and review, a mobile or post-update break, the review of any plugin or theme change before it ships |

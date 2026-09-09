@@ -56,5 +56,7 @@ Inbox ([[SOP-1001-process-the-daily-scratchpad|SOP-1001]],
 [[SOP-1002-process-an-inbox-capture|SOP-1002]]) and wrapper notes when
 documents arrive from `01 Inbox/Scanner Inbox/`; ask and a scan becomes
 a findable record. You may also file here by hand when you already know
-the home: date or subject, which Project, Key Element or Topic, is there
-a file.
+the home: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by
+hand" is the walkthrough, and "check my notes" makes the team check and
+repair what you filed
+([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]).

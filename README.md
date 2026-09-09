@@ -67,8 +67,17 @@ cannot hold.
    and on Linux; on Windows the pane offers one button that opens your
    own terminal (Windows Terminal by default) in the same folder.
 3. Write into today's Daily Scratchpad, then tell Larry:
-   "process my scratchpad".
-4. Something someone else made? Clip it into `01 Inbox/Outer World/`
+   "process my scratchpad". No AI at hand? Carry the pieces into
+   their homes yourself and tick `processed` on the scratchpad (step 4
+   shows the moves).
+4. File your first note by hand: right-click `04 Inner World/Notes/`
+   in the file explorer, choose New note, then Cmd+P, "Templates:
+   Insert template", pick `note`. Fill the properties at the top and
+   link the note to a Project, Key Element or Topic with `[[`. The
+   whole walkthrough, for every kind of note, is one section:
+   `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`,
+   "Doing it by hand, step by step".
+5. Something someone else made? Clip it into `01 Inbox/Outer World/`
    with one line of why. The Web Clipper template in
    `06 AI Team/AI Team Knowledge/Templates/web-clipper-outer-world.json`
    does it in one click: install the Obsidian Web Clipper extension,

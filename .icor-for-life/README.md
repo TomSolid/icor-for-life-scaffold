@@ -8,6 +8,27 @@ The version of this vault, in a form both people and machines can read.
 | `CHANGELOG.md` | people | what each version added, changed, and, above all, removed or moved. |
 | `manifest.json` | machines | this version described as data: every canonical file with its hash, the required rooms, the plugins and snippets the vault expects, every Base and the folder it points at, the shipped agents with their `myicor_id` (so Scaffold Check can recognise a shipped agent by identity even after a member renames it; since 1.11.1), and the removal history back through the tags. Generated, never hand-edited. |
 
+## The rest of the folder: the machine layer
+
+Those four files are the scaffold's own. The folder is also the suite's
+machine layer: the one hidden folder every ICOR for Life plugin and every
+vault script uses for data that another plugin or script reads. A file
+belongs here only if something regenerates it; nothing here is a note, a
+setting or a source.
+
+| Path | Written by | Read by |
+| --- | --- | --- |
+| `VERSION`, `manifest.json`, `CHANGELOG.md`, `README.md` | the scaffold release | Scaffold Check, people |
+| `<plugin-id>/` (the id exactly as in the plugin's `manifest.json`, e.g. `icor-for-life-scaffold-check/`) | that one plugin | that plugin, and others through a documented file |
+| `scripts/` (first file: `quality.json`, for Scaffold Check) | the vault's Python scripts | plugins |
+
+Only the four scaffold files are tracked in git and ship in the download;
+everything else is per device and rebuildable. The full rule, the access
+rule for plugin authors (the adapter, never the Vault API), and what sync
+and git do with the folder:
+`06 AI Team/AI Team Knowledge/Guidelines/GL-1008-the-machine-layer.md`
+([[GL-1008-the-machine-layer|GL-1008]]).
+
 ## Why a vault carries its own version
 
 A member's vault is a copy of one version of the scaffold with their own

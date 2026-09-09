@@ -20,34 +20,45 @@ created:     # ISO date
 tags: []     # optional, lowercase, hyphenated
 ```
 
+In Obsidian this frontmatter is the Properties panel at the top of the
+note. A wikilink in a list property (`projects`, `linked_topics`,
+`people`, and the like): add a list item, type `[[`, pick the note from
+the suggestions. `Health` without brackets is text, not a link;
+`[[Health]]` is the link. Every type a person files by hand has a
+template in `06 AI Team/AI Team Knowledge/Templates/` (the `template`
+column below; Templates: Insert template puts it in). The template is the
+one place the field list is spelled out as YAML; this table names the
+fields and their values, and never repeats the block. The moves, step by
+step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
+
 ## Per type
 
-| type | required fields | optional fields |
-| --- | --- | --- |
-| journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element (wikilink), mood, linked_people, linked_topics, linked_projects, source |
-| scratchpad | date | processed, processed_summary, processed_into |
-| capture | source_url, captured (ISO datetime) | author, published, my_thought (the user's one-or-two-sentence thought, filled in the Web Clipper popup), processed, processed_summary, processed_into |
-| person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action |
-| company | name | industry, people, website |
-| note | note_type (reference/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`) |
-| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | projects, key_elements, topics (wikilink lists), preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into |
-| goal | status (not-achieved/achieved) | target_date, key_elements |
-| pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) |
-| key-element | - | people, goals |
-| topic | - | related_topics |
-| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements |
-| habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) |
-| task | status (open/in-progress/done/cancelled), assignee | related, due |
-| progress-report | status (live/closed), updated (ISO datetime) | plan |
-| session-log | date, agents | - |
-| sop / workstream / guideline | id, title | - |
-| agent-journal | date, agent | - |
-| agent-bio | agent, role | - |
-| agent | myicor_id (uuid v4, lowercase, immutable), name, role | - |
-| icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) |
-| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due |
-| planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) |
-| planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (wikilink to the My Life habit note), created_at (ISO datetime) |
+| type | required fields | optional fields | template |
+| --- | --- | --- | --- |
+| journal | date, journal_type (interaction/note/thought/milestone) | format (text/voice/photo/meeting-notes/other; absent = text), key_element (wikilink), mood, linked_people, linked_topics, linked_projects, source | `[[Templates/journal]]` |
+| scratchpad | date | processed, processed_summary, processed_into | none: the daily note is blank by design |
+| capture | source_url, captured (ISO datetime) | author, published, my_thought (the user's one-or-two-sentence thought, filled in the Web Clipper popup), processed, processed_summary, processed_into | `Templates/web-clipper-outer-world.json` (the Web Clipper, not Obsidian's Templates) |
+| person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action | `[[Templates/person]]` |
+| company | name | industry, people, website | `[[Templates/company]]` |
+| note | note_type (reference/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`) | `[[Templates/note]]` |
+| document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | projects, key_elements, topics (wikilink lists), preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into | `[[Templates/document]]` |
+| goal | status (not-achieved/achieved) | target_date, key_elements | `[[Templates/goal]]` |
+| pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) | none: the plugin writes it |
+| key-element | - | people, goals | `[[Templates/key-element]]` |
+| topic | - | related_topics | `[[Templates/topic]]` |
+| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements | `[[Templates/project]]` |
+| habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) | `[[Templates/habit]]` |
+| task | status (open/in-progress/done/cancelled), assignee | related, due | none: `Scripts/new-task.py` |
+| progress-report | status (live/closed), updated (ISO datetime) | plan | none: `Scripts/new-progress-report.py` |
+| session-log | date, agents | - | none: `Scripts/new-session-log.py` |
+| sop / workstream / guideline | id, title | - | none |
+| agent-journal | date, agent | - | none |
+| agent-bio | agent, role | - | none |
+| agent | myicor_id (uuid v4, lowercase, immutable), name, role | - | none: `Agents/Agent 01/` |
+| icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) | none: the plugin writes it |
+| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due | none: the plugin writes it |
+| planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) | none: the plugin writes it |
+| planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (wikilink to the My Life habit note), created_at (ISO datetime) | none: the plugin writes it |
 
 ## Journal: the ICOR four (ruling 2026-09-06)
 
@@ -209,6 +220,8 @@ Work in `03 WiP/` that runs past one session or one step carries one
 
 ## The processed stamp (scratchpads, captures, document wrapper notes)
 
+The stamp has exactly one shape:
+
 ```yaml
 processed: true
 processed_summary: "2 journal entries, 1 topic update"
@@ -217,10 +230,16 @@ processed_into:
   - "[[Some Topic]]"
 ```
 
-Applied by `Scripts/stamp-processed.py`, never typed by hand and never
-by prose instruction. The body of the stamped note is never edited.
-A binary capture cannot carry the stamp; its wrapper note does (next
-section).
+`Scripts/stamp-processed.py` writes it and, for a text capture, moves
+the capture to `01 Inbox/Outer World/archive/`. Without the scripts you
+may type the same shape by hand: `processed` ticked, `processed_summary`
+in one line, `processed_into` a list with at least one quoted wikilink;
+then drag a capture into `Outer World/archive/` yourself, and leave a
+scratchpad where it is. `Scripts/check-quality.py` verifies the shape
+either way, so a stamp typed by hand and a stamp written by the script
+are the same stamp, and a source without it counts as still waiting. The
+body of the stamped note is never edited. A binary capture cannot carry
+the stamp; its wrapper note does (next section).
 
 ## Binary captures and the processed stamp (ruling 2026-09-04)
 

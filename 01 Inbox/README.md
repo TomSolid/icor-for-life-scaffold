@@ -19,7 +19,10 @@ Two doors, one rule: what you wrote yourself goes to
 Add one line of why you kept it. Where things go after processing is
 one page: [[GL-1007-capture-and-where-things-go|GL-1007]].
 
-Processing runs per [[SOP-1002-process-an-inbox-capture]].
+Processing runs per [[SOP-1002-process-an-inbox-capture]]. You may
+process a capture yourself: file it, stamp it (the same three
+properties), drag it into `Outer World/archive/`; the moves are in
+[[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 
 ## Learn the concept
 

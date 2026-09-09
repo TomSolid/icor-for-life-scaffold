@@ -10,6 +10,173 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.18.0
+
+Released 2026-09-09.
+
+Filing by hand works out of the box. The Scaffold now ships the ten note
+templates, the property types and the hotkeys that let Obsidian's own
+Templates and Properties panels file a note the way `GL-1002` describes it,
+and `GL-1007` walks through every step without the AI. The team knows the
+same moves: Penn checks and repairs what you filed by hand, and only with
+your yes (`SOP-1014`). A new script, `Scripts/check-quality.py`, measures
+thirteen quality metrics over your knowledge and writes them to the machine
+layer, where ICOR for Life - Scaffold Check 0.4.0 shows them in its report
+and on a dashboard.
+
+**Updating from 1.17.0.** The moment this version is published, your next
+Scaffold Check lists the new files below (the templates, the three scripts,
+`GL-1008`, `SOP-1014`, the SOPs index, `.obsidian/templates.json`,
+`.obsidian/types.json`, `.obsidian/hotkeys.json`) as missing, at attention
+severity. That is the normal update signal, not a defect: download 1.18.0,
+copy the files in, and the list empties. No file is removed or moved in this
+version.
+
+### Added: the machine layer, `GL-1008`
+
+`.icor-for-life/` is now the suite's machine layer: the one hidden folder
+every ICOR for Life plugin and every vault script uses for data that another
+plugin or script reads. The four scaffold files stay as they are; a plugin
+writes under `.icor-for-life/<plugin-id>/` (the id exactly as in its
+`manifest.json`) and the vault's scripts write under `.icor-for-life/scripts/`
+(first file: `quality.json`, written by the quality script, read by Scaffold
+Check, shape versioned by a top-level `schema` integer). A file belongs there
+only if something regenerates it: never a source, never a user setting (those
+stay in `.obsidian/plugins/<id>/data.json`), never anything a person reads
+(Obsidian does not show, index or search a dot folder; a human report stays a
+note in a room). Plugins reach it through `app.vault.adapter` only, on desktop
+and on mobile alike, and create their own subfolder on first write. Obsidian
+Sync does not carry the folder, so it is per device and rebuildable. The rule
+is `06 AI Team/AI Team Knowledge/Guidelines/GL-1008-the-machine-layer.md`;
+`.icor-for-life/README.md` shows the layout; `.gitignore` now ignores the
+folder except `VERSION`, `manifest.json`, `CHANGELOG.md` and `README.md`.
+
+No file is removed or moved.
+
+### Changed: the team checks and repairs what you filed by hand
+
+The member may do every filing step by hand
+([[GL-1007-capture-and-where-things-go|GL-1007]], "Doing it by hand, step by step"); the
+team now knows it, does the same steps on request, and checks and repairs
+the result with the member's yes, never silently.
+
+- `06 AI Team/Agents/Penn/AGENT.md`, `06 AI Team/Agents/Penn/Penn.md`: Penn's mission widens to keeping what the user filed by hand correct and connected; Penn owns SOP-1014, runs every entity through `find-entity.py` and `new-entity.py`, never applies a repair to a user-made note without a yes and never deletes one. New trigger phrases: "check my notes", "did I file that right", "fix my vault".
+- `06 AI Team/Agents/Silas/AGENT.md`, `06 AI Team/Agents/Silas/Silas.md`: the audit duty runs `validate-scaffold.py`, `check-bases.py` and `check-quality.py` at session start via Larry, on request and after every import; structural repairs (a base, a folder, a script) are Silas's, content repairs go to Penn via SOP-1014.
+- `06 AI Team/Agents/Larry/AGENT.md`, `06 AI Team/Agents/Larry/Larry.md`: Larry owns vault health: reads `.icor-for-life/scripts/quality.json` at session start (runs `check-quality.py --write` first if it is missing or older than today), reports it in one line, routes `attention` or `broken` to Penn with the user's yes.
+- `CLAUDE.md`: the session start ritual gains the vault health step (new step 3, after the Tasks walk, before the Inbox check); the mermaid authoring pointer now names `06 AI Team/README.md` (the old path `06 AI Team/AI Team Knowledge/README.md` never existed); hard rule 5 points at GL-1004 for folders instead of restating it.
+- `06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md`: the tour opens GL-1007 right after the Notes stop, the two-door sentence ends with both doors to filing ("you can file it yourself from there, or the team does it for you"), the templates are named as the pasteable shape and the examples may go once real content exists, and the close names the Scaffold Check plugin as the vault health readout.
+- `06 AI Team/Agents/agent-index.md`: Penn's and Silas's rows updated to match.
+
+### Changed: filing by hand is a first-class path (Penn)
+
+Knowledge management, note organization, links and properties can all be
+done by hand, without the AI, and the team knows those same moves so it
+can do them for you or repair them afterwards.
+
+- `GL-1007` gains "Doing it by hand, step by step": the one walkthrough
+  (right-click the room, New note; Templates: Insert template; the
+  Properties panel and the `[[` move for a wikilink in a list; the link
+  rule; the month folder for a journal entry; a file on the shelf and its
+  `document` wrapper; the processed stamp by hand; where the Scaffold
+  Check report lands). Every other surface links there.
+- `GL-1002`: a `template` column per type (`[[Templates/<type>]]`, the
+  template is the SSOT for the YAML), the Properties UI sentence once in
+  the common section, and the processed stamp may now be typed by hand in
+  the one shape the script writes; `check-quality.py` verifies the shape
+  either way.
+- `GL-1004`: who creates a folder. Rooms and fixed subfolders are the
+  Scaffold's; `YYYY/MM/` date folders may be made by hand or by script;
+  anything else asks the AI first.
+- `SOP-1001`, `SOP-1002`: open with the by-hand sentence and every
+  `[SCRIPT]` step names its by-hand twin. `SOP-1004`, `SOP-1005`: the
+  duplicate check is `Scripts/find-entity.py`, creation is
+  `Scripts/new-entity.py`.
+- New `SOP-1014-check-and-repair-what-was-filed-by-hand` (Penn): reads
+  `quality.json`, proposes deterministic repairs for a yes, asks the
+  judgement ones as one-line questions, hands `unprocessed_*` to
+  SOP-1001 / SOP-1002, never rewrites, never deletes.
+- `WS-1001` step 4 runs the quality check after the two doors;
+  `WS-1002` step 4 runs it over `04 Inner World` and asks the read-later
+  backlog as the weekly question.
+- Added `06 AI Team/AI Team Knowledge/SOPs/INDEX.md` (every SOP, owner,
+  trigger) and `04 Inner World/Contacts/README.md` (the one room README
+  that was missing).
+- `README.md` first steps: step 3 has its no-AI alternative, new step 4
+  "File your first note by hand". `04 Inner World/README.md` no longer
+  says only the AI files there.
+
+### Added: the templates, the property types, and a quality check (Mack)
+
+Filing by hand now has real machinery behind it, and the vault can measure
+what came out.
+
+- Ten templates in `06 AI Team/AI Team Knowledge/Templates/`
+  (`journal`, `note`, `document`, `person`, `company`, `project`, `goal`,
+  `habit`, `topic`, `key-element`), each carrying exactly the fields
+  GL-1002 declares for its type, required first, with `{{title}}` and
+  `{{date}}` filled by the core Templates plugin.
+  `.obsidian/templates.json` points at that folder and pins
+  `dateFormat` to `YYYY-MM-DD`, so **Templates: Insert template** works
+  from the first launch and `created` arrives date-typed.
+- `.obsidian/types.json` declares all 107 property names GL-1002 uses,
+  with the right Obsidian type. Every wikilink list is `multitext`, so
+  the Properties panel offers the `[[` suggestion and Bases reads two
+  values where there are two. `tags` and `aliases` carry Obsidian's own
+  names, because its MetadataTypeManager owns those two and rewrites any
+  other value on the first type change in the vault.
+- `.obsidian/hotkeys.json`: Insert template, Create new unique note, Open
+  today's daily note and Show file properties on `Cmd/Ctrl+Alt` `T`, `N`,
+  `S` and `P`. (`S` for Scratchpad: `Cmd+Alt+D` toggles the macOS Dock.)
+- `06 AI Team/AI Team Knowledge/Scripts/new-entity.py`: creates one entity
+  note from its template, in its room, already linked, and refuses an
+  unknown type, a title GL-1004 forbids, an existing note, a link to
+  nothing, a `note` filed under nothing, a project with no goal, an
+  invented field and a value outside a GL-1002 value set.
+- `06 AI Team/AI Team Knowledge/Scripts/find-entity.py`: the duplicate
+  check before anything is created, by filename, `name`, `title` or an
+  alias. JSON out, exit 2 when there is no hit.
+- `06 AI Team/AI Team Knowledge/Scripts/check-quality.py`: thirteen
+  metrics over `04 Inner World/`, `00 Daily Scratchpad/` and `01 Inbox/`
+  with one `health` verdict, and `--write` for
+  `.icor-for-life/scripts/quality.json` (schema 1), which the ICOR for
+  Life - Scaffold Check plugin reads and shows as a dashboard. The field
+  list is documented in the new
+  `06 AI Team/AI Team Knowledge/Scripts/README.md`.
+- `validate-scaffold.py` gains check 12 (templates.json points at the
+  Templates folder, every template declares a GL-1002 type, every
+  template GL-1002 names exists) and check 13 (every list property is
+  `multitext` in types.json, with the three reserved names Obsidian owns
+  held to Obsidian's values instead). `run-red-tests.py` covers all of
+  it: 100 guards now, up from 76.
+- `new-base.py` reads GL-1002's per-type table BY HEADER NAME instead of
+  by column position, and exposes `gl002_required()` and `gl002_enums()`
+  beside `gl002_fields()` so no other script re-parses the guideline.
+  **Fixed:** the new `template` column had shifted the positional parse,
+  and `check-bases.py` was reporting all four shipped `.base` files as
+  carrying columns GL-1002 does not declare.
+- One example note, `04 Inner World/Notes/Why I keep a Daily Scratchpad.md`,
+  so `Notes.base` shows a row on first launch.
+
+No file is removed or moved.
+
+### Changed: Scaffold Check 0.4.0 inside
+
+ICOR for Life - Scaffold Check 0.4.0 inside: the report gains a "Knowledge
+quality" section and a new dashboard view with a trend line per metric, both
+read from `.icor-for-life/scripts/quality.json` as written by
+`Scripts/check-quality.py --write`. The plugin never measures; it shows what
+the script wrote. Without the file it says in one sentence how to get one; a
+file with another schema, or numbers older than seven days, is named as such
+and never stops a check. The plugin's run history lives at
+`.icor-for-life/icor-for-life-scaffold-check/history.json`, per device,
+capped at ninety runs, following `GL-1008`.
+
+Minor bump: one new Guideline, one new SOP, ten templates, three new scripts,
+two new validator checks, three new `.obsidian` settings files, one example
+note, and one bundled plugin feature.
+
+No file is removed or moved.
+
 ## 1.17.0
 
 Released 2026-09-09.

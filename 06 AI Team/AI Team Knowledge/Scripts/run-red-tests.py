@@ -60,6 +60,22 @@ def expect_refusal(name, argv, cwd=None):
         fails.append(f"{name}: crashed with a traceback instead of refusing")
     return r
 
+
+def bring_obsidian_config(v):
+    """Put the two .obsidian files checks 12 and 13 read into a fixture.
+
+    Most fixtures below copy ROOT with `.obsidian` stripped, because they
+    want to build exactly one file in it. Checks 12 and 13 (templates.json,
+    types.json) live there too, so without this every clean control would
+    go red for a reason that has nothing to do with what it is testing.
+    """
+    (v / ".obsidian").mkdir(exist_ok=True)
+    for cfg in ("templates.json", "types.json"):
+        if (ROOT / ".obsidian" / cfg).is_file():
+            shutil.copy2(ROOT / ".obsidian" / cfg, v / ".obsidian" / cfg)
+    return v
+
+
 with tempfile.TemporaryDirectory() as td:
     tmp = Path(td)
     # 1. validate-scaffold must reject an empty folder
@@ -155,6 +171,7 @@ with tempfile.TemporaryDirectory() as td:
     def styled_vault(name, css=theme_css, rogue=True):
         v = tmp / name
         shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        bring_obsidian_config(v)
         if css is not None:
             th = v / ".obsidian/themes/ICOR for Life - INKLINE"
             th.mkdir(parents=True); (th / "theme.css").write_text(css)
@@ -437,6 +454,7 @@ with tempfile.TemporaryDirectory() as td:
     def note_vault(name, front):
         v = tmp / name
         shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        bring_obsidian_config(v)
         (v / "04 Inner World/Notes/probe-note.md").write_text(f"---\n{front}---\n# Probe\n")
         return v
     r = expect_fail("validate-scaffold/note-without-note-type",
@@ -469,7 +487,7 @@ with tempfile.TemporaryDirectory() as td:
     def daily_vault(name, cfg):
         v = tmp / name
         shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
-        (v / ".obsidian").mkdir()
+        bring_obsidian_config(v)
         (v / ".obsidian/daily-notes.json").write_text(_json.dumps(cfg))
         return v
     r = expect_fail("validate-scaffold/daily-note-template-key",
@@ -667,6 +685,179 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("stamp-processed/capture-clean-control: the shelf copy is gone")
     elif "processed: true" not in (v36b / "04 Inner World/Notes/scan.md").read_text():
         fails.append("stamp-processed/capture-clean-control: original removed but the wrapper is not stamped")
+
+    # 37-42. new-entity.py must refuse every shape that produces a note the
+    #     rest of the scaffold would then have to repair: an unknown type, a
+    #     title GL-1004 forbids, a note already there, a link to nothing, a
+    #     `note` filed under nothing (GL-1007), a required field left empty.
+    ne = HERE / "new-entity.py"
+    ent = tmp / "entity-vault"
+    shutil.copytree(ROOT, ent, ignore=shutil.ignore_patterns(".git"))
+    R = ["--root", str(ent)]
+    KM = ["--link", "[[Knowledge Management]]", "--set", "note_type=outline"]
+    expect_refusal("new-entity/unknown-type", [str(ne), "widget", "A Thing"] + R)
+    expect_refusal("new-entity/bad-title",
+                   [str(ne), "topic", "Bad/Title"] + R)
+    expect_refusal("new-entity/note-without-link",
+                   [str(ne), "note", "Unfiled Note", "--set", "note_type=outline"] + R)
+    expect_refusal("new-entity/link-to-nothing",
+                   [str(ne), "note", "Unfiled Note", "--link", "[[Nowhere At All]]",
+                    "--set", "note_type=outline"] + R)
+    expect_refusal("new-entity/missing-required-field",
+                   [str(ne), "note", "Unfiled Note",
+                    "--link", "[[Knowledge Management]]"] + R)
+    expect_refusal("new-entity/invented-field",
+                   [str(ne), "note", "Unfiled Note", "--set", "colour=blue"] + KM + R)
+    expect_refusal("new-entity/value-outside-the-enum",
+                   [str(ne), "note", "Unfiled Note", "--link",
+                    "[[Knowledge Management]]", "--set", "note_type=Outline"] + R)
+    expect_refusal("new-entity/project-without-a-goal",
+                   [str(ne), "project", "Goalless"] + R)
+    # 42b. the control: a good creation must PASS and must land a note that
+    #      validate-scaffold and check-bases both still accept, or the reds
+    #      above prove only that the script refuses everything.
+    checks += 1
+    r = subprocess.run([PY, str(ne), "note", "Filed Note"] + KM + R,
+                       capture_output=True, text=True)
+    made = ent / "04 Inner World/Notes/Filed Note.md"
+    if r.returncode != 0:
+        fails.append("new-entity/clean-control: refused a good note, so its reds "
+                     "are meaningless: " + (r.stderr.strip().splitlines() or ["?"])[-1])
+    elif not made.is_file():
+        fails.append("new-entity/clean-control: reported OK but wrote no note")
+    elif '"[[Knowledge Management]]"' not in made.read_text():
+        fails.append("new-entity/clean-control: the note was created without its link")
+    else:
+        v = subprocess.run([PY, str(HERE / "validate-scaffold.py"), str(ent)],
+                           capture_output=True, text=True)
+        if v.returncode != 0:
+            fails.append("new-entity/clean-control: the note it created fails "
+                         "validate-scaffold: "
+                         + (v.stderr.strip().splitlines() or ["?"])[-1])
+    # 43. and the note it just made must now be FOUND by find-entity.py, which
+    #     is the duplicate check SOP-1004 runs before creating anything. A
+    #     find-entity that returns "none" for a note that exists is how one
+    #     thing gets two notes.
+    checks += 1
+    fe = HERE / "find-entity.py"
+    r = subprocess.run([PY, str(fe), "Filed Note"] + R, capture_output=True, text=True)
+    if r.returncode != 0:
+        fails.append("find-entity/duplicate-found: did not find a note that exists "
+                     f"(exit {r.returncode}), so the duplicate check passes a duplicate")
+    else:
+        try:
+            if _json.loads(r.stdout)["count"] < 1:
+                fails.append("find-entity/duplicate-found: exit 0 with no hits")
+        except Exception as e:
+            fails.append(f"find-entity/duplicate-found: report unreadable ({e})")
+    # 43b. an alias must resolve too: Obsidian follows [[Alex]] to Alex Rivera,
+    #      and a duplicate check that only reads filenames misses exactly the
+    #      duplicates a person makes.
+    checks += 1
+    r = subprocess.run([PY, str(fe), "Alex", "--type", "person"] + R,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        fails.append("find-entity/alias-found: an alias in `aliases` did not resolve")
+    # 43c. its refusals
+    expect_refusal("find-entity/no-name", [str(fe), "   "] + R)
+    expect_refusal("find-entity/unknown-type", [str(fe), "Alex", "--type", "widget"] + R)
+    expect_refusal("find-entity/not-a-scaffold", [str(fe), "Alex", "--root", str(tmp)])
+
+    # 44-47. check-quality.py must SEE what it exists to see. A quality
+    #     script that reports `ok` on a vault built to be broken is the worst
+    #     shape of all: a green that means nothing. One deliberately broken
+    #     vault, four metrics that must fire.
+    cq = HERE / "check-quality.py"
+    expect_refusal("check-quality/not-a-scaffold", [str(cq), str(tmp)])
+    bad_q = tmp / "quality-vault"
+    shutil.copytree(ROOT, bad_q, ignore=shutil.ignore_patterns(".git"))
+    (bad_q / "04 Inner World/Notes/Loose Note.md").write_text(
+        "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+        'topics: ["[[Knowledge Management]]"]\ncolour: blue\ntags: []\n---\n\n'
+        "# Loose Note\n\nPoints at [[Nowhere At All]].\n", encoding="utf-8")
+    (bad_q / "04 Inner World/Contacts/People/A Rivera.md").write_text(
+        "---\ntype: person\nname: Alex Rivera\ncreated: 2026-09-01\ntags: []\n---\n\n"
+        "# A Rivera\n", encoding="utf-8")
+    old_capture = bad_q / "01 Inbox/Outer World/an-old-clip.md"
+    long_ago = (_dt.date.today() - _dt.timedelta(days=90)).isoformat()
+    old_capture.write_text(
+        f"---\ntype: capture\nsource_url: https://example.com\n"
+        f"captured: {long_ago}T09:00:00Z\n---\n\nclipped\n", encoding="utf-8")
+    checks += 1
+    r = subprocess.run([PY, str(cq), str(bad_q), "--json"], capture_output=True, text=True)
+    try:
+        rep = _json.loads(r.stdout)
+        by_id = {m["id"]: m for m in rep["metrics"]}
+        for mid in ("invented_fields", "dangling_links", "duplicate_entities"):
+            if by_id[mid]["value"] < 1:
+                fails.append(f"check-quality/{mid}: the broken vault carries one "
+                             f"and the metric reads {by_id[mid]['value']}")
+        if by_id["unprocessed_capture_oldest_days"]["severity"] != "broken":
+            fails.append("check-quality/old-capture: a capture 90 days old is "
+                         f"{by_id['unprocessed_capture_oldest_days']['severity']}, "
+                         "not broken; the threshold does not fire")
+        if rep["health"] != "broken":
+            fails.append(f"check-quality/health: the broken vault reads {rep['health']}")
+        if rep["schema"] != 1:
+            fails.append("check-quality/schema: the plugin contract is schema 1, "
+                         f"got {rep['schema']}")
+    except Exception as e:
+        fails.append(f"check-quality: report unreadable ({e}): {r.stderr.strip()[:200]}")
+    # 47b. the control: the shipped scaffold itself must read `ok`, or every
+    #      red above is just a script that always says broken.
+    checks += 1
+    r = subprocess.run([PY, str(cq), str(ROOT), "--json"], capture_output=True, text=True)
+    try:
+        if _json.loads(r.stdout)["health"] != "ok":
+            fails.append("check-quality/clean-control: the shipped scaffold does not "
+                         "read ok, so the metrics cannot be trusted when they fire")
+    except Exception as e:
+        fails.append(f"check-quality/clean-control: report unreadable ({e})")
+
+    # 48-51. validate-scaffold checks 12 and 13: the by-hand path in GL-1007
+    #     tells the member to run Templates: Insert template and to fill the
+    #     Properties panel. Both instructions are only true while templates.json
+    #     points at the folder and types.json calls every list a list.
+    vs = HERE / "validate-scaffold.py"
+    tpl_bad = tmp / "templates-elsewhere"
+    shutil.copytree(ROOT, tpl_bad, ignore=shutil.ignore_patterns(".git"))
+    (tpl_bad / ".obsidian/templates.json").write_text('{"folder": "03 WiP"}\n')
+    expect_fail("validate-scaffold/templates-json-elsewhere", [str(vs), str(tpl_bad)])
+    tpl_gone = tmp / "template-missing"
+    shutil.copytree(ROOT, tpl_gone, ignore=shutil.ignore_patterns(".git"))
+    (tpl_gone / "06 AI Team/AI Team Knowledge/Templates/note.md").unlink()
+    expect_fail("validate-scaffold/template-named-by-gl1002-missing", [str(vs), str(tpl_gone)])
+    def types_vault(name, **edits):
+        v = tmp / name
+        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".git"))
+        path = v / ".obsidian/types.json"
+        cfg = _json.loads(path.read_text(encoding="utf-8"))
+        cfg["types"].update(edits)
+        path.write_text(_json.dumps(cfg, indent=2), encoding="utf-8")
+        return v
+    expect_fail("validate-scaffold/types-json-list-as-text",
+                [str(vs), str(types_vault("types-text", topics="text"))])
+    # 51b-51c. The three reserved property names run the other way.
+    #     Obsidian's MetadataTypeManager owns `tags` and `aliases` and
+    #     rewrites types.json with its own names on the first type change
+    #     in the vault (Flint, 2026-09-09), so `multitext` there is a value
+    #     that cannot survive contact with the app: shipping it would make
+    #     check 13 go red in a member's vault for something the member did
+    #     not do. Both must be red HERE, or the check would be enforcing a
+    #     state Obsidian undoes. `cssclasses` is not renamed and stays
+    #     multitext, which the shipped file and the clean controls cover.
+    r = expect_fail("validate-scaffold/types-json-tags-as-multitext",
+                    [str(vs), str(types_vault("types-tags", tags="multitext"))])
+    checks += 1
+    if r.returncode != 0 and "'tags'" not in (r.stderr or ""):
+        fails.append("validate-scaffold/types-json-tags-as-multitext: went red, "
+                     "but not for tags")
+    expect_fail("validate-scaffold/types-json-aliases-as-multitext",
+                [str(vs), str(types_vault("types-aliases", aliases="multitext"))])
+    ty_gone = tmp / "types-missing"
+    shutil.copytree(ROOT, ty_gone, ignore=shutil.ignore_patterns(".git"))
+    (ty_gone / ".obsidian/types.json").unlink()
+    expect_fail("validate-scaffold/types-json-missing", [str(vs), str(ty_gone)])
 
 if fails:
     for f in fails:

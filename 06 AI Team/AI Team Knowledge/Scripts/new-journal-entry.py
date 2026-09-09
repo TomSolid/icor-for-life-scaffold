@@ -14,7 +14,7 @@ created file afterwards.
 import argparse, datetime, re, sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 TYPES = {"interaction", "note", "thought", "milestone"}
 FORMATS = {"text", "voice", "photo", "meeting-notes", "other"}
 
@@ -24,8 +24,10 @@ ap.add_argument("--slug", required=True)
 ap.add_argument("--journal-type", required=True)
 ap.add_argument("--format", help="how the entry arrived; absent = text")
 ap.add_argument("--original", required=True)
+ap.add_argument("--root", help="operate on another scaffold root (new-entity.py and the red tests pass it)")
 ap.add_argument("--mtime-from", help="source file whose modification time this entry must carry (imports: ALWAYS pass it; recency surfaces read filesystem mtime)")
 a = ap.parse_args()
+ROOT = Path(a.root).resolve() if a.root else DEFAULT_ROOT
 
 try:
     d = datetime.date.fromisoformat(a.date)

@@ -28,6 +28,16 @@ Checks (all deterministic, per GL-1001 and GL-1004):
  11. .obsidian/daily-notes.json carries no `template` key: the daily
      scratchpad stays blank (GL-1007), so no journal properties leak into
      raw capture.
+ 12. .obsidian/templates.json points at 06 AI Team/AI Team Knowledge/
+     Templates, every template there declares a `type` GL-1002 knows, and
+     every template GL-1002's per-type table names exists. Without this
+     the by-hand path in GL-1007 (Templates: Insert template) has nothing
+     behind it.
+ 13. .obsidian/types.json declares every LIST property as multitext, so a
+     wikilink list arrives in the Properties panel as a list of links a
+     member can add to with `[[`, not as one string. The list of list
+     properties is read from the templates themselves, which GL-1002
+     names as the one place the field list is spelled out as YAML.
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 
 Usage: validate-scaffold.py [<vault-root>] [--json]
@@ -261,6 +271,114 @@ if dn.is_file():
         if isinstance(dn_cfg, dict) and "template" in dn_cfg:
             fails.append(".obsidian/daily-notes.json carries a template key "
                          f"({dn_cfg['template']!r}); the daily scratchpad stays blank (GL-1007)")
+
+# --- 12. the Templates folder is wired up and its templates are real -------
+# GL-1007 "Doing it by hand" tells the member to press Cmd+P, run
+# Templates: Insert template, and pick the template for the kind of note.
+# That instruction is only true while three things hold: the core plugin
+# points at the folder, the templates in it are notes with a GL-1002 type,
+# and every template the guideline's `template` column names is on disk.
+TEMPLATES_REL = "06 AI Team/AI Team Knowledge/Templates"
+templates_dir = ROOT / TEMPLATES_REL
+declared_types = None
+tj = ROOT / ".obsidian/templates.json"
+if not tj.is_file():
+    fails.append(".obsidian/templates.json is missing; Templates: Insert "
+                 "template has no folder, so the by-hand path in GL-1007 "
+                 "has nothing behind it")
+else:
+    try:
+        tj_cfg = json.loads(tj.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        fails.append(f".obsidian/templates.json is not valid JSON: {exc}")
+    else:
+        folder = (tj_cfg or {}).get("folder") if isinstance(tj_cfg, dict) else None
+        if folder != TEMPLATES_REL:
+            fails.append(".obsidian/templates.json folder is "
+                         f"{folder!r}; it must be {TEMPLATES_REL!r}")
+if templates_dir.is_dir():
+    import importlib.util
+    _nb_spec = importlib.util.spec_from_file_location(
+        "new_base", Path(__file__).resolve().parent / "new-base.py")
+    _nb = importlib.util.module_from_spec(_nb_spec)
+    _nb_spec.loader.exec_module(_nb)
+    declared_types = _nb.gl002_fields(ROOT)
+    for f in sorted(templates_dir.glob("*.md")):
+        m = re.search(r"^type:\s*(\S+)", fm(f), re.M)
+        if not m:
+            fails.append(f"template without a type: Templates/{f.name}")
+        elif m.group(1).strip("'\"") not in declared_types:
+            fails.append(f"template type {m.group(1)!r} is not in GL-1002: "
+                         f"Templates/{f.name}")
+    gl002_text = (ROOT / "06 AI Team/AI Team Knowledge/Guidelines/"
+                  "GL-1002-frontmatter-conventions.md")
+    if gl002_text.is_file():
+        named = set(re.findall(r"\[\[Templates/([A-Za-z0-9_-]+)\]\]",
+                               gl002_text.read_text(encoding="utf-8")))
+        for name in sorted(named):
+            if not (templates_dir / f"{name}.md").is_file():
+                fails.append(f"GL-1002 names [[Templates/{name}]] but "
+                             f"{TEMPLATES_REL}/{name}.md does not exist")
+else:
+    fails.append(f"missing required folder: {TEMPLATES_REL}")
+
+# --- 13. every list property is multitext in the Properties panel ----------
+# A wikilink list is only a relation while Obsidian treats it as a list: as
+# `text` the whole `["[[A]]", "[[B]]"]` is one string, the `[[` suggestion
+# does not fire, and Bases reads one value where there are two. Which
+# properties are lists is not restated here: it is read from the templates,
+# which GL-1002 names as the one place the field list is spelled out as
+# YAML, so adding a list field to a template extends this check by itself.
+#
+# THREE PROPERTIES ARE NOT OURS TO TYPE. Obsidian's MetadataTypeManager
+# owns `tags` and `aliases`: it ignores whatever types.json says for them
+# and rewrites the file with its own names the first time any property
+# type changes in the vault (Flint, 2026-09-09). Demanding `multitext`
+# there would ship a check that goes red on its own, in a member's vault,
+# for something the member did not do and cannot fix, which is worse than
+# no check at all. So the wanted value for those two is Obsidian's own,
+# and `cssclasses` (a real list Obsidian does not rename) stays multitext.
+RESERVED_TYPES = {"tags": "tags", "aliases": "aliases", "cssclasses": "multitext"}
+if templates_dir.is_dir():
+    list_props = set()
+    for f in sorted(templates_dir.glob("*.md")):
+        front = fm(f)
+        for i, line in enumerate(front.splitlines()):
+            km = re.match(r"^([A-Za-z_][A-Za-z0-9_-]*):[ \t]*(.*)$", line)
+            if not km:
+                continue
+            value = km.group(2).strip()
+            rest = front.splitlines()[i + 1:i + 2]
+            if value.startswith("[") or (not value and rest
+                                         and re.match(r"^\s+-\s", rest[0])):
+                list_props.add(km.group(1))
+    tyj = ROOT / ".obsidian/types.json"
+    if not tyj.is_file():
+        fails.append(".obsidian/types.json is missing; every list property "
+                     "falls back to text and the Properties panel stops "
+                     "offering the [[ suggestion")
+    else:
+        try:
+            ty_cfg = json.loads(tyj.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            fails.append(f".obsidian/types.json is not valid JSON: {exc}")
+        else:
+            declared_prop = (ty_cfg or {}).get("types") \
+                if isinstance(ty_cfg, dict) else None
+            if not isinstance(declared_prop, dict):
+                fails.append(".obsidian/types.json has no `types` mapping")
+            else:
+                for p in sorted(list_props):
+                    want = RESERVED_TYPES.get(p, "multitext")
+                    got = declared_prop.get(p)
+                    if got != want:
+                        why = (" (Obsidian owns this property name and "
+                               "rewrites any other value)"
+                               if p in RESERVED_TYPES and want != "multitext"
+                               else "; a list property must be 'multitext'")
+                        fails.append(
+                            f".obsidian/types.json declares {p!r} as "
+                            f"{got!r}, it must be {want!r}{why}")
 
 agents = ROOT / "06 AI Team/Agents"
 if agents.is_dir():

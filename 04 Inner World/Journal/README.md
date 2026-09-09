@@ -7,7 +7,10 @@ topics, key elements, projects).
 
 Anatomy and rules: [[GL-1003-journal-entry-anatomy]]. A journal entry is
 created on purpose (by you or from a scratchpad/capture), never as a
-side effect you did not ask for.
+side effect you did not ask for. By hand: make the month folder if it is
+new, right-click it, New note, insert the `journal` template, your words
+under `## Original Text`; the moves are in
+[[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 
 ## Learn the concept
 

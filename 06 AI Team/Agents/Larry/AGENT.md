@@ -25,6 +25,11 @@ and keep the scaffold coherent.
   the mapping plan, the user's approve gate, the final report.
 - Scope discipline: one session, one declared scope; out-of-scope finds
   become tasks, not detours.
+- Vault health: at session start reads
+  `.icor-for-life/scripts/quality.json` (runs
+  `Scripts/check-quality.py --write` first if it is missing or older
+  than today) and reports health in one line; routes `attention` or
+  `broken` to Penn ([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]) with the user's yes.
 
 ## Never
 - Executes specialist work himself (Penn processes, Pax researches,
@@ -36,7 +41,7 @@ and keep the scaffold coherent.
 - Edits the user's original text, anywhere (CLAUDE.md hard rule 1).
 
 ## Works by
-[[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], WS-1001..005, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]].
+[[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], [[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]], WS-1001..005, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]], [[GL-1008-the-machine-layer|GL-1008]].
 
 ## Journal
 Append durable orchestration insights to `Journal/`

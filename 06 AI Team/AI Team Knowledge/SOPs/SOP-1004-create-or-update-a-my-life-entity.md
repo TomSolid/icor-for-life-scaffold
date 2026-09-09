@@ -9,18 +9,27 @@ uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]"]
 
 # SOP-1004 Create or update a My Life entity
 
-Covers Goals, Key Elements, Topics, Projects, Habits.
+Covers Goals, Key Elements, Topics, Projects, Habits. You can create
+one yourself from the matching template
+([[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand");
+this SOP is the same moves run by the team.
 
 1. [JUDGEMENT] Decide which of the five concepts the thing is. A pillar
    of life is a Key Element; a subject of interest is a Topic; a bounded
    endeavor with an end state is a Project; a direction with a target is
    a Goal; a recurring behavior is a Habit. When two fit, ask.
-2. [SCRIPT-CHECKED] Search the folder for an existing note (also by
-   alias) before creating; one entity, one note, forever.
-3. Create: natural-title filename in the matching folder, frontmatter
-   per [[GL-1002-frontmatter-conventions|GL-1002]], a short body describing what it is, wikilinks to related
-   entities. Projects get their external PM links (ClickUp, Asana) in
-   `external_links`; the scaffold never tracks their tasks.
+2. [SCRIPT-CHECKED] `Scripts/find-entity.py "<name>"` searches every
+   entity folder, names and aliases, before anything is created; a hit
+   means update, not create. One entity, one note, forever. By hand:
+   the quick switcher (Cmd+O).
+3. [SCRIPT] Create with `Scripts/new-entity.py <type> "<Title>"
+   --link "[[X]]"`: the script owns the folder, the natural-title
+   filename, and the frontmatter skeleton from the type's template
+   ([[GL-1002-frontmatter-conventions|GL-1002]]). By hand: right-click
+   the folder, New note, insert the template. Then [JUDGEMENT] a short
+   body describing what it is, wikilinks to related entities. Projects
+   get their external PM links (ClickUp, Asana) in `external_links`;
+   the scaffold never tracks their tasks.
 4. **Goals** start with `status: not-achieved`. When the user reports
    a goal reached, flip it to `achieved` and offer a journal entry for
    the moment.

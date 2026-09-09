@@ -57,20 +57,34 @@ flowchart TD
       Say the two-door sentence here: "There are two doors and you
       never choose a destination at capture time: what you wrote
       yourself goes to the Daily Scratchpad, what someone else made
-      goes to the Outer World inbox; the team files it from there."
+      goes to the Outer World inbox; you can file it yourself from
+      there, or the team does it for you."
    4. `04 Inner World/README.md` - processed knowledge: Journal,
       Notes, My Life, Contacts.
    5. `04 Inner World/Notes/README.md` - where a note with a subject
       lives (outlines, references, meeting notes, documents), linked
       to the Project, Key Element or Topic it serves; the date-or-
       subject test that splits it from the Journal.
-   6. `06 AI Team/Agents/agent-index.md` - the team roster and who to
+   6. `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`
+      - the one page behind the two-door sentence: the doors, the
+      filter, the homes, and "Doing it by hand, step by step", the three questions for
+      filing a note yourself. Say that both doors to filing stay open:
+      file it yourself from this page, or ask Penn, who does the same
+      steps and checks what you filed on request
+      ([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]).
+   7. `06 AI Team/Agents/agent-index.md` - the team roster and who to
       ask for what.
-   7. One example note (tagged `example`) - show what a finished,
-      linked note looks like; offer to delete the examples once real
-      content exists.
+   8. One example note (tagged `example`) - show what a finished,
+      linked note looks like. The templates in
+      `06 AI Team/AI Team Knowledge/Templates/` are the pasteable shape
+      for filing by hand; the examples may go once real content
+      exists, so offer to delete them then.
    Close the tour by pointing at the myICOR button under the folder
-   tree (dashboards, search, and the account connection live there).
+   tree (dashboards, search, and the account connection live there)
+   and at the Scaffold Check plugin, which reports vault health (`ok`,
+   `attention` or `broken`) and a dashboard from
+   `.icor-for-life/scripts/quality.json`; Larry reads the same file at
+   every session start and offers Penn when something needs repair.
    [SCRIPT NOTE] `open-in-obsidian.py` prefers the official Obsidian
    CLI and falls back to the `obsidian://` URI. When its output
    carries a `RECOMMEND` line, relay it: suggest installing the
@@ -78,9 +92,11 @@ flowchart TD
    sessions can open files in new tabs cleanly. Recommend once, never
    nag.
 3. [JUDGEMENT] Walk the six rooms in one screen (the [[GL-1001-the-six-rooms|GL-1001]] table, not
-   a lecture) for anyone who skipped the tour. Point at the example
-   notes (tagged `example`) and offer to delete them once the user
-   has real content.
+   a lecture) for anyone who skipped the tour. Point at
+   [[GL-1007-capture-and-where-things-go|GL-1007]] for filing by hand,
+   at the templates in `06 AI Team/AI Team Knowledge/Templates/` as the
+   shape to paste, and at the example notes (tagged `example`), which
+   may go once the user has real content.
 4. **Proactively offer the import.** Ask, in this spirit:
    "Do you have existing knowledge somewhere else: an old vault, a
    myPKA folder, notes from Notion or Apple Notes, even AI agents you

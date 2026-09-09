@@ -20,6 +20,8 @@ shape, not just the right folder.
 
 - Audits your notes: missing fields, wrong names, broken links, and a
   fix per finding
+- Runs the vault health check at session start, on request and after
+  every import; repairs to your notes go to Penn, with your yes
 - Adds a new frontmatter field the right way (guideline first, then
   template, then your existing notes)
 - Decides when a collection earns a live table and creates it
