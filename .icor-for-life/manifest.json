@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.17.0",
-  "built": "2026-09-09T10:44:51Z",
-  "commit": "fddc002",
+  "version": "1.18.0",
+  "built": "2026-09-09T13:19:18Z",
+  "commit": "6825f52",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -147,6 +147,12 @@
       "example": false
     },
     {
+      "path": ".obsidian/hotkeys.json",
+      "sha256": "d88a0ef1b42c6361eca0a95a84e91f9c4d72260f94670e3aa00078f977daaec7",
+      "kind": "config",
+      "example": false
+    },
+    {
       "path": ".obsidian/plugins/icor-for-life-outliner/main.js",
       "sha256": "3ec8a8fa52de10c013566d6cc3b869b0078bc496e11d34348e42fe32a4aeede3",
       "kind": "config",
@@ -183,6 +189,18 @@
       "example": false
     },
     {
+      "path": ".obsidian/templates.json",
+      "sha256": "c60ed788d6220f636a882114d69b70aded11c927e31bd47e701a1f6d543f1437",
+      "kind": "config",
+      "example": false
+    },
+    {
+      "path": ".obsidian/types.json",
+      "sha256": "5cfb9cb1109f0bbf090ddb2105792f8a35e7588775c5a384dde2982ee771c630",
+      "kind": "config",
+      "example": false
+    },
+    {
       "path": ".obsidian/webviewer.json",
       "sha256": "26e457f53a584f007c6c647043857e94b10589d121f3ed67842d44a0009aaa37",
       "kind": "config",
@@ -196,7 +214,7 @@
     },
     {
       "path": "00 Daily Scratchpad/README.md",
-      "sha256": "f34b7b365826dee73218c9c9543f890c8801e2aa5ee19b951f06e73a7642ed37",
+      "sha256": "05167c3ba05f433b357149cae3b31489e31032a2fa32c5f5a566b464b4cb97f3",
       "kind": "doc",
       "example": false
     },
@@ -214,7 +232,7 @@
     },
     {
       "path": "01 Inbox/README.md",
-      "sha256": "4f6681d739aa78bc481f8754df3505caa38865ca26115a4d53c690452d54dcfe",
+      "sha256": "7c9f23373876529748eee0c2cfd45d8c1dd38f4132f27e89b08f4bc6322787f5",
       "kind": "doc",
       "example": false
     },
@@ -255,6 +273,12 @@
       "example": false
     },
     {
+      "path": "04 Inner World/Contacts/README.md",
+      "sha256": "a81dea1dec9d00d009185bf2ddc372cc6cade108d3ad6fa177fefd3812d29f8e",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "04 Inner World/ICOR Journey Notes/README.md",
       "sha256": "56e25f9ad1854fb677093ecde396e13e692f4f25adf6339a42cc38faff82b7b8",
       "kind": "doc",
@@ -268,7 +292,7 @@
     },
     {
       "path": "04 Inner World/Journal/README.md",
-      "sha256": "a214f89e4ccd8f30a178c450021d231180043ccb87c529fcbae9e43e8a8e5dfc",
+      "sha256": "e09efd80276ea3693002d8f4fe14dc15538a5f10f4305fb23418e0b88f784d6d",
       "kind": "doc",
       "example": false
     },
@@ -310,7 +334,7 @@
     },
     {
       "path": "04 Inner World/My Life/README.md",
-      "sha256": "3577acfd1d4cf1c5ca57d32b865d60d6da5dd31e91fab2b35e2d7ca2bea9de9f",
+      "sha256": "78a4bef2848e73f1a4629dfad41309f4ebdec0bc0a82ec35ea75f4a0afceffec",
       "kind": "doc",
       "example": false
     },
@@ -340,13 +364,19 @@
     },
     {
       "path": "04 Inner World/Notes/README.md",
-      "sha256": "5162410ec153f5da1ce8fe05082d91cf82b9ffd91a9c3b1b592d58624ed2fffd",
+      "sha256": "28cd1c938bb7ae208ce20cfbfd8d12bc162229717778feb2dc8a3e8bb66368e7",
       "kind": "doc",
       "example": false
     },
     {
+      "path": "04 Inner World/Notes/Why I keep a Daily Scratchpad.md",
+      "sha256": "a1dd47b047c86f52524e77a4c233b5fba8a77fc30fe72e336b783cb1f82bd018",
+      "kind": "doc",
+      "example": true
+    },
+    {
       "path": "04 Inner World/README.md",
-      "sha256": "0cd205b6b6e4d1d9d3633ae6187ec32993afc54f5a101f2828a1da0a7613e9c3",
+      "sha256": "f6ba26dbf338e9b2c3760113e819164e92fd880d13ffa9efaec7fe86e0fb8105",
       "kind": "doc",
       "example": false
     },
@@ -484,7 +514,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "68f212a60f4db2a6da04fd62eb23bed6c6e8fadfcbb0dda03657f04280341c46",
+      "sha256": "0a8bddacceb3b07caaf809d2582fcdf9576d310b6977010412c3e59b98ed2813",
       "kind": "guideline",
       "example": false
     },
@@ -496,7 +526,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1004-naming-rules.md",
-      "sha256": "c56ce8475a5148d829d6f78beb8b90893d59b31039f202c28932ebb78d37a497",
+      "sha256": "f99ccd107909aad50b51ba0ac72f90c91781d478f888e3f734b577eb1dbf99a2",
       "kind": "guideline",
       "example": false
     },
@@ -514,19 +544,31 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
-      "sha256": "847b9fbe73c61e03d73ee07811160c185e3f12e9d7259b282ad408dcc399c6f6",
+      "sha256": "9e748743ac3cfbc8aa945b1c6ddbf922910b46b72c548a3d40bd0018662a69c1",
       "kind": "guideline",
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1008-the-machine-layer.md",
+      "sha256": "d71b5cfdf11abbb2a880f309eaa04dd368a20915d2cb2862cbc70a59fb00355b",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
+      "sha256": "b1a70f2240180efd300ade7a16c941d3c3156cca7671d757e5cda146b5479eba",
+      "kind": "sop",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1001-process-the-daily-scratchpad.md",
-      "sha256": "fd831aa337d6da704dc4f305fb329fdfb4b9019487a1dbcbf5e91aac19fdd081",
+      "sha256": "7577ef95931edb2dcc021424667b56fb5524fac5f380deb78e7ee44160fba63f",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1002-process-an-inbox-capture.md",
-      "sha256": "c6ba289bde8beb233ff60e14736686cb67f46a66c06105e72b2ad5e78f92410a",
+      "sha256": "b2d9c1971e9799c04a249a4e3b945eb3641b59f62567656e7cd03f31012522bd",
       "kind": "sop",
       "example": false
     },
@@ -538,13 +580,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1004-create-or-update-a-my-life-entity.md",
-      "sha256": "d79d9adbd6ec397fc208fc7a073cd79a023ac65dc495c4c6a57380fa4a4990ae",
+      "sha256": "5807326f3cc0ea494780e6d75166394c258105f500b347339f5a6b53b9e59727",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1005-create-or-update-a-contact.md",
-      "sha256": "85399b08fc0dc7687a686c34fa79b67ba9adc4adc7df6657ac66d841d48d8307",
+      "sha256": "6ac625182e0d70ca31824cce3878ac124ff0ac3bbcbd83b5c3d4338c75aa90ee",
       "kind": "sop",
       "example": false
     },
@@ -597,6 +639,18 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1014-check-and-repair-what-was-filed-by-hand.md",
+      "sha256": "e9800b5ef3aa37ab065b745213dedcf57fc51bed2214877a9d045df008758dbe",
+      "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
+      "sha256": "c1d23d3d982a01ec3c77160a5c4b52b1bb18b6c2ccb0bdda748ad5444a9eb61d",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/add-mcp-server.py",
       "sha256": "859e8488fae7e218db524135ba13d7f0002966f17c2e53cf7a25fe4d9e23e8e3",
       "kind": "script",
@@ -621,8 +675,20 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/check-quality.py",
+      "sha256": "f0011dd5b5d1f6355c9627f3d0997771c82c0ff34bfd3376d863e8717088449b",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
       "sha256": "7b74dfbf67c2f69a671f8540ed96c9cb0cd14eb91778666e857672de2fd52d6f",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/find-entity.py",
+      "sha256": "b5f8257251cea278cf0c5af53c7b4a86383d4d58c2d810bc3a887821218412fe",
       "kind": "script",
       "example": false
     },
@@ -646,13 +712,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "4eb3446a605e2d92133834b9e05c4b8ba5ef35d5c062ddf6f0a304a98b727271",
+      "sha256": "6b59628830b01f3b49fe89fa45cf3466b48125fd0ad8051203e9e19963f89c51",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-entity.py",
+      "sha256": "98d964b33e29f10e7a031182fb124e69b1c40b26830614afea8fa481d7bfd154",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-journal-entry.py",
-      "sha256": "091efb65493740a6b4b55b79d635ffa3f4cb495a7ad7f2b0c6520f1e650b726b",
+      "sha256": "01461394dfa4a8a1a5e2e3bce2302b563904001b6cdc110163f88898982a5eb7",
       "kind": "script",
       "example": false
     },
@@ -682,7 +754,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "e968289bb312f47c231cdc0b40c4d3959c8083ea637f1cf916a7409f7994fb5a",
+      "sha256": "c2dcf70f8557660ace2ee1e20ff77f141b9f12859c7596e534902b7531010de2",
       "kind": "script",
       "example": false
     },
@@ -694,8 +766,68 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "696d7aec991202b791f01d7f1bc26d01126d6d71fdc0b22067d8084c70ee63a6",
+      "sha256": "367760c2528fafff4605cf25156d2c63eff80c58157b411949b7127f29564e7d",
       "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/company.md",
+      "sha256": "19b9f579b8ac664b586e86d393fdfd93a7bdeacd3ed8a250548c243aa961e0b6",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/document.md",
+      "sha256": "81fca36e566a4369dc6b2fee8221a3ce9c4ee3eea050d01956ad2056929b4701",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/goal.md",
+      "sha256": "14350eaffc3e05772ee4a4b59c0b673cd9d1ffe7a55bb59b6dc1ccd4b2e536ec",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/habit.md",
+      "sha256": "cf7665a32c30a1f0d65e526476cfe88d2787e9097069d7e35bd9980a962bc9ab",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/journal.md",
+      "sha256": "35d841833e31d727842d6076730b6cced7a0942c94f8bb757d5b79aa9df9c590",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/key-element.md",
+      "sha256": "2adae9dda9f1d7e454ce75221a2a11331a1e11acfbd967a079a43593288706fc",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/note.md",
+      "sha256": "6c410db22fd87581a70fafb38747133beb1fd454fd9932db1af0a02df2d740c8",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/person.md",
+      "sha256": "e5ca6a44a3f3e3ca2f02ec97ac5850360748269ce232666f4a37b7c7c7c3b90a",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/project.md",
+      "sha256": "58a97307cffe076994215a5924f1d7abfe4e9c07b2eea9ca37a37054ecb1a6a0",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/topic.md",
+      "sha256": "e9efa96303294f84312062c96dabad34a27aa601ec9fdee027243d25d6ceed2b",
+      "kind": "doc",
       "example": false
     },
     {
@@ -706,19 +838,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1001-daily-processing-run.md",
-      "sha256": "b3bdd8d059a8205b8be387b6314844ab91c8f349849785b7d94a20aac8ac5ab9",
+      "sha256": "4640ce19b8e3df1b6b16f67f2bb0589d78361eea45fb413df821f6846767c5ea",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1002-weekly-review.md",
-      "sha256": "cfc35874677eb80943b66644bfa75aa2b77827a03bd2ef0136f4ebd82766148f",
+      "sha256": "9535792c3301b605629313cdc382caa20c602551dcd5eec0064683768f14b38c",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md",
-      "sha256": "bd40506a26a56a0249885141f45d39582b375f2ad39dde66b9f156884a55df35",
+      "sha256": "73fd6cabc1e4eab71423b73fd6fca93e5f0f421b04978a1cd274dff1dcea6de3",
       "kind": "workstream",
       "example": false
     },
@@ -784,13 +916,13 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "9e2ecae836540f117ae2a28138bef8f1db90105cf4632f681d7e7500d00dc476",
+      "sha256": "1c6526e839497e9ec1be91324c46ec68978629d03723aa3a00d9d550371590c8",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Larry/Larry.md",
-      "sha256": "b2ff7463c7a437a51d8c160ea6a7544a170a297221531fc3a5bae7dc1810118a",
+      "sha256": "9d252ea09400e37044713cb9158bbc1df7b0760f0c2626d46a2c2800f85ef740",
       "kind": "agent",
       "example": false
     },
@@ -838,31 +970,31 @@
     },
     {
       "path": "06 AI Team/Agents/Penn/AGENT.md",
-      "sha256": "efff2ae34107a5f16b3b1afbb480675ac80c03cbb96a2c506e480f1b51bd2461",
+      "sha256": "5db80b31e95972b49909af48239a0ec0a9068fd6f907873998812d7cdd2bceb9",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Penn/Penn.md",
-      "sha256": "67bf69a8a3ec415201c3d8131666181192a722146762cc9ab1d9b3c6759890e7",
+      "sha256": "86d67cf202d898520ed89d87283cd71cdccb1e7e9736ec8cf3f4db7322d9a0bd",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Silas/AGENT.md",
-      "sha256": "6cbf74ad8f5b227e65bcddbe4f5c1e4779c08c340969accd4c64e97f3f4d1c0b",
+      "sha256": "808b8436642f5f8478ef8fbe9579798385575566ac57d4293ab93aac2b457785",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Silas/Silas.md",
-      "sha256": "66dda2a0f96c54c58608aa97952bb6776c156efc0747a494d80f8223ac76576f",
+      "sha256": "52cb8fc3867b6907a09721fd378d53f2120bb5f131fb3355313f755fc2a77250",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/agent-index.md",
-      "sha256": "ea00502a364b7d1b9ca8428deaf0fd3bf581d2ae2a2f40a6866d535323ccf847",
+      "sha256": "310c27e54dcfc6937b77e74bb688925d595d5b8bd5d591b42bc503f9c9d0c1b7",
       "kind": "agent",
       "example": false
     },
@@ -880,7 +1012,7 @@
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "c75ad9405c83ba9e3267e8e1335adc0032d9e0493677a56a1d8a2e9352de3f0b",
+      "sha256": "61867ad942a657e01a0231566144c79a919c5ba27f541963703b7d894e392f74",
       "kind": "doc",
       "example": false
     },
@@ -892,7 +1024,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "fb98debaaee4ca70996e4a305b223ed1b38c53e6d78af98a6cf19b1b0bea275e",
+      "sha256": "8cf416fb4224ec1c1e49b4e0dde252b5e6b43ec7251830953bcd25f20e12bb30",
       "kind": "doc",
       "example": false
     },
@@ -986,6 +1118,36 @@
     }
   ],
   "history": [
+    {
+      "version": "1.18.0",
+      "date": "2026-09-09",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".obsidian/hotkeys.json",
+        ".obsidian/templates.json",
+        ".obsidian/types.json",
+        "04 Inner World/Contacts/README.md",
+        "04 Inner World/Notes/Why I keep a Daily Scratchpad.md",
+        "06 AI Team/AI Team Knowledge/Guidelines/GL-1008-the-machine-layer.md",
+        "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
+        "06 AI Team/AI Team Knowledge/SOPs/SOP-1014-check-and-repair-what-was-filed-by-hand.md",
+        "06 AI Team/AI Team Knowledge/Scripts/README.md",
+        "06 AI Team/AI Team Knowledge/Scripts/check-quality.py",
+        "06 AI Team/AI Team Knowledge/Scripts/find-entity.py",
+        "06 AI Team/AI Team Knowledge/Scripts/new-entity.py",
+        "06 AI Team/AI Team Knowledge/Templates/company.md",
+        "06 AI Team/AI Team Knowledge/Templates/document.md",
+        "06 AI Team/AI Team Knowledge/Templates/goal.md",
+        "06 AI Team/AI Team Knowledge/Templates/habit.md",
+        "06 AI Team/AI Team Knowledge/Templates/journal.md",
+        "06 AI Team/AI Team Knowledge/Templates/key-element.md",
+        "06 AI Team/AI Team Knowledge/Templates/note.md",
+        "06 AI Team/AI Team Knowledge/Templates/person.md",
+        "06 AI Team/AI Team Knowledge/Templates/project.md",
+        "06 AI Team/AI Team Knowledge/Templates/topic.md"
+      ]
+    },
     {
       "version": "1.17.0",
       "date": "2026-09-09",
