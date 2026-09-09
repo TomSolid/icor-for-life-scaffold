@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.16.0",
-  "built": "2026-09-08T22:40:00Z",
-  "commit": "91c43ac",
+  "version": "1.17.0",
+  "built": "2026-09-09T10:44:51Z",
+  "commit": "fddc002",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -15,7 +15,7 @@
     "04 Inner World/Contacts/People",
     "04 Inner World/Contacts/Companies",
     "04 Inner World/Journal",
-    "04 Inner World/Documents",
+    "04 Inner World/Notes",
     "04 Inner World/My Life/Goals",
     "04 Inner World/My Life/Key Elements",
     "04 Inner World/My Life/Topics",
@@ -166,13 +166,13 @@
     },
     {
       "path": ".obsidian/plugins/icor-for-life-pdf-annotation/main.js",
-      "sha256": "206fe0c7682bceae707f4e061e834b26433ce7df52d526f39cde34c8b346ddff",
+      "sha256": "dc2bf55c9d3540324dad707a3b3ed2f2caec6b54497314a8a89bf5ea17eb9647",
       "kind": "config",
       "example": false
     },
     {
       "path": ".obsidian/plugins/icor-for-life-pdf-annotation/manifest.json",
-      "sha256": "9095b58db4805148d0976f87e22e370b5ced880b634be561542733d7aeb87cce",
+      "sha256": "fc5c774ae29001d9bce846cd1d6ed8dfcec7d1933d4a3a6c1fd396ebe7ab5543",
       "kind": "config",
       "example": false
     },
@@ -196,13 +196,13 @@
     },
     {
       "path": "00 Daily Scratchpad/README.md",
-      "sha256": "1f9bf679ffa85cb1fb62a95076ffff26254ca27a8096a5265cd817cf418b38c3",
+      "sha256": "f34b7b365826dee73218c9c9543f890c8801e2aa5ee19b951f06e73a7642ed37",
       "kind": "doc",
       "example": false
     },
     {
       "path": "01 Inbox/Outer World/README.md",
-      "sha256": "9cbac245094133b9d62a17c04d7409dc32a881be85e057b241604c2f7544de1f",
+      "sha256": "ee6ad7a12a8218d53b5ecc43faecd60aa1eeb3edafbfb044c346177fdbaec420",
       "kind": "doc",
       "example": false
     },
@@ -214,7 +214,7 @@
     },
     {
       "path": "01 Inbox/README.md",
-      "sha256": "6de43f8e3bdeae3a21a4232013ac72d8638218c2cad10c227cc364f6a1f225c2",
+      "sha256": "4f6681d739aa78bc481f8754df3505caa38865ca26115a4d53c690452d54dcfe",
       "kind": "doc",
       "example": false
     },
@@ -252,24 +252,6 @@
       "path": "04 Inner World/Contacts/People/People.base",
       "sha256": "6d2fafb0f3cc916146b69294ddae8b20d8932a893ea1b68b2ac8586318f69ff9",
       "kind": "base",
-      "example": false
-    },
-    {
-      "path": "04 Inner World/Documents/Documents.base",
-      "sha256": "6dd0abc72caf1e853f02de3083c482da4e7646bc4d170a5c922e5b2855643f44",
-      "kind": "base",
-      "example": false
-    },
-    {
-      "path": "04 Inner World/Documents/Example Invoice.md",
-      "sha256": "51e948ac2f8019fdf19a980c3be83b384821dfa27416fcf22a8ab06ac5acd55f",
-      "kind": "doc",
-      "example": true
-    },
-    {
-      "path": "04 Inner World/Documents/README.md",
-      "sha256": "948f2f0872b44b5904c32c7fbb0af4fd38ad3ed4d9bccb91656d947a1bf4314a",
-      "kind": "doc",
       "example": false
     },
     {
@@ -339,8 +321,32 @@
       "example": true
     },
     {
+      "path": "04 Inner World/Notes/Documents.base",
+      "sha256": "ddfea0e15cb7f2989af54dd5b42b181bfb64ea904787f30af5a8134de4ab801f",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Notes/Example Invoice.md",
+      "sha256": "51e948ac2f8019fdf19a980c3be83b384821dfa27416fcf22a8ab06ac5acd55f",
+      "kind": "doc",
+      "example": true
+    },
+    {
+      "path": "04 Inner World/Notes/Notes.base",
+      "sha256": "3fb3ea1583a7d96feac2f376d29ffcc7b271a8b7905575ca87f8199bfee89ec0",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/Notes/README.md",
+      "sha256": "5162410ec153f5da1ce8fe05082d91cf82b9ffd91a9c3b1b592d58624ed2fffd",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "04 Inner World/README.md",
-      "sha256": "343e2a4e61f5da9919fb6fe063f8f71a2ea5d5f5fe61c846f3abf5c30c75de04",
+      "sha256": "0cd205b6b6e4d1d9d3633ae6187ec32993afc54f5a101f2828a1da0a7613e9c3",
       "kind": "doc",
       "example": false
     },
@@ -472,13 +478,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
-      "sha256": "06b3d518a2026d98d7e858a32f6bcd573304a958f1ea9a7957285f13efd7bb5d",
+      "sha256": "b0cfd322837ebcc5a3141a947b9485a5394db82c2ac97d583dbb840f93d58392",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "73f9b362b4faa987967c2774d15ece8932a4bbdb6b9bc296e320ab25d4513e11",
+      "sha256": "68f212a60f4db2a6da04fd62eb23bed6c6e8fadfcbb0dda03657f04280341c46",
       "kind": "guideline",
       "example": false
     },
@@ -502,7 +508,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1006-bases-and-live-views.md",
-      "sha256": "895f2f33ec60863832bbc2cf39cf05bc4f08fe25eb2d56c59d8c96c2a51f7aee",
+      "sha256": "28dc0bd6f6ffbee8c1e3b6d780338713f207ee4669cc13bc36b8eb84932601e8",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
+      "sha256": "847b9fbe73c61e03d73ee07811160c185e3f12e9d7259b282ad408dcc399c6f6",
       "kind": "guideline",
       "example": false
     },
@@ -514,7 +526,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1002-process-an-inbox-capture.md",
-      "sha256": "815f5bbff11501a34923f054980700643b4d0b6c7e93f875ee423239011da976",
+      "sha256": "c6ba289bde8beb233ff60e14736686cb67f46a66c06105e72b2ad5e78f92410a",
       "kind": "sop",
       "example": false
     },
@@ -562,7 +574,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1010-convert-an-external-note.md",
-      "sha256": "fc184adba763ee6af29a7fb2a38e9fd95cfa745990ca492be30c0575da822987",
+      "sha256": "e92254df7090ef16f058ef0bbe0ff1e252ba8fe43fa0e0dedd2f9e79ed1a0e9c",
       "kind": "sop",
       "example": false
     },
@@ -598,7 +610,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-bases.py",
-      "sha256": "8b63fa0e50930e9b300aa9b37d3f975fea8c3894effbb96096d26c20db70a284",
+      "sha256": "d13a70e849a22c604fdd1a1337a5ceac3425def612796f2ab58621aa82649dc1",
       "kind": "script",
       "example": false
     },
@@ -634,7 +646,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "6772ca5f5970bbd312c506dd25b6779df083fa6f65b9da81a14abe9f3b9dcc5d",
+      "sha256": "4eb3446a605e2d92133834b9e05c4b8ba5ef35d5c062ddf6f0a304a98b727271",
       "kind": "script",
       "example": false
     },
@@ -670,20 +682,26 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "5dd1fbc4b7899b7dc8edced49565c7ec3fefa93af73d98acff2269583ed89cfb",
+      "sha256": "e968289bb312f47c231cdc0b40c4d3959c8083ea637f1cf916a7409f7994fb5a",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
-      "sha256": "612245dae277d116991c97fffd01a1ce7a21e3e44050759bcd642b8481e2e3ba",
+      "sha256": "724bdbaf8fc0de75f9213fc8a8261a7a91873d7cdb8b2cfa1511efd5c93ab451",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "1ff050137d4d07166f6b16fa7056aa9d3065c163f7334c25466de9d4aab1a191",
+      "sha256": "696d7aec991202b791f01d7f1bc26d01126d6d71fdc0b22067d8084c70ee63a6",
       "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Templates/web-clipper-outer-world.json",
+      "sha256": "60bd5bc540be08d407528f564657330f0a49bad08be6b87ef144f9dd53d7597e",
+      "kind": "doc",
       "example": false
     },
     {
@@ -700,7 +718,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md",
-      "sha256": "f618c2c03d962f3bd4cd3766a6a011ccfd353d8038acbf7817710d5460cc0a08",
+      "sha256": "bd40506a26a56a0249885141f45d39582b375f2ad39dde66b9f156884a55df35",
       "kind": "workstream",
       "example": false
     },
@@ -862,7 +880,7 @@
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "60b24a1d1763d5ecb09d650f95bc69931ff130c18b13465c163c4e9c0d39b5cb",
+      "sha256": "c75ad9405c83ba9e3267e8e1335adc0032d9e0493677a56a1d8a2e9352de3f0b",
       "kind": "doc",
       "example": false
     },
@@ -874,7 +892,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "25ca3bee064f9f3c1cd9b7e7b4f438ab0a34c5c060f22945fcef2661fb63290b",
+      "sha256": "fb98debaaee4ca70996e4a305b223ed1b38c53e6d78af98a6cf19b1b0bea275e",
       "kind": "doc",
       "example": false
     },
@@ -899,9 +917,15 @@
       ]
     },
     {
-      "path": "04 Inner World/Documents/Documents.base",
+      "path": "04 Inner World/Notes/Documents.base",
       "folders": [
-        "04 Inner World/Documents"
+        "04 Inner World/Notes"
+      ]
+    },
+    {
+      "path": "04 Inner World/Notes/Notes.base",
+      "folders": [
+        "04 Inner World/Notes"
       ]
     }
   ],
@@ -962,6 +986,40 @@
     }
   ],
   "history": [
+    {
+      "version": "1.17.0",
+      "date": "2026-09-09",
+      "removed": [
+        {
+          "path": "04 Inner World/Documents/README.md",
+          "sha256": "948f2f0872b44b5904c32c7fbb0af4fd38ad3ed4d9bccb91656d947a1bf4314a",
+          "note": "rewritten and moved to `04 Inner World/Notes/README.md` (git sees a delete and an add because the text changed as well as the path)"
+        }
+      ],
+      "renamed": [
+        {
+          "from": "04 Inner World/Documents/Documents.base",
+          "to": "04 Inner World/Notes/Documents.base",
+          "from_sha256": "6dd0abc72caf1e853f02de3083c482da4e7646bc4d170a5c922e5b2855643f44"
+        },
+        {
+          "from": "04 Inner World/Documents/Example Invoice.md",
+          "to": "04 Inner World/Notes/Example Invoice.md",
+          "from_sha256": "51e948ac2f8019fdf19a980c3be83b384821dfa27416fcf22a8ab06ac5acd55f"
+        },
+        {
+          "from": "04 Inner World/Documents/Highlights/.gitkeep",
+          "to": "04 Inner World/Notes/Highlights/.gitkeep",
+          "from_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "added": [
+        "04 Inner World/Notes/Notes.base",
+        "04 Inner World/Notes/README.md",
+        "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
+        "06 AI Team/AI Team Knowledge/Templates/web-clipper-outer-world.json"
+      ]
+    },
     {
       "version": "1.16.0",
       "date": "2026-09-09",
