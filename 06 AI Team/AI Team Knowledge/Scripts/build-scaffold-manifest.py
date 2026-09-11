@@ -256,6 +256,26 @@ if not head_tag:
     if tags and semver_key(version) <= semver_key(tags[-1]):
         die("VERSION %s is not newer than the latest tag %s, yet HEAD is untagged; bump VERSION" % (version, tags[-1]))
     points.append((version, "HEAD"))
+elif semver_key(version) != semver_key(head_tag):
+    # HEAD carries a tag, and VERSION names a different version. Neither the
+    # tags nor the HEAD branch above will produce a history entry for VERSION,
+    # so the manifest would be written claiming to describe a version whose own
+    # history is missing. It passes --check here and fails in CI on a clean
+    # checkout of the tag, which is the worst shape a gate can have: green on
+    # the machine that wrote it, red on the machine that ships it.
+    #
+    # This is what a bump does before the commit lands: VERSION says 1.19.1
+    # while HEAD is still the 1.19.0 commit. The cure is the order, not a
+    # retry. (2026-09-11, after it cost a failed release run.)
+    die("VERSION %s but HEAD is tagged %s, so this manifest would have no history entry for %s.\n"
+        "       Build the manifest AFTER the commit that carries it:\n"
+        "         1. make your changes and bump VERSION\n"
+        "         2. git add -A && git commit\n"
+        "         3. python3 build-scaffold-manifest.py     (HEAD is untagged here: correct)\n"
+        "         4. git add -A && git commit --amend --no-edit\n"
+        "         5. git tag %s && push both\n"
+        "       Or, if the tag already exists, move it to the amended commit with git tag -f."
+        % (version, head_tag, version, version))
 
 def changelog_sections():
     """version -> the text of that version's section in CHANGELOG.md"""

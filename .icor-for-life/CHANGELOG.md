@@ -10,6 +10,28 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.19.2
+
+Released 2026-09-11.
+
+### Fixed
+
+- **`build-scaffold-manifest.py` could write a manifest that was stale the
+  moment it was committed, and say OK while doing it.** Build the manifest
+  while HEAD still carries the PREVIOUS version's tag, which is what happens
+  if you bump `VERSION` and build before committing, and the history gets no
+  entry for the version being released. `--check` then passes on the machine
+  that wrote it and fails in CI on a clean checkout of the tag, which is the
+  worst shape a gate can have.
+
+  It now refuses, and prints the order that works: commit first, build with
+  HEAD untagged, amend, then tag. Watched going red on a bumped `VERSION`
+  over a tagged HEAD, and green on an untagged HEAD with a bumped `VERSION`
+  (whose history then carries its own version) and on a clean checkout of a
+  tag. The existing "bump VERSION" guard is unchanged and still fires.
+
+  Found the hard way: it cost the 1.19.1 release a failed run.
+
 ## 1.19.1
 
 Released 2026-09-11.
