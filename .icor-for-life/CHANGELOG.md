@@ -10,6 +10,19 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.19.1
+
+Released 2026-09-11.
+
+### Fixed
+
+- **`GL-1004` described canvas names more narrowly than the check accepts.**
+  The naming table said a canvas is `YYYY-MM-DD_canvas.canvas` with `-N` on
+  same-day collisions, which reads as if a canvas you have titled yourself is
+  wrong. `validate-scaffold.py` accepts a title or a number after `_canvas`
+  and always did, so the table now says so. No file moves and no rule
+  changes; the page now matches the guard.
+
 ## 1.19.0
 
 Released 2026-09-11.

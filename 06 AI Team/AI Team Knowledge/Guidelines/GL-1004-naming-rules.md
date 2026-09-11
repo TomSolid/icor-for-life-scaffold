@@ -82,7 +82,7 @@ Three legal shapes, all inside `YYYY/MM/`:
 | --- | --- | --- |
 | Daily note | `YYYY-MM-DD.md` | Obsidian's Daily notes core plugin |
 | Quick capture | `YYYYMMDDHHmm.md`, optionally ` - Title` added later by you, ` 2` on a same-minute collision | ICOR for Life - Scratchpad |
-| Canvas | `YYYY-MM-DD_canvas.canvas`, `-N` on same-day collisions | the toolbar |
+| Canvas | `YYYY-MM-DD_canvas.canvas`, plus whatever you title or number it | the toolbar |
 
 **The name is the minute, not the subject.** A quick capture is stamped
 `YYYYMMDDHHmm` because at capture time you do not yet know what the thing is,
