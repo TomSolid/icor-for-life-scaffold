@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.19.2",
-  "built": "2026-09-11T13:52:04Z",
-  "commit": "4c3c502",
+  "version": "1.20.0",
+  "built": "2026-09-11T16:26:06Z",
+  "commit": "a13f86a",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -101,7 +101,7 @@
     },
     {
       "path": ".claude/commands/checkpoint.md",
-      "sha256": "36cdf9c1a63ddc05a2b977c2feaae40c5547d20dbbd881199cdb11d4ca4a518f",
+      "sha256": "b50d260e3764c3245f1a25306815f3e887e28d8b649db216033874e17f3207db",
       "kind": "claude",
       "example": false
     },
@@ -137,7 +137,7 @@
     },
     {
       "path": ".obsidian/daily-notes.json",
-      "sha256": "acc7c39460f65b9ebede812a18160506d07a738fe963581c137a772e1ca6b443",
+      "sha256": "b924282e7d0484f4a80ba70062de30a8afa9cc75c4c56d0e0b031f5318f7c884",
       "kind": "config",
       "example": false
     },
@@ -545,7 +545,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
-      "sha256": "6e3b7b72ce4f5b4d4a38a6aba57982f279d968efcea3ca6fc19dcefd00d107f4",
+      "sha256": "8e89d764994bf0523128aee7d4c31b27ec75929078c3b9931eba7fc65f4a77da",
       "kind": "guideline",
       "example": false
     },
@@ -558,6 +558,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1010-the-five-capture-workflows.md",
       "sha256": "14f3c13f39f115c431f37a685ff6314b762de5825cb417a51e1ffbc2b2c658fe",
+      "kind": "guideline",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1011-date-mentions-link-to-daily-notes.md",
+      "sha256": "13ff3e4d8d6cfd164ad2b9b1115880e8c7daec271694b9e234e01801d44146cd",
       "kind": "guideline",
       "example": false
     },
@@ -659,7 +665,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "c1d23d3d982a01ec3c77160a5c4b52b1bb18b6c2ccb0bdda748ad5444a9eb61d",
+      "sha256": "1dd99b3b0ce497fabd7f70a6d91e052fcac00afc2be44680f32e8b22035891af",
       "kind": "script",
       "example": false
     },
@@ -695,7 +701,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "7b74dfbf67c2f69a671f8540ed96c9cb0cd14eb91778666e857672de2fd52d6f",
+      "sha256": "c86d9e62a0755bc019d473e92d7313982a36042c68d0304ef99b27d818e9cc62",
       "kind": "script",
       "example": false
     },
@@ -714,6 +720,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/import-inventory.py",
       "sha256": "feaca78d7d9fc6e85f0dd2abc87815883752ab61c8130f6ae9b1419a1eff73b8",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/link-dates-to-daily-notes.py",
+      "sha256": "89e9b3e3eb1ac2b9498a5ed4f04d2ba4cfe7ab1b309f25525c06de4f769d88e0",
       "kind": "script",
       "example": false
     },
@@ -767,7 +779,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "c2dcf70f8557660ace2ee1e20ff77f141b9f12859c7596e534902b7531010de2",
+      "sha256": "6d470be23e71cef32067813c811243644dc618eaae4e051eba3174e21fe21477",
       "kind": "script",
       "example": false
     },
@@ -778,8 +790,14 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/test-link-dates-to-daily-notes.py",
+      "sha256": "e3d50ec336b220456ebba132e711b5241f0591f9047fe16574e806a864ff4415",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "6b211e0e44b8e753f0a0afbdb24f8e779c4dbdb9022120ea1b4b1c06c7aa8331",
+      "sha256": "a14f53e27151698f67dc099a9200d6f975b1ebc777e10a664c6bcc39dcd8a2f8",
       "kind": "script",
       "example": false
     },
@@ -881,7 +899,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1005-checkpoint.md",
-      "sha256": "974b67e432c9b5798d3a12a57352699291319a62a50561d49afa85921f7f2e0c",
+      "sha256": "7f40987fda44b39ed24cc9f699db7c691e6f1691b4ea72fd9bf591361cd3a582",
       "kind": "workstream",
       "example": false
     },
@@ -1137,6 +1155,17 @@
     }
   ],
   "history": [
+    {
+      "version": "1.20.0",
+      "date": "2026-09-11",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Guidelines/GL-1011-date-mentions-link-to-daily-notes.md",
+        "06 AI Team/AI Team Knowledge/Scripts/link-dates-to-daily-notes.py",
+        "06 AI Team/AI Team Knowledge/Scripts/test-link-dates-to-daily-notes.py"
+      ]
+    },
     {
       "version": "1.19.2",
       "date": "2026-09-11",

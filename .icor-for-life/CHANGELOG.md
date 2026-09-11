@@ -10,7 +10,9 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## Unreleased
+## 1.20.0
+
+Released 2026-09-11.
 
 A date you write is a link to that day. Empty daily notes stop being empty:
 they fill up from the outside, by backlink, from every note that mentions
@@ -18,6 +20,10 @@ the day. **The daily note is a timeline of YOUR life and work, so only your
 own notes link into it:** `04 Inner World/`, `03 WiP/` and `01 Inbox/` are
 in scope and all of `06 AI Team/` is out, so a day never fills up with the
 team's own housekeeping.
+
+Minor bump: one new Guideline, two new scripts, one new checkpoint flag and
+half a validator check, plus the two config fixes below. No file is removed
+or moved.
 
 ### Added
 
@@ -69,6 +75,19 @@ team's own housekeeping.
   survived every release. Found by the new linker, which reads the format
   instead of assuming it, then created a note the validator rejected. The
   new half of check 11 is the guard that keeps it from coming back.
+- **Updating in place with daily notes already written flat**
+  (`00 Daily Scratchpad/2026-09-10.md`): nothing moves them. Take the new
+  `.obsidian/daily-notes.json` (or set Settings > Daily notes > Date format
+  to `YYYY/MM/YYYY-MM-DD`, a preset in the dropdown). From then on Obsidian
+  opens and creates `00 Daily Scratchpad/YYYY/MM/YYYY-MM-DD.md` and builds
+  the folders itself, but its previous and next commands no longer see the
+  flat notes, and a `[[YYYY-MM-DD]]` link for one of those days resolves to
+  the flat note, so the linker reports the day as a collision and leaves it
+  bare. Move each flat note into its `YYYY/MM/` folder in Obsidian or
+  Finder; links use the basename, so nothing inside them changes, and the
+  next `--fix` links those days. If you opened today's note before
+  switching, you now have two: paste the flat one's text into the nested one
+  and delete the flat one.
 - **`.gitignore` ignored daily notes only in the flat shape** it no longer
   uses (`00 Daily Scratchpad/2026-*.md`), so a nested daily note was
   trackable and could have shipped in the zip. Personal data must never
