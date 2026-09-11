@@ -14,7 +14,10 @@ those lines and refuses to describe a removal this file does not explain.
 
 A date you write is a link to that day. Empty daily notes stop being empty:
 they fill up from the outside, by backlink, from every note that mentions
-the day.
+the day. **The daily note is a timeline of YOUR life and work, so only your
+own notes link into it:** `04 Inner World/`, `03 WiP/` and `01 Inbox/` are
+in scope and all of `06 AI Team/` is out, so a day never fills up with the
+team's own housekeeping.
 
 ### Added
 
@@ -23,23 +26,28 @@ the day.
   daily note is created blank if it is missing. The value is the backlink
   pane: a daily note with nothing in it still shows the journal entry, the
   meeting, the contact and the brief that named that day, assembled by the
-  vault rather than by you. The guideline states the scope twice, because
-  scope is the whole rule: a lived-in vault holds around 114k `YYYY-MM-DD`
-  strings and almost none of them are prose. Frontmatter dates stay bare and
-  that is stated plainly: a typed date there is data that Bases and every
-  script read, and a wikilink in a date field is a broken value.
+  vault rather than by you. Scope is one principle, stated first: only the
+  user's own rooms link in, because a session log or a specialist journal
+  is how the AI team remembers its own work, and a day buried under the
+  team's housekeeping shows you nothing. Inside those rooms the rule is
+  narrow for a second reason: a lived-in vault holds around 114k
+  `YYYY-MM-DD` strings and almost none of them are prose. Frontmatter dates
+  stay bare and that is stated plainly: a typed date there is data that
+  Bases and every script read, and a wikilink in a date field is a broken
+  value.
 - **`Scripts/link-dates-to-daily-notes.py`**, which enforces it
   (`--check`, `--dry-run`, `--fix`, `--since`, `--json`). It reads the
   folder and the format from `.obsidian/daily-notes.json` rather than
   assuming a room, refuses `--fix` when that file is absent, and refuses
   outright when the format's last segment is not `YYYY-MM-DD`, because a
   `[[YYYY-MM-DD]]` link could not resolve to a note named anything else.
-  Frontmatter, code fences, inline code, existing wikilinks, link targets,
-  URLs, slugs, ids, ISO timestamps, filenames, archives and templates are
-  all out of scope, and a date whose name is taken by some other note is
+  All of `06 AI Team/` is out of scope, and inside the three user rooms so
+  are frontmatter, code fences, inline code, existing wikilinks, link
+  targets, URLs, slugs, ids, ISO timestamps, filenames, archives and
+  templates. A date whose name is taken by some other note is
   reported as a collision and left alone rather than linked into ambiguity.
   Idempotent: a second `--fix` changes nothing.
-- **`Scripts/test-link-dates-to-daily-notes.py`**, 26 cases over a fixture
+- **`Scripts/test-link-dates-to-daily-notes.py`**, 27 cases over a fixture
   vault, one per rule the script claims, where every IGNORE case is a date
   it must not touch. `--break-me` flips one expectation so the suite itself
   can be watched going red. `run-red-tests.py` runs the whole suite plus the

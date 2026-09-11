@@ -30,24 +30,35 @@ never have to go and enrich a day. You write the date the way you were
 going to write it anyway, in two more characters on each side, and the day
 fills itself in.
 
-## Scope: what is a date mention
+## Scope: whose knowledge is this
 
-**Only prose in a note body, and only a full calendar date.** That
-narrowness is the rule, not a detail of it. About 114k `YYYY-MM-DD` strings
-sit in a lived-in vault and almost none of them are prose. Linking them all
-would bury every note in brackets and teach you to stop seeing links.
+**The daily note is a timeline of YOUR life and work, so only your own
+notes link into it.** That is the whole scope rule, and everything below is
+it applied.
 
-**IN**
+The team's operating records stay bare on purpose. Session logs, specialist
+journals and Team Knowledge are how the AI team remembers its own work, and
+they are dense with dates: a session log alone carries a timestamp in its
+name, its frontmatter and most of its lines. If those linked, every daily
+note would fill up with the team's housekeeping and the day's real content
+would be buried under it. A daily note should show you the journal entry,
+the meeting, the contact and the brief, not the eleven times an agent
+recorded that it ran a script.
+
+**IN, the three rooms you write in**
 
 | Room | Which files |
 | --- | --- |
 | `04 Inner World/` | all of it |
 | `03 WiP/` | all of it |
 | `01 Inbox/` | all of it |
-| `06 AI Team/AI Team Knowledge/` | minus SOPs, Guidelines, Workstreams, Tasks, Session Logs, Templates, Scripts |
-| `06 AI Team/Agents/<Name>/journal/` | the agent journals |
 
-**OUT, never touched**
+**OUT: all of `06 AI Team/`, without exception.** Session logs, specialist
+journals, Team Knowledge, SOPs, Guidelines, Workstreams, Tasks, Templates,
+Scripts, AI Sessions. Also `00 Daily Scratchpad/` itself, `02 Planner/`,
+`05 Assets/` and `07 Databases/`.
+
+**OUT inside the three rooms, never touched**
 
 - **YAML frontmatter.** A typed date there is data, not prose: `created`,
   `date`, `due`, `processed`. It is read by Bases and by every script, and
@@ -60,17 +71,14 @@ would bury every note in brackets and teach you to stop seeing links.
   slug (`2026-09-11-jeff-meyers`), an id (`tsk-2026-09-09-020`), a
   timestamp (`2026-09-11T14:12`, `2026-09-11-14-30`), a path.
 - Any folder whose name starts with `_` (archives, snapshots, `_files`),
-  `Templates/`, `AI Sessions/`, the Daily Scratchpad itself, `INDEX.md`,
-  `.obsidian/`, `node_modules/`.
+  `Templates/`, `INDEX.md`, `.obsidian/`, `node_modules/`.
 - Month-only and year-only mentions. Only a full, real calendar date
   counts; `2026-13-45` is not one.
 
-The seven excluded Team Knowledge folders are excluded for one reason: a
-date in a procedure, a script README or a session log is provenance, not
-prose. "The `template` column, added 2026-09-09" is a fact about a file,
-and `2099-01-05` in a test fixture is a day nobody lived. Linking either
-one creates a daily note that says nothing, which is the clutter the
-narrow scope exists to prevent.
+That second list matters as much as the first. About 114k `YYYY-MM-DD`
+strings sit in a lived-in vault and almost none of them are prose. A rule
+that is not this narrow would bury every note in brackets and teach you to
+stop seeing links at all.
 
 **One more condition.** `[[2026-09-11]]` only reaches the daily note while
 no OTHER note in the vault is named `2026-09-11.md`. A second file with

@@ -12,23 +12,27 @@ Everything here is deterministic (GL-1005): which spans are prose, which
 are data, which dates are real. Nothing in this file decides what a date
 MEANS.
 
-Scope is the whole point. About 114k raw YYYY-MM-DD strings live in this
-vault and almost none of them are prose: they are frontmatter values,
-filenames, wikilink targets, ISO timestamps and ids. Linking those would
-be vandalism, so the scope is narrow and stated twice, here and in
-GL-1011.
+Scope follows one principle: the daily note is a timeline of the USER's
+life and work, so only the user's own notes link into it. The team's
+operating records stay bare, and the daily notes never fill up with the
+team's housekeeping.
 
   IN   the body (after the closing frontmatter ---) of .md files under
-       04 Inner World/, 03 WiP/, 01 Inbox/, 06 AI Team/AI Team Knowledge/
-       (minus SOPs, Guidelines, Workstreams, Tasks, Session Logs,
-       Templates) and 06 AI Team/Agents/<Name>/journal/.
-  OUT  YAML frontmatter (typed dates are data, GL-1002); fenced and
-       inline code; anything already inside [[...]]; markdown link
-       targets and URLs; a date that is part of a longer token
-       (2026-09-11-slug, tsk-2026-09-09-020, 2026-09-11T14:12,
-       2026-09-11.md); any path segment starting with _ (archives,
-       snapshots, _files); Templates/; AI Sessions/; the daily-note
-       folder itself; INDEX.md; .obsidian/; node_modules/.
+       04 Inner World/, 03 WiP/ and 01 Inbox/. Nothing else.
+  OUT  all of 06 AI Team/ without exception: session logs, specialist
+       journals, Team Knowledge, SOPs, Guidelines, Workstreams, Tasks,
+       Templates, Scripts, AI Sessions. Also 00 Daily Scratchpad/ itself,
+       02 Planner/, 05 Assets/ and 07 Databases/.
+  Inside the three rooms, still OUT: YAML frontmatter (typed dates are
+       data, GL-1002); fenced and inline code; anything already inside
+       [[...]]; markdown link targets and URLs; a date that is part of a
+       longer token (2026-09-11-slug, tsk-2026-09-09-020,
+       2026-09-11T14:12, 2026-09-11.md); any path segment starting with _
+       (archives, snapshots, _files); INDEX.md; .obsidian/; node_modules/.
+
+The second half of that matters as much as the first. About 114k raw
+YYYY-MM-DD strings live in a lived-in vault and almost none of them are
+prose, so a rule that is not narrow is vandalism.
 
 A date is only linked when `[[YYYY-MM-DD]]` can actually resolve to the
 daily note, which means: the daily-note format's last segment is
@@ -61,19 +65,15 @@ MD_LINK = re.compile(r"!?\[[^\]\n]*\]\([^)\n]*\)")
 LINK_TARGET = re.compile(r"\]\([^)\n]*\)")
 URL = re.compile(r"(?:https?://|www\.)\S+")
 
-# Folders that are never prose, wherever they sit.
+# The three rooms the user writes in. The daily note is a timeline of the
+# user's life and work, so this list IS the rule, not an optimisation of
+# it: 06 AI Team/ is the team's operating record and never links in.
+USER_ROOMS = ("04 Inner World", "03 WiP", "01 Inbox")
+# Folders that are never prose, wherever they sit inside those rooms.
 EXCLUDED_SEGMENTS = {".obsidian", ".git", ".trash", "node_modules",
-                     "__pycache__", "Templates", "AI Sessions"}
+                     "__pycache__", "Templates"}
 # Walking these answers nothing and costs everything.
 PRUNE = {".obsidian", ".git", ".trash", "node_modules", "__pycache__"}
-# Subfolders of AI Team Knowledge whose dates are references, not prose.
-# Scripts/ is here for the same reason as the other six: its READMEs date
-# their own changes ("the template column, added 2026-09-09") and its test
-# fixtures carry synthetic dates like 2099-01-05. Linking those creates a
-# daily note for a day nobody lived, which is the exact clutter this rule
-# exists to avoid.
-KNOWLEDGE_EXCLUDED = {"SOPs", "Guidelines", "Workstreams", "Tasks",
-                      "Session Logs", "Templates", "Scripts"}
 EXCLUDED_NAMES = {"index.md"}
 
 OBSIDIAN_DEFAULT = {"folder": "", "format": "YYYY-MM-DD"}
@@ -142,18 +142,12 @@ def in_scope(rel: Path) -> bool:
         return False
     if rel.name.lower() in EXCLUDED_NAMES or rel.name.startswith("_"):
         return False
+    if parts[0] not in USER_ROOMS:
+        return False
     for seg in parts[:-1]:
         if seg.startswith("_") or seg in EXCLUDED_SEGMENTS:
             return False
-    top = parts[0]
-    if top in ("04 Inner World", "03 WiP", "01 Inbox"):
-        return True
-    if top == "06 AI Team" and len(parts) > 2:
-        if parts[1] == "AI Team Knowledge":
-            return not (len(parts) > 3 and parts[2] in KNOWLEDGE_EXCLUDED)
-        if parts[1] == "Agents" and len(parts) > 3:
-            return any(p.lower() == "journal" for p in parts[2:-1])
-    return False
+    return True
 
 
 def walk(root: Path):

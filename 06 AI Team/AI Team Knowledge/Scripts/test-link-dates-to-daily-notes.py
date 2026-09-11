@@ -71,14 +71,18 @@ def build(root: Path):
           "The meeting on 2026-07-04 is the one.\n")
     write(root, "04 Inner World/Notes/2026-07-04.md", "A note that stole the name.\n")
 
-    # Out of scope by folder: both must stay untouched.
+    # Out of scope: ALL of 06 AI Team/. The daily note is a timeline of the
+    # user's life, not of the team's housekeeping, so none of these three
+    # may be touched and none may create a daily note.
     write(root, "06 AI Team/AI Team Knowledge/Session Logs/2026/09/log.md",
           "Session on 2026-09-11.\n")
     write(root, "06 AI Team/AI Team Knowledge/Templates/journal.md",
           "Template date 2026-09-11.\n")
-    # In scope: an agent journal.
     write(root, "06 AI Team/Agents/Silas/journal/entry.md",
           "Shipped on 2026-08-01.\n")
+    # In scope: the third user room.
+    write(root, "01 Inbox/Outer World/clip.md",
+          "Kept because of the talk on 2026-08-01.\n")
 
     # A date already written as a link whose daily note is missing: no
     # rewrite to do, but the note behind it still has to be created.
@@ -138,11 +142,11 @@ with tempfile.TemporaryDirectory() as td:
           str(rep["collisions"]))
     check("collision date is not linked",
           not any(d == "2026-07-04" for _f, d in found))
-    check("out-of-scope folders untouched",
-          not any("Session Logs" in f or "Templates" in f for f, _d in found),
-          str(sorted(found)))
-    check("agent journal is in scope",
-          ("06 AI Team/Agents/Silas/journal/entry.md", "2026-08-01") in found)
+    check("all of 06 AI Team/ is out of scope (session log, template, agent journal)",
+          not any(f.startswith("06 AI Team/") for f, _d in found),
+          str(sorted(f for f, _d in found if f.startswith("06 AI Team/"))))
+    check("01 Inbox is in scope",
+          ("01 Inbox/Outer World/clip.md", "2026-08-01") in found)
 
     print("since filter")
     _r, rep_since = run_json(V, "--check", "--since", "2026-09-01")
@@ -169,6 +173,9 @@ with tempfile.TemporaryDirectory() as td:
     check("fix created the missing daily note with its folders",
           (V / "00 Daily Scratchpad/2026/09/2026-09-12.md").is_file()
           and (V / "00 Daily Scratchpad/2026/08/2026-08-01.md").is_file())
+    check("fix did not touch the agent journal",
+          (V / "06 AI Team/Agents/Silas/journal/entry.md")
+          .read_text(encoding="utf-8") == "Shipped on 2026-08-01.\n")
     check("created daily notes are empty",
           (V / "00 Daily Scratchpad/2026/09/2026-09-12.md").read_text() == "")
     check("an already-linked date still gets its daily note",
