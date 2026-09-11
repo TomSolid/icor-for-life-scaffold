@@ -10,7 +10,17 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
-## Unreleased
+## 1.19.0
+
+Released 2026-09-11.
+
+Capture becomes a thing you can be taught. `GL-1010` answers which of the
+five ICOR note-taking workflows you are doing, which key you press and why
+the vault ships the plugin that makes it work, with a diagram per workflow.
+`GL-1007` now states the rule in the order ICOR states it: ask what this
+connects to, before you ask where it goes. The Scratchpad ships, so quick
+capture works from any app. The Meeting Recorder is cancelled: you bring
+your own transcriber and the Scaffold owns the digest.
 
 ### Added
 
@@ -40,6 +50,22 @@ those lines and refuses to describe a removal this file does not explain.
   hotkey pointing at an id that does not exist is silently inert.
 
 ### Removed
+
+- **The Scratchpad plugin ships from its own release, not from this repo's
+  tree.** These three paths were briefly tracked here and are now gitignored
+  like every other release-staged plugin:
+
+  - `.obsidian/plugins/icor-for-life-scratchpad/main.js` now comes from the plugin's own `0.1.0` release asset, not from this repo
+  - `.obsidian/plugins/icor-for-life-scratchpad/manifest.json` now comes from the plugin's own `0.1.0` release asset, not from this repo
+  - `.obsidian/plugins/icor-for-life-scratchpad/styles.css` now comes from the plugin's own `0.1.0` release asset, not from this repo
+
+  Nothing is lost: the release zip stages all three from the plugin's own
+  published `0.1.0` release, with its build-provenance attestation, which is
+  the certified artifact by construction. This is the same path `chat`,
+  `terminal` and `canvases` already take, and it is the right one for any
+  plugin whose `main.js` is a build output its own repo does not track. If
+  you have these files in your vault, keep them: they are the plugin, and
+  the download puts them back.
 
 - **The Meeting Recorder is cancelled and the Scaffold will not record
   meetings** (Tom, 2026-09-11). You already have a transcriber you trust,

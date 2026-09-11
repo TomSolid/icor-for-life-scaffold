@@ -210,6 +210,7 @@ declare -a RELEASE_SPECS=(
   "icor-for-life-chat|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/provenance.md SECURITY.md"
   "icor-for-life-terminal|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md docs/handoff.md SECURITY.md"
   "icor-for-life-canvases|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md SECURITY.md docs/canvas-format.md docs/architecture.md"
+  "icor-for-life-scratchpad|manifest.json LICENSE README.md THIRD-PARTY-NOTICES.md SECURITY.md docs/architecture.md"
 )
 declare -a RELEASE_REMOTES=()
 for rspec in "${RELEASE_SPECS[@]}"; do
@@ -609,7 +610,8 @@ ours = {"icor-for-life-planner", "icor-for-life-focus",
         "icor-for-life-connect", "icor-for-life-chat", "icor-for-life-interface",
         "icor-for-life-scaffold-check", "icor-for-life-sqlite-viewer",
         "icor-for-life-terminal", "icor-for-life-outliner",
-        "icor-for-life-pdf-annotation", "icor-for-life-canvases"}
+        "icor-for-life-pdf-annotation", "icor-for-life-canvases",
+        "icor-for-life-scratchpad"}
 for p in sorted((enabled & ours) - present):
     print(f"community-plugins.json enables {p!r} but the zip stages no such plugin folder")
 for p in sorted((present & ours) - enabled):
