@@ -30,7 +30,9 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      (GL-1007: a note that lives on is filed under something).
  11. .obsidian/daily-notes.json carries no `template` key: the daily
      scratchpad stays blank (GL-1007), so no journal properties leak into
-     raw capture.
+     raw capture. Its `format` is the one GL-1004 names,
+     YYYY/MM/YYYY-MM-DD: check 3 enforces the nesting, and GL-1011's
+     [[YYYY-MM-DD]] links only resolve while the note is named that.
  12. .obsidian/templates.json points at 06 AI Team/AI Team Knowledge/
      Templates, every template there declares a `type` GL-1002 knows, and
      every template GL-1002's per-type table names exists. Without this
@@ -305,6 +307,21 @@ if dn.is_file():
         if isinstance(dn_cfg, dict) and "template" in dn_cfg:
             fails.append(".obsidian/daily-notes.json carries a template key "
                          f"({dn_cfg['template']!r}); the daily scratchpad stays blank (GL-1007)")
+        # The folder and the format are the two settings GL-1004 spells out,
+        # and nothing checked them until 2026-09-11: the shipped file said
+        # `YYYY-MM-DD`, so Obsidian wrote flat notes into a room check 3
+        # requires to be nested, and GL-1011's links had nothing to resolve
+        # to. Both halves are named, because either one alone is wrong.
+        DAILY_FOLDER, DAILY_FORMAT = "00 Daily Scratchpad", "YYYY/MM/YYYY-MM-DD"
+        if isinstance(dn_cfg, dict):
+            if dn_cfg.get("folder") != DAILY_FOLDER:
+                fails.append(f".obsidian/daily-notes.json folder is "
+                             f"{dn_cfg.get('folder')!r}, not {DAILY_FOLDER!r} (GL-1004)")
+            if dn_cfg.get("format") != DAILY_FORMAT:
+                fails.append(f".obsidian/daily-notes.json format is "
+                             f"{dn_cfg.get('format')!r}, not {DAILY_FORMAT!r}; check 3 "
+                             f"requires YYYY/MM/ nesting and GL-1011's [[YYYY-MM-DD]] "
+                             f"links need the note named YYYY-MM-DD")
 
 # --- 12. the Templates folder is wired up and its templates are real -------
 # GL-1007 "Doing it by hand" tells the member to press Cmd+P, run

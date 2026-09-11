@@ -1,5 +1,5 @@
 {
   "folder": "00 Daily Scratchpad",
-  "format": "YYYY-MM-DD",
+  "format": "YYYY/MM/YYYY-MM-DD",
   "autorun": false
 }

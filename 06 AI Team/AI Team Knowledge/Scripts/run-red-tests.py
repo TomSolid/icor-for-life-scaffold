@@ -859,6 +859,31 @@ with tempfile.TemporaryDirectory() as td:
     (ty_gone / ".obsidian/types.json").unlink()
     expect_fail("validate-scaffold/types-json-missing", [str(vs), str(ty_gone)])
 
+    # 52-55. GL-1011's date linker. Its own fixture suite (one case per rule
+    #     it claims, every IGNORE case a date it must NOT touch) is run whole
+    #     rather than restated here, and it carries --break-me so the suite
+    #     itself is red-tested. The two refusals below are the ones a member's
+    #     vault can actually hit: no daily-notes.json, and a daily-note format
+    #     a [[YYYY-MM-DD]] link could never resolve to.
+    linker = HERE / "link-dates-to-daily-notes.py"
+    suite = HERE / "test-link-dates-to-daily-notes.py"
+    checks += 1
+    r = subprocess.run([PY, str(suite)], capture_output=True, text=True)
+    if r.returncode != 0:
+        fails.append("link-dates-to-daily-notes/fixture-suite: " + (r.stderr or "").strip())
+    expect_fail("link-dates-to-daily-notes/suite-can-go-red", [str(suite), "--break-me"])
+    no_cfg = tmp / "dates-no-config"
+    shutil.copytree(ROOT, no_cfg, ignore=shutil.ignore_patterns(".git"))
+    (no_cfg / ".obsidian/daily-notes.json").unlink()
+    expect_refusal("link-dates-to-daily-notes/fix-without-daily-notes-json",
+                   [str(linker), str(no_cfg), "--fix"])
+    bad_fmt = tmp / "dates-bad-format"
+    shutil.copytree(ROOT, bad_fmt, ignore=shutil.ignore_patterns(".git"))
+    (bad_fmt / ".obsidian/daily-notes.json").write_text(
+        '{"folder": "00 Daily Scratchpad", "format": "DD-MM-YYYY"}\n', encoding="utf-8")
+    expect_refusal("link-dates-to-daily-notes/format-cannot-back-the-link",
+                   [str(linker), str(bad_fmt), "--check"])
+
 if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)

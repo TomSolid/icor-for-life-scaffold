@@ -108,6 +108,11 @@ answer before you may write, and that is exactly the friction the door
 exists to remove. Frontmatter appears on a scratchpad only when the team
 stamps it as processed, never before.
 
+**It fills up from the outside.** A blank daily note still earns its place,
+because every date written elsewhere in the vault links to it:
+[[GL-1011-date-mentions-link-to-daily-notes|GL-1011]] has the rule and the
+script that enforces it.
+
 ## Door 2: the Outer World inbox
 
 Anything with another author lands in `01 Inbox/Outer World/`: a web clip,

@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""test-link-dates-to-daily-notes.py: the red tests for GL-1011's guard.
+
+Builds a throwaway vault in a temp folder, one fixture per rule the script
+claims, and asserts the script says what it claims. GL-1005 rule 4: a gate
+nobody has watched go red is not a gate, so every IGNORE fixture here is a
+date the script must NOT touch, and the suite fails if it touches one.
+
+Run it with --break-me to prove the suite itself can go red: it flips one
+assertion's expectation and the run must end in FAIL.
+
+Usage:  test-link-dates-to-daily-notes.py [--break-me]
+Exit 0 = every case held. Exit 1 = a case did not.
+"""
+import json, re, shutil, subprocess, sys, tempfile
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SCRIPT = HERE / "link-dates-to-daily-notes.py"
+PY = sys.executable
+BREAK = "--break-me" in sys.argv[1:]
+
+fails = []
+checks = 0
+
+
+def check(name, ok, detail=""):
+    global checks
+    checks += 1
+    if ok:
+        print(f"  ok   {name}")
+    else:
+        fails.append(f"{name}: {detail}")
+        print(f"  FAIL {name}: {detail}")
+
+
+def build(root: Path):
+    """A minimal vault: the rooms the script needs, plus one fixture file
+    per rule."""
+    (root / ".obsidian").mkdir(parents=True)
+    (root / ".obsidian" / "daily-notes.json").write_text(json.dumps(
+        {"folder": "00 Daily Scratchpad", "format": "YYYY/MM/YYYY-MM-DD"}),
+        encoding="utf-8")
+    for d in ("00 Daily Scratchpad", "04 Inner World/Notes",
+              "06 AI Team/AI Team Knowledge/Session Logs",
+              "06 AI Team/AI Team Knowledge/Templates",
+              "06 AI Team/Agents/Silas/journal"):
+        (root / d).mkdir(parents=True, exist_ok=True)
+
+    write(root, "04 Inner World/Notes/bare.md",
+          "---\ncreated: 2026-01-05\ndue: 2026-01-06\n---\n"
+          "We met on 2026-09-11 and again on 2026-09-12.\n")
+
+    write(root, "04 Inner World/Notes/code.md",
+          "Prose has none here.\n\n```python\nd = '2026-03-04'\n```\n"
+          "And inline `2026-03-05` stays code.\n")
+
+    write(root, "04 Inner World/Notes/tokens.md",
+          "See [[2026-09-11-jeff-meyers-stood-up]] and "
+          "[[2026-09-11]] already linked.\n"
+          "Stamp 2026-09-11T14:12 and id tsk-2026-09-09-020 and "
+          "run 2026-09-11-14-30 stay bare.\n"
+          "The file 2026-09-11.md and the path Journal/2026/09 stay bare.\n"
+          "A link https://example.com/blog/2026-09-11/post stays bare.\n"
+          "A markdown [2026-09-11](./x.md) stays bare.\n")
+
+    write(root, "04 Inner World/Notes/invalid.md",
+          "Not a date: 2026-13-45 and 2026-02-30 are both impossible.\n")
+
+    write(root, "04 Inner World/Notes/collides.md",
+          "The meeting on 2026-07-04 is the one.\n")
+    write(root, "04 Inner World/Notes/2026-07-04.md", "A note that stole the name.\n")
+
+    # Out of scope by folder: both must stay untouched.
+    write(root, "06 AI Team/AI Team Knowledge/Session Logs/2026/09/log.md",
+          "Session on 2026-09-11.\n")
+    write(root, "06 AI Team/AI Team Knowledge/Templates/journal.md",
+          "Template date 2026-09-11.\n")
+    # In scope: an agent journal.
+    write(root, "06 AI Team/Agents/Silas/journal/entry.md",
+          "Shipped on 2026-08-01.\n")
+
+    # A date already written as a link whose daily note is missing: no
+    # rewrite to do, but the note behind it still has to be created.
+    write(root, "04 Inner World/Notes/prelinked.md",
+          "Booked for [[2026-10-20]] and [[2026-10-21|that Tuesday]].\n")
+
+    # The daily note that already exists; the others must be created.
+    write(root, "00 Daily Scratchpad/2026/09/2026-09-11.md", "")
+
+
+def write(root, rel, text):
+    p = root / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(text, encoding="utf-8")
+
+
+def run(root, *args):
+    r = subprocess.run([PY, str(SCRIPT), str(root), *args],
+                       capture_output=True, text=True)
+    return r
+
+
+def run_json(root, *args):
+    r = run(root, *args, "--json")
+    try:
+        return r, json.loads(r.stdout)
+    except ValueError:
+        return r, {"items": [], "collisions": {}, "_stdout": r.stdout,
+                   "_stderr": r.stderr}
+
+
+with tempfile.TemporaryDirectory() as td:
+    V = Path(td) / "vault"
+    V.mkdir()
+    build(V)
+
+    print("check mode")
+    r, rep = run_json(V, "--check")
+    found = {(i["file"], i["date"]) for i in rep["items"]}
+
+    check("check exits 1 when mentions exist", r.returncode == 1,
+          f"exit {r.returncode}")
+    check("bare date in body is flagged",
+          ("04 Inner World/Notes/bare.md", "2026-09-11") in found
+          and ("04 Inner World/Notes/bare.md", "2026-09-12") in found,
+          str(sorted(found)))
+    check("frontmatter date is ignored",
+          not any(d in ("2026-01-05", "2026-01-06") for _f, d in found))
+    check("fenced and inline code ignored",
+          not any(f.endswith("code.md") for f, _d in found))
+    check("token shapes ignored (slug, wikilink, ISO stamp, id, file, url, md link)",
+          not any(f.endswith("tokens.md") for f, _d in found),
+          str(sorted(f for f, _d in found if f.endswith("tokens.md"))))
+    check("impossible dates ignored",
+          not any(f.endswith("invalid.md") for f, _d in found))
+    check("collision is reported", "2026-07-04" in rep["collisions"],
+          str(rep["collisions"]))
+    check("collision date is not linked",
+          not any(d == "2026-07-04" for _f, d in found))
+    check("out-of-scope folders untouched",
+          not any("Session Logs" in f or "Templates" in f for f, _d in found),
+          str(sorted(found)))
+    check("agent journal is in scope",
+          ("06 AI Team/Agents/Silas/journal/entry.md", "2026-08-01") in found)
+
+    print("since filter")
+    _r, rep_since = run_json(V, "--check", "--since", "2026-09-01")
+    check("--since drops earlier dates",
+          all(i["date"] >= "2026-09-01" for i in rep_since["items"])
+          and any(i["date"] == "2026-09-11" for i in rep_since["items"]))
+
+    print("dry-run writes nothing")
+    before = {p: p.read_bytes() for p in V.rglob("*.md")}
+    _r, rep_dry = run_json(V, "--dry-run")
+    after = {p: p.read_bytes() for p in V.rglob("*.md")}
+    check("dry-run leaves every byte alone", before == after)
+    check("dry-run counts what fix would do",
+          rep_dry["mentions"] == rep["mentions"]
+          and rep_dry["daily_notes_created"] > 0)
+
+    print("fix")
+    r_fix, rep_fix = run_json(V, "--fix")
+    body = (V / "04 Inner World/Notes/bare.md").read_text(encoding="utf-8")
+    check("fix wrote the links",
+          "[[2026-09-11]]" in body and "[[2026-09-12]]" in body, body)
+    check("fix left frontmatter bare",
+          "created: 2026-01-05\n" in body and "[[2026-01-05]]" not in body)
+    check("fix created the missing daily note with its folders",
+          (V / "00 Daily Scratchpad/2026/09/2026-09-12.md").is_file()
+          and (V / "00 Daily Scratchpad/2026/08/2026-08-01.md").is_file())
+    check("created daily notes are empty",
+          (V / "00 Daily Scratchpad/2026/09/2026-09-12.md").read_text() == "")
+    check("an already-linked date still gets its daily note",
+          (V / "00 Daily Scratchpad/2026/10/2026-10-20.md").is_file()
+          and (V / "00 Daily Scratchpad/2026/10/2026-10-21.md").is_file())
+    check("an already-linked file is not rewritten",
+          (V / "04 Inner World/Notes/prelinked.md").read_text(encoding="utf-8")
+          == "Booked for [[2026-10-20]] and [[2026-10-21|that Tuesday]].\n")
+    check("fix did not touch the out-of-scope session log",
+          (V / "06 AI Team/AI Team Knowledge/Session Logs/2026/09/log.md")
+          .read_text(encoding="utf-8") == "Session on 2026-09-11.\n")
+    check("fix did not touch the code fence",
+          "[[2026-03-04]]" not in
+          (V / "04 Inner World/Notes/code.md").read_text(encoding="utf-8"))
+
+    print("idempotency")
+    snap = {p: p.read_bytes() for p in V.rglob("*.md")}
+    run(V, "--fix")
+    check("second --fix changes nothing",
+          {p: p.read_bytes() for p in V.rglob("*.md")} == snap)
+    r_after = run(V, "--check")
+    check("--check is green after --fix (bar the collision)",
+          r_after.returncode == 0, r_after.stdout + r_after.stderr)
+
+    print("refusals")
+    V2 = Path(td) / "no-config"
+    shutil.copytree(V, V2)
+    (V2 / ".obsidian" / "daily-notes.json").unlink()
+    r_nc = run(V2, "--fix")
+    check("--fix refuses without daily-notes.json", r_nc.returncode == 2,
+          f"exit {r_nc.returncode}")
+    r_nc2 = run(V2, "--check")
+    check("--check warns and falls back instead of refusing",
+          r_nc2.returncode in (0, 1) and "WARNING" in r_nc2.stderr,
+          r_nc2.stderr)
+
+    V3 = Path(td) / "bad-format"
+    shutil.copytree(V, V3)
+    (V3 / ".obsidian" / "daily-notes.json").write_text(
+        json.dumps({"folder": "00 Daily Scratchpad", "format": "DD-MM-YYYY"}),
+        encoding="utf-8")
+    r_bf = run(V3, "--check")
+    check("a format that cannot back a [[YYYY-MM-DD]] link is refused",
+          r_bf.returncode == 2 and "YYYY-MM-DD" in r_bf.stderr, r_bf.stderr)
+
+    if BREAK:
+        check("DELIBERATE: frontmatter date must be flagged (it must not be)",
+              any(d == "2026-01-05" for _f, d in found),
+              "the suite is proving it can go red")
+
+print()
+if fails:
+    print(f"FAIL {len(fails)} of {checks} cases", file=sys.stderr)
+    for f in fails:
+        print("  " + f, file=sys.stderr)
+    sys.exit(1)
+print(f"OK {checks} cases held")
+sys.exit(0)

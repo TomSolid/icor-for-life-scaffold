@@ -10,6 +10,70 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## Unreleased
+
+A date you write is a link to that day. Empty daily notes stop being empty:
+they fill up from the outside, by backlink, from every note that mentions
+the day.
+
+### Added
+
+- **`GL-1011` Date mentions link to daily notes.** A full date written in a
+  note body is `[[YYYY-MM-DD]]` and resolves to that day's daily note; the
+  daily note is created blank if it is missing. The value is the backlink
+  pane: a daily note with nothing in it still shows the journal entry, the
+  meeting, the contact and the brief that named that day, assembled by the
+  vault rather than by you. The guideline states the scope twice, because
+  scope is the whole rule: a lived-in vault holds around 114k `YYYY-MM-DD`
+  strings and almost none of them are prose. Frontmatter dates stay bare and
+  that is stated plainly: a typed date there is data that Bases and every
+  script read, and a wikilink in a date field is a broken value.
+- **`Scripts/link-dates-to-daily-notes.py`**, which enforces it
+  (`--check`, `--dry-run`, `--fix`, `--since`, `--json`). It reads the
+  folder and the format from `.obsidian/daily-notes.json` rather than
+  assuming a room, refuses `--fix` when that file is absent, and refuses
+  outright when the format's last segment is not `YYYY-MM-DD`, because a
+  `[[YYYY-MM-DD]]` link could not resolve to a note named anything else.
+  Frontmatter, code fences, inline code, existing wikilinks, link targets,
+  URLs, slugs, ids, ISO timestamps, filenames, archives and templates are
+  all out of scope, and a date whose name is taken by some other note is
+  reported as a collision and left alone rather than linked into ambiguity.
+  Idempotent: a second `--fix` changes nothing.
+- **`Scripts/test-link-dates-to-daily-notes.py`**, 26 cases over a fixture
+  vault, one per rule the script claims, where every IGNORE case is a date
+  it must not touch. `--break-me` flips one expectation so the suite itself
+  can be watched going red. `run-red-tests.py` runs the whole suite plus the
+  two refusals a member's vault can actually hit.
+- **`checkpoint.py --assert-dates-linked`**, and a `date links` row in the
+  report. The count is asked of `link-dates-to-daily-notes.py --check`
+  rather than re-implemented, so GL-1011's scope has one home; a count it
+  could not read prints as `unknown`, never as `0`.
+- **`validate-scaffold.py` check 11 now also reads `folder` and `format`**
+  from `.obsidian/daily-notes.json` and requires the two values `GL-1004`
+  names.
+
+### Fixed
+
+- **The shipped `.obsidian/daily-notes.json` said `format: YYYY-MM-DD`**,
+  so Obsidian wrote daily notes flat into `00 Daily Scratchpad/` while
+  `GL-1004` said `YYYY/MM/YYYY-MM-DD` and `validate-scaffold.py` check 3
+  required the nesting. Nothing read the setting, so the contradiction
+  survived every release. Found by the new linker, which reads the format
+  instead of assuming it, then created a note the validator rejected. The
+  new half of check 11 is the guard that keeps it from coming back.
+- **`.gitignore` ignored daily notes only in the flat shape** it no longer
+  uses (`00 Daily Scratchpad/2026-*.md`), so a nested daily note was
+  trackable and could have shipped in the zip. Personal data must never
+  reach a release. The nested shape is now ignored too.
+
+### Changed
+
+- **`WS-1005` gains step 4**, the date-link pass, before the session log is
+  written, so the log's own dates are linked; its final assertion is now
+  `checkpoint.py --assert-logged --assert-dates-linked`.
+- **`GL-1007`** gains one line under "The daily note is blank", pointing at
+  `GL-1011`: the note stays blank, and it fills up from the outside.
+
 ## 1.19.2
 
 Released 2026-09-11.

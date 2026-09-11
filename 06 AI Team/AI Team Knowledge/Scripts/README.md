@@ -28,6 +28,7 @@ it actually says no.
 | `find-entity.py` | Finds the entity note a name or an alias belongs to, so one thing never gets two notes | `find-entity.py "Alex Rivera"` |
 | `import-file.py` | Copies one external file into the scaffold with the placement rules enforced | `import-file.py <path>` |
 | `import-inventory.py` | Scans an external knowledge source and reports what is in it, as JSON, before anything is imported | `import-inventory.py <folder>` |
+| `link-dates-to-daily-notes.py` | Turns a full date written in a note body into `[[YYYY-MM-DD]]`, and creates the daily note it points at, so the backlinks alone make a blank daily note the timeline of that day (GL-1011) | `link-dates-to-daily-notes.py --fix` |
 | `mint-agent-ids.py` | Gives every agent contract its stable `myicor_id`, and checks that none is missing, malformed or shared | `mint-agent-ids.py --check` |
 | `new-base.py` | Stamps a house-shaped `.base` for one entity collection; also the one parser of GL-1002's per-type table that every other script reads | `new-base.py note` |
 | `new-entity.py` | Creates one entity note from its template, in its room, already linked and with its required fields filled | `new-entity.py note "Title" --link "[[Health]]" --set note_type=outline` |
@@ -37,6 +38,7 @@ it actually says no.
 | `new-task.py` | Creates a task, or moves one through open, in-progress, done and cancelled | `new-task.py new --slug ... --title ... --assignee penn` |
 | `open-in-obsidian.py` | Opens a vault file in Obsidian, in a new tab (the guided tour and the diagram rule use it) | `open-in-obsidian.py "<vault relative path>"` |
 | `run-red-tests.py` | Feeds every guard in this folder something it must reject and confirms it says no | `run-red-tests.py` |
+| `test-link-dates-to-daily-notes.py` | The fixture suite behind `link-dates-to-daily-notes.py`: one case per rule it claims, every IGNORE case a date it must not touch | `test-link-dates-to-daily-notes.py` |
 | `stamp-processed.py` | Stamps a scratchpad, a capture or a document wrapper note as processed, and moves the original where it belongs | `stamp-processed.py <note> --summary "..." --into "[[x]]"` |
 | `validate-scaffold.py` | Validates the structure: the rooms, the names, the date nesting, the file-tree styling, the templates and the property types | `validate-scaffold.py` |
 

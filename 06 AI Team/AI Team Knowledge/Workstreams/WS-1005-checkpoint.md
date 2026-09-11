@@ -4,13 +4,13 @@ id: WS-1005
 title: Checkpoint (end a session on purpose)
 created: 2026-09-06
 owner: larry
-uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[WS-1002-weekly-review]]", "[[GL-1005-code-vs-instructions]]"]
+uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[WS-1002-weekly-review]]", "[[GL-1005-code-vs-instructions]]", "[[GL-1011-date-mentions-link-to-daily-notes]]"]
 ---
 # WS-1005 Checkpoint
 
 A session ends when you close the terminal, and nothing fires on its own.
 The checkpoint is the forcing function: **you** type `/checkpoint`, and the
-team answers four questions before the session is allowed to be over. Run it
+team answers five questions before the session is allowed to be over. Run it
 whenever you stop for the day, and whenever a piece of work is done.
 
 1. [SCRIPT] `Scripts/checkpoint.py` prints the facts: the last session
@@ -27,13 +27,20 @@ whenever you stop for the day, and whenever a piece of work is done.
    archiving it ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]
    step 4). Archive only what the user confirms; a folder they name as
    ongoing stays, and the reason goes in the log.
-4. [SCRIPT] **Session log.** `Scripts/new-session-log.py --agent larry
+4. [SCRIPT] **Date links.** `Scripts/link-dates-to-daily-notes.py --fix`
+   turns every date this session wrote into a note body into
+   `[[YYYY-MM-DD]]` and creates the daily notes behind them
+   ([[GL-1011-date-mentions-link-to-daily-notes|GL-1011]]). It runs before
+   the log is written, so the log's own dates are linked too. Additive and
+   idempotent; nothing to rule on.
+5. [SCRIPT] **Session log.** `Scripts/new-session-log.py --agent larry
    --slug <what-happened>`, then fill it per
    [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]: what
    happened, decisions, open threads. Agents that learned something
    durable append to their own `Journal/`.
-5. [SCRIPT] `Scripts/checkpoint.py --assert-logged` must exit 0. A
-   checkpoint that ends without today's log is not a checkpoint.
+6. [SCRIPT] `Scripts/checkpoint.py --assert-logged --assert-dates-linked`
+   must exit 0. A checkpoint that ends without today's log is not a
+   checkpoint, and neither is one that leaves a date pointing at nothing.
 
 **What it does not do.** It does not process the Inbox or the Scratchpad
 (that is [[WS-1001-daily-processing-run|WS-1001]], on your word), and it

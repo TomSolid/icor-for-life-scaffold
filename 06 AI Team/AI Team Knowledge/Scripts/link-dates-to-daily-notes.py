@@ -1,0 +1,382 @@
+#!/usr/bin/env python3
+"""link-dates-to-daily-notes.py: a full date written in a note body is a
+link to that day's daily note (GL-1011).
+
+Why. An empty daily note is worth nothing on its own. The same note with
+forty backlinks is the timeline of everything that touched that day, and
+the backlinks arrive for free the moment the date is written as a link.
+So `2026-09-11` in prose becomes `[[2026-09-11]]`, and the daily note is
+created empty if it does not exist yet.
+
+Everything here is deterministic (GL-1005): which spans are prose, which
+are data, which dates are real. Nothing in this file decides what a date
+MEANS.
+
+Scope is the whole point. About 114k raw YYYY-MM-DD strings live in this
+vault and almost none of them are prose: they are frontmatter values,
+filenames, wikilink targets, ISO timestamps and ids. Linking those would
+be vandalism, so the scope is narrow and stated twice, here and in
+GL-1011.
+
+  IN   the body (after the closing frontmatter ---) of .md files under
+       04 Inner World/, 03 WiP/, 01 Inbox/, 06 AI Team/AI Team Knowledge/
+       (minus SOPs, Guidelines, Workstreams, Tasks, Session Logs,
+       Templates) and 06 AI Team/Agents/<Name>/journal/.
+  OUT  YAML frontmatter (typed dates are data, GL-1002); fenced and
+       inline code; anything already inside [[...]]; markdown link
+       targets and URLs; a date that is part of a longer token
+       (2026-09-11-slug, tsk-2026-09-09-020, 2026-09-11T14:12,
+       2026-09-11.md); any path segment starting with _ (archives,
+       snapshots, _files); Templates/; AI Sessions/; the daily-note
+       folder itself; INDEX.md; .obsidian/; node_modules/.
+
+A date is only linked when `[[YYYY-MM-DD]]` can actually resolve to the
+daily note, which means: the daily-note format's last segment is
+YYYY-MM-DD, and no OTHER note in the vault is named YYYY-MM-DD.md. A
+second file with that name makes the wikilink ambiguous, so that date is
+reported as a collision and left alone.
+
+Usage:
+  link-dates-to-daily-notes.py [<vault-root>] [--check|--dry-run|--fix]
+                               [--since YYYY-MM-DD] [--json]
+
+Exit codes: 0 clean | 1 unlinked mentions found (--check) | 2 cannot run
+"""
+import argparse, datetime, json, os, re, sys
+from pathlib import Path
+
+# A date delimited by anything that is not a word character, a hyphen or a
+# slash, and not followed by a file extension. The three exclusions are the
+# three shapes that look like a date and are not prose: a slug
+# (2026-09-11-jeff-meyers), an ISO timestamp or id (2026-09-11T14:12,
+# tsk-2026-09-09-020) and a path or filename (Journal/2026/09, 2026-09-11.md).
+DATE = re.compile(r"(?<![\w\-/])(\d{4})-(\d{2})-(\d{2})(?![\w\-/])(?!\.\w)")
+
+DAILY_LINK = re.compile(r"\[\[(\d{4}-\d{2}-\d{2})(?:\|[^\]\n]*)?\]\]")
+
+FRONTMATTER = re.compile(r"^---\r?\n.*?^(?:---|\.\.\.)[ \t]*\r?\n", re.S | re.M)
+INLINE_CODE = re.compile(r"`[^`\n]*`")
+WIKILINK = re.compile(r"!?\[\[[^\]\n]*\]\]")
+MD_LINK = re.compile(r"!?\[[^\]\n]*\]\([^)\n]*\)")
+LINK_TARGET = re.compile(r"\]\([^)\n]*\)")
+URL = re.compile(r"(?:https?://|www\.)\S+")
+
+# Folders that are never prose, wherever they sit.
+EXCLUDED_SEGMENTS = {".obsidian", ".git", ".trash", "node_modules",
+                     "__pycache__", "Templates", "AI Sessions"}
+# Walking these answers nothing and costs everything.
+PRUNE = {".obsidian", ".git", ".trash", "node_modules", "__pycache__"}
+# Subfolders of AI Team Knowledge whose dates are references, not prose.
+# Scripts/ is here for the same reason as the other six: its READMEs date
+# their own changes ("the template column, added 2026-09-09") and its test
+# fixtures carry synthetic dates like 2099-01-05. Linking those creates a
+# daily note for a day nobody lived, which is the exact clutter this rule
+# exists to avoid.
+KNOWLEDGE_EXCLUDED = {"SOPs", "Guidelines", "Workstreams", "Tasks",
+                      "Session Logs", "Templates", "Scripts"}
+EXCLUDED_NAMES = {"index.md"}
+
+OBSIDIAN_DEFAULT = {"folder": "", "format": "YYYY-MM-DD"}
+
+
+def fail(msg):
+    print("FAIL " + msg, file=sys.stderr)
+    sys.exit(2)
+
+
+# --- the daily-note contract ----------------------------------------------
+
+def read_daily_config(root: Path, allow_default: bool):
+    """Read .obsidian/daily-notes.json. Never hardcode the folder: a member
+    may have moved it, and a script that assumes the path writes into the
+    wrong room silently."""
+    cfg_file = root / ".obsidian" / "daily-notes.json"
+    if not cfg_file.is_file():
+        if not allow_default:
+            fail(f"no {cfg_file.relative_to(root)}; cannot know where daily "
+                 f"notes live, and guessing would write into the wrong room")
+        print(f"WARNING no .obsidian/daily-notes.json; falling back to "
+              f"Obsidian's defaults (folder '', format YYYY-MM-DD)",
+              file=sys.stderr)
+        return dict(OBSIDIAN_DEFAULT), True
+    try:
+        cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
+    except ValueError as e:
+        fail(f".obsidian/daily-notes.json is not valid JSON: {e}")
+    cfg = {"folder": cfg.get("folder", ""),
+           "format": cfg.get("format") or OBSIDIAN_DEFAULT["format"]}
+    return cfg, False
+
+
+def render_format(cfg, d: datetime.date) -> str:
+    return (cfg["format"].replace("YYYY", f"{d.year:04d}")
+                         .replace("MM", f"{d.month:02d}")
+                         .replace("DD", f"{d.day:02d}"))
+
+
+def daily_note_path(root: Path, cfg, d: datetime.date) -> Path:
+    rel = render_format(cfg, d)
+    folder = (cfg.get("folder") or "").strip("/")
+    return root / folder / (rel + ".md") if folder else root / (rel + ".md")
+
+
+def check_format(cfg):
+    """`[[YYYY-MM-DD]]` only resolves if the note is NAMED YYYY-MM-DD. Any
+    other format makes every link this script writes point at nothing, so
+    refuse rather than produce 3000 dangling links."""
+    last = cfg["format"].replace("\\", "/").split("/")[-1]
+    if last != "YYYY-MM-DD":
+        fail(f"daily-note format ends in '{last}', not 'YYYY-MM-DD'; a "
+             f"[[YYYY-MM-DD]] link could not resolve to it (GL-1011)")
+    probe = render_format(cfg, datetime.date(2026, 1, 2))
+    if re.search(r"[A-Za-z]", probe):
+        fail(f"daily-note format '{cfg['format']}' uses tokens this script "
+             f"does not understand; only YYYY, MM and DD are supported")
+
+
+# --- scope -----------------------------------------------------------------
+
+def in_scope(rel: Path) -> bool:
+    parts = rel.parts
+    if not parts or not rel.name.lower().endswith(".md"):
+        return False
+    if rel.name.lower() in EXCLUDED_NAMES or rel.name.startswith("_"):
+        return False
+    for seg in parts[:-1]:
+        if seg.startswith("_") or seg in EXCLUDED_SEGMENTS:
+            return False
+    top = parts[0]
+    if top in ("04 Inner World", "03 WiP", "01 Inbox"):
+        return True
+    if top == "06 AI Team" and len(parts) > 2:
+        if parts[1] == "AI Team Knowledge":
+            return not (len(parts) > 3 and parts[2] in KNOWLEDGE_EXCLUDED)
+        if parts[1] == "Agents" and len(parts) > 3:
+            return any(p.lower() == "journal" for p in parts[2:-1])
+    return False
+
+
+def walk(root: Path):
+    """One walk answers both questions: which files are in scope, and which
+    notes are named YYYY-MM-DD.md anywhere in the vault."""
+    scoped, named = [], {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in PRUNE]
+        here = Path(dirpath)
+        for name in filenames:
+            if not name.lower().endswith(".md"):
+                continue
+            rel = (here / name).relative_to(root)
+            stem = name[:-3]
+            if DATE.fullmatch(stem):
+                named.setdefault(stem, []).append(rel)
+            if in_scope(rel):
+                scoped.append(rel)
+    return sorted(scoped), named
+
+
+def collisions(root, cfg, named):
+    """A date whose name is taken by a note that is NOT its daily note. The
+    wikilink would be ambiguous, so the date is reported and never linked."""
+    bad = {}
+    for stem, rels in named.items():
+        try:
+            d = datetime.date.fromisoformat(stem)
+        except ValueError:
+            continue
+        want = daily_note_path(root, cfg, d).relative_to(root)
+        others = [r for r in rels if r != want]
+        if others:
+            bad[stem] = sorted(str(o) for o in others)
+    return bad
+
+
+# --- reading one file ------------------------------------------------------
+
+def body_offset(text: str) -> int:
+    if not text.startswith("---"):
+        return 0
+    m = FRONTMATTER.match(text)
+    return m.end() if m else len(text)
+
+
+def masked(body: str) -> bytearray:
+    """Mark every span that is not prose. Cheap, and the only thing standing
+    between this script and rewriting a code sample."""
+    mask = bytearray(len(body))
+
+    def mark(lo, hi):
+        for i in range(lo, hi):
+            mask[i] = 1
+
+    pos, open_at, fence = 0, None, None
+    for line in body.splitlines(keepends=True):
+        m = re.match(r"[ \t]{0,3}(`{3,}|~{3,})", line)
+        if m:
+            mark_char = m.group(1)[0]
+            if open_at is None:
+                open_at, fence = pos, mark_char
+            elif mark_char == fence:
+                mark(open_at, pos + len(line))
+                open_at, fence = None, None
+        pos += len(line)
+    if open_at is not None:          # unclosed fence: treat the rest as code
+        mark(open_at, len(body))
+
+    for rx in (INLINE_CODE, WIKILINK, MD_LINK, LINK_TARGET, URL):
+        for m in rx.finditer(body):
+            mark(*m.span())
+    return mask
+
+
+def mentions(text: str, since):
+    """Every bare, real, prose date in the body, as (start, end, date)."""
+    start = body_offset(text)
+    body = text[start:]
+    mask = masked(body)
+    out = []
+    for m in DATE.finditer(body):
+        if mask[m.start()]:
+            continue
+        try:
+            d = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            continue                 # 2026-13-45 is not a date
+        if since and d < since:
+            continue
+        out.append((start + m.start(), start + m.end(), d))
+    return out
+
+
+def already_linked(text: str, since):
+    """Dates that ALREADY point at a daily note. They need no rewrite, but
+    the note behind them still has to exist: a link is only worth writing
+    while it lands somewhere, and a member may have typed [[2026-09-11]] by
+    hand or deleted the note afterwards."""
+    body = text[body_offset(text):]
+    out = set()
+    for m in DAILY_LINK.finditer(body):
+        try:
+            d = datetime.date.fromisoformat(m.group(1))
+        except ValueError:
+            continue
+        if not since or d >= since:
+            out.add(d)
+    return out
+
+
+def line_of(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+# --- main ------------------------------------------------------------------
+
+ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+ap.add_argument("root", nargs="?", default=None)
+mode = ap.add_mutually_exclusive_group()
+mode.add_argument("--check", action="store_true", help="list unlinked mentions, exit 1 if any (default)")
+mode.add_argument("--dry-run", action="store_true", help="what --fix would do, no writes")
+mode.add_argument("--fix", action="store_true", help="write the links and create the missing daily notes")
+ap.add_argument("--since", default=None, help="only mentions of dates on or after this day, YYYY-MM-DD")
+ap.add_argument("--json", action="store_true")
+a = ap.parse_args()
+
+ROOT = Path(a.root).resolve() if a.root else Path(__file__).resolve().parents[3]
+if not ROOT.is_dir():
+    fail(f"{ROOT} is not a folder")
+MODE = "fix" if a.fix else "dry-run" if a.dry_run else "check"
+try:
+    SINCE = datetime.date.fromisoformat(a.since) if a.since else None
+except ValueError:
+    fail(f"--since {a.since} is not a YYYY-MM-DD date")
+
+CFG, DEFAULTED = read_daily_config(ROOT, allow_default=(MODE == "check"))
+check_format(CFG)
+
+files, named = walk(ROOT)
+COLLIDING = collisions(ROOT, CFG, named)
+
+items, per_file, wanted_days = [], {}, set()
+for rel in files:
+    path = ROOT / rel
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        continue
+    wanted_days |= {d for d in already_linked(text, SINCE)
+                    if d.isoformat() not in COLLIDING}
+    found = [(s, e, d) for (s, e, d) in mentions(text, SINCE)
+             if d.isoformat() not in COLLIDING]
+    if not found:
+        continue
+    per_file[rel] = (text, found)
+    for s, _e, d in found:
+        items.append({"file": str(rel), "line": line_of(text, s),
+                      "date": d.isoformat()})
+        wanted_days.add(d)
+
+missing_days = sorted(d for d in wanted_days
+                      if not daily_note_path(ROOT, CFG, d).is_file())
+
+changed, created = 0, 0
+if MODE == "fix":
+    for rel, (text, found) in sorted(per_file.items()):
+        out = text
+        for s, e, d in reversed(found):          # back to front keeps offsets
+            out = out[:s] + "[[" + out[s:e] + "]]" + out[e:]
+        # newline='' keeps the file's own line endings and final byte intact
+        with open(ROOT / rel, "w", encoding="utf-8", newline="") as fh:
+            fh.write(out)
+        changed += 1
+    for d in missing_days:
+        p = daily_note_path(ROOT, CFG, d)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.touch()                                # blank on purpose (GL-1007)
+        created += 1
+else:
+    changed, created = len(per_file), len(missing_days)
+
+report = {
+    "root": str(ROOT),
+    "mode": MODE,
+    "since": a.since,
+    "daily_folder": CFG.get("folder", ""),
+    "daily_format": CFG["format"],
+    "daily_config_defaulted": DEFAULTED,
+    "files_scanned": len(files),
+    "files_changed": changed,
+    "mentions": len(items),
+    "daily_notes_created": created,
+    "collisions": COLLIDING,
+    "items": items,
+}
+
+if a.json:
+    print(json.dumps(report, indent=2))
+else:
+    verb = {"fix": ("changed", "linked", "created"),
+            "dry-run": ("to change", "to link", "to create"),
+            "check": ("with mentions", "unlinked", "missing")}[MODE]
+    print(f"link-dates-to-daily-notes: {MODE}"
+          + (f"  (since {a.since})" if a.since else ""))
+    print(f"  files scanned      : {len(files)}")
+    print(f"  files {verb[0]:<13}: {changed}")
+    print(f"  mentions {verb[1]:<10}: {len(items)}")
+    print(f"  daily notes {verb[2]:<7}: {created}")
+    if COLLIDING:
+        print(f"  collisions         : {len(COLLIDING)} "
+              f"(a note other than the daily note owns this name)")
+        for stem in sorted(COLLIDING):
+            for other in COLLIDING[stem]:
+                print(f"    {stem}  <-  {other}")
+    if MODE == "check":
+        for it in items:
+            print(f"    {it['file']}:{it['line']}  {it['date']}")
+
+if MODE == "check":
+    if items:
+        print(f"FAIL {len(items)} date mention(s) in scope are not linked to "
+              f"their daily note (GL-1011); run --fix", file=sys.stderr)
+        sys.exit(1)
+    print("OK every date mention in scope links to its daily note (GL-1011)")
+sys.exit(0)

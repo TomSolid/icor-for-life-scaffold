@@ -15,16 +15,21 @@ Answers, from the files alone, the questions a checkpoint asks:
      in-progress task mentions. Both facts are printed for every folder;
      the flag is only the intersection.
   3. Is there a session log for today?
+  4. How many date mentions still are not linked to their daily note?
+     Asked of link-dates-to-daily-notes.py --check, not re-implemented here,
+     so GL-1011's scope has one home.
 
 It decides nothing (GL-1005): the operator reads the report and rules.
 Exit 0 always, except --assert-logged, which exits 1 with a FAIL line when
 no session log exists for today, so a checkpoint that ended without its
-log cannot be reported green.
+log cannot be reported green, and --assert-dates-linked, which does the
+same for unlinked date mentions.
 
 Usage:
-  Scripts/checkpoint.py [<vault-root>] [--window 30] [--json] [--assert-logged]
+  Scripts/checkpoint.py [<vault-root>] [--window 30] [--json]
+                        [--assert-logged] [--assert-dates-linked]
 """
-import argparse, datetime, json, os, re, sys
+import argparse, datetime, json, os, re, subprocess, sys
 from pathlib import Path
 
 ap = argparse.ArgumentParser()
@@ -32,6 +37,7 @@ ap.add_argument("root", nargs="?", default=None)
 ap.add_argument("--window", type=int, default=30, help="days a WiP folder may sit untouched before it is a candidate to leave")
 ap.add_argument("--json", action="store_true")
 ap.add_argument("--assert-logged", action="store_true", help="exit 1 unless a session log exists for today")
+ap.add_argument("--assert-dates-linked", action="store_true", help="exit 1 unless every date mention in scope links to its daily note (GL-1011)")
 ap.add_argument("--today", default=None, help="override today's date, YYYY-MM-DD (tests)")
 a = ap.parse_args()
 
@@ -100,6 +106,20 @@ if WIP.exists():
             "candidate_to_leave": age > a.window and not referenced,
         })
 
+# --- 4. date mentions not yet linked to their daily note (GL-1011) --------
+# Asked of the script that owns the rule. A count it could not read is
+# reported as None, never as 0: a check that reads a source must say when
+# it read none.
+dates_unlinked = None
+linker = Path(__file__).resolve().parent / "link-dates-to-daily-notes.py"
+if linker.is_file():
+    r = subprocess.run([sys.executable, str(linker), str(ROOT), "--check", "--json"],
+                       capture_output=True, text=True)
+    try:
+        dates_unlinked = json.loads(r.stdout)["mentions"]
+    except (ValueError, KeyError):
+        dates_unlinked = None
+
 report = {
     "today": today.isoformat(),
     "last_session_log": str(last_log.relative_to(ROOT)) if last_log else None,
@@ -108,6 +128,7 @@ report = {
     "tasks_touched_by_state": touched_by_state,
     "wip": wip,
     "window_days": a.window,
+    "date_mentions_unlinked": dates_unlinked,
 }
 
 if a.json:
@@ -116,6 +137,7 @@ else:
     print(f"checkpoint {today.isoformat()}  (window {a.window} days)")
     print(f"  last session log : {report['last_session_log'] or 'none yet'}")
     print(f"  log for today    : {'yes' if report['session_log_today'] else 'NO'}")
+    print(f"  date links       : {'unknown (link-dates-to-daily-notes.py did not answer)' if dates_unlinked is None else str(dates_unlinked) + ' mention(s) unlinked'}")
     print(f"  tasks touched    : {len(touched)}"
           + (" (" + ", ".join(f"{s} {n}" for s, n in touched_by_state.items() if n) + ")" if touched else ""))
     for t in touched:
@@ -129,5 +151,8 @@ else:
 
 if a.assert_logged and not todays:
     print(f"FAIL: no session log for {today.isoformat()} under {LOGS.relative_to(ROOT)}; run new-session-log.py before ending the session", file=sys.stderr)
+    sys.exit(1)
+if a.assert_dates_linked and dates_unlinked != 0:
+    print(f"FAIL: {'could not read' if dates_unlinked is None else dates_unlinked} date mention(s) not linked to their daily note (GL-1011); run link-dates-to-daily-notes.py --fix", file=sys.stderr)
     sys.exit(1)
 sys.exit(0)
