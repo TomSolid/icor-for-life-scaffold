@@ -17,7 +17,9 @@ in `04 Inner World/Notes/` carries the stamp.
 Two doors, one rule: what you wrote yourself goes to
 `00 Daily Scratchpad/`, what someone else made goes to `Outer World/`.
 Add one line of why you kept it. Where things go after processing is
-one page: [[GL-1007-capture-and-where-things-go|GL-1007]].
+one page: [[GL-1007-capture-and-where-things-go|GL-1007]]. Which of the
+five ways of taking a note you are doing, and which key it uses, is
+[[GL-1010-the-five-capture-workflows|GL-1010]].
 
 Processing runs per [[SOP-1002-process-an-inbox-capture]]. You may
 process a capture yourself: file it, stamp it (the same three

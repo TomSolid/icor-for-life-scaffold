@@ -21,3 +21,4 @@ The scaffold's own SOPs carry numbers from 1001 up; yours take 001 to
 | [[SOP-1012-convert-an-external-skill\|SOP-1012 Convert an external skill]] | Nolan | a skill arrives from elsewhere |
 | [[SOP-1013-connect-an-external-tool-via-mcp\|SOP-1013 Connect an external tool via MCP]] | Mack | a tool should reach the vault live |
 | [[SOP-1014-check-and-repair-what-was-filed-by-hand\|SOP-1014 Check and repair what was filed by hand]] | Penn | "check my notes", "fix my vault", `quality.json` not `ok`, step 4 of WS-1001 |
+| [[SOP-1015-digest-a-meeting-transcript\|SOP-1015 Digest a meeting transcript]] | Penn | a transcript from any tool is turned into the part of a meeting note worth keeping |

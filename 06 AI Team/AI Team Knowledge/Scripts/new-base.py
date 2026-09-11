@@ -45,6 +45,7 @@ REGISTRY = {
         ],
         "sort": ("file.name", "ASC"),
         "cards_image": None,
+        "extra_views": [],
     },
     "company": {
         "folder": "04 Inner World/Contacts/Companies",
@@ -90,6 +91,25 @@ REGISTRY = {
         ],
         "sort": ("file.name", "ASC"),
         "cards_image": None,
+        "extra_views": [
+            # The outer-world library. GL-1007: outer material does not live
+            # in a room of its own; once it carries your thought it is part of
+            # what you know, and the source is recorded in a property. This
+            # view is that library.
+            {"name": "Sources", "filters": ['note.note_type == "reference"'],
+             "order": ["source_url", "consumed", "topics", "key_elements"],
+             "sort": ("note.consumed", "ASC")},
+            # The reading queue. Unconsumed sources only, so the list supports
+            # action when you turn to the subject instead of nagging.
+            {"name": "Reading queue", "filters": ['note.note_type == "reference"', "note.consumed == false"],
+             "order": ["source_url", "topics", "key_elements"],
+             "sort": ("file.name", "ASC")},
+            # Ideas you have not decided on yet. An idea with no status is
+            # open; one that is promoted, parked or dropped leaves this list.
+            {"name": "Open ideas", "filters": ['note.note_type == "idea"', 'note.idea_status == "open"'],
+             "order": ["key_elements", "projects", "topics"],
+             "sort": ("file.name", "ASC")},
+        ],
     },
 }
 
@@ -264,6 +284,24 @@ def render(entity):
     L.append("    sort:")
     L.append("      - property: %s" % e["sort"][0])
     L.append("        direction: %s" % e["sort"][1])
+    # Named views over the SAME collection. A collection is (folder, type)
+    # per GL-1006, so a second kind inside one type is a VIEW, never a second
+    # Base and never a second folder. This is what makes "the outer world
+    # library" a filter rather than a room.
+    for v in e.get("extra_views") or []:
+        L.append("  - type: table")
+        L.append("    name: %s" % v["name"])
+        L.append("    filters:")
+        L.append("      and:")
+        for f in v["filters"]:
+            L.append("        - %s" % f)
+        L.append("    order:")
+        L.append("      - file.name")
+        for prop in v["order"]:
+            L.append("      - note.%s" % prop)
+        L.append("    sort:")
+        L.append("      - property: %s" % v["sort"][0])
+        L.append("        direction: %s" % v["sort"][1])
     if e["cards_image"]:
         L.append("  - type: cards")
         L.append("    name: %s gallery" % e["view"])

@@ -40,7 +40,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | capture | source_url, captured (ISO datetime) | author, published, my_thought (the user's one-or-two-sentence thought, filled in the Web Clipper popup), processed, processed_summary, processed_into | `Templates/web-clipper-outer-world.json` (the Web Clipper, not Obsidian's Templates) |
 | person | name | role, relation, companies, aliases, email, birthday, last_contact, next_action | `[[Templates/person]]` |
 | company | name | industry, people, website | `[[Templates/company]]` |
-| note | note_type (reference/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`) | `[[Templates/note]]` |
+| note | note_type (reference/idea/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`), transcript (a URL or a wikilink to the transcript, whatever tool made it; only meaningful on `meeting` and `other`), transcribed_by (text, the tool), ai_summary (text, the model id), audio_retained (boolean; those three only meaningful on `meeting`), idea_status (open/promoted/parked/dropped; only meaningful on `idea`) | `[[Templates/note]]` |
 | document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | projects, key_elements, topics (wikilink lists), preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into | `[[Templates/document]]` |
 | goal | status (not-achieved/achieved) | target_date, key_elements | `[[Templates/goal]]` |
 | pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) | none: the plugin writes it |
@@ -88,12 +88,32 @@ and the other rooms, is taught in
 
 **`type: note`.** `note_type` is required and closed: `reference` (a
 saved source you did not write: a video, an article, a paper),
+`idea` (a thing you might do, gathering thoughts, no finish line yet),
 `outline` (a structure you keep editing), `meeting` (notes from a
 meeting, kept as a subject rather than a day), `draft` (text on its way
 somewhere else), `other`. A `reference` note carries `source_url` and
 `consumed`, `false` until the user has actually read or watched it;
-`consumed` and `source_url` mean nothing on the other four kinds and
+`consumed` and `source_url` mean nothing on the other five kinds and
 are left off there.
+
+**`idea` exists because a Topic and a Project both refuse the job.** A
+Topic is a quarterly exploration and you only run three at a time. A
+Project is bounded work with a finish line. A video idea, a business idea,
+a thing you want to build one day is neither: it has no finish line, and
+it is not one of your three explorations. Before `idea` existed these were
+filed as `outline`, which worked and told you nothing about whether the
+idea was still alive.
+
+An `idea` note carries `idea_status`, one of `open` (collecting thoughts),
+`promoted` (it became a Project or a Topic; record which in
+`projects` or `topics`), `parked` (still interesting, not now) or
+`dropped` (decided against, kept so the decision is not re-litigated).
+Default `open`. It is meaningful on `note_type: idea` only.
+
+Ideas obey the link rule like every other note: at least one of
+`projects`, `key_elements`, `topics`. A video idea anchors to the Key
+Element it would serve. An idea that anchors to nothing failed the
+Capturing Beast and should not be a note.
 
 **`type: document`.** A scanned PDF or any other binary cannot carry
 frontmatter, so the binary is never the metadata-bearing record. Every
@@ -126,6 +146,93 @@ and receipts; `issued_on` and `expiry_date` are ISO dates;
 Generate wrapper notes deliberately, one document at a time, never as
 a bulk backfill over thousands of files (a mass backfill is a known
 Obsidian indexer killer).
+
+## Meeting notes: bring your own transcriber (ruling 2026-09-11)
+
+**The Scaffold does not record meetings and will not.** You already have a
+transcriber you like, or your company does: Wispr Flow, Granola, Otter,
+Fireflies, the built-in one in your call software. Building a worse one
+inside Obsidian would have been a second-rate copy of a solved problem, and
+it would have tied your meeting notes to our plugin.
+
+What the Scaffold owns is the part no transcriber does: **turning an hour
+of what was said into the few lines of what you now think.**
+
+So a meeting produces two things, and they are not the same thing:
+
+| | What it is | Where it lives |
+| --- | --- | --- |
+| **The transcript** | a machine record of what was said. You did not write it, so it is outer-world raw material | wherever your tool keeps it, or exported into `05 Assets/`, or dropped in `01 Inbox/Outer World/` |
+| **The meeting note** | what you concluded, decided and noticed. Only you can write it | `04 Inner World/Notes/`, `note_type: meeting` |
+
+The note is the record you keep and edit for weeks. The transcript is
+material you consult and usually never open again.
+
+```yaml
+type: note
+note_type: meeting
+created: 2026-09-09
+transcript: https://app.wisprflow.ai/notes/<id>
+transcribed_by: Wispr Flow
+ai_summary: claude-opus-5
+audio_retained: false
+projects: ["[[myICOR]]"]
+people: ["[[Alex Rivera]]"]
+```
+
+- `transcript` is optional and meaningful on `note_type: meeting` and
+  `other` only. It holds **one** of three shapes, whichever is true for
+  you: a URL to the transcript in your tool, a quoted wikilink to a
+  transcript file you exported into `05 Assets/`, or a quoted wikilink to a
+  transcript note that came in through `01 Inbox/Outer World/`. One field,
+  three shapes, because the point is that the Scaffold does not care which
+  tool you use.
+- `transcribed_by` is text, meaningful on `note_type: meeting` only. The
+  tool that produced it, in the words you would say out loud:
+  `Wispr Flow`, `Granola`, `Otter`, `whisper.cpp large-v3-turbo`. It is
+  there so that in two years you can tell a transcript you trust from one
+  you do not. Leave it off when there was no transcript.
+- `ai_summary` is text, meaningful on `note_type: meeting` only. Absent or
+  empty when the note carries no AI block. When an AI enriched the note
+  from the transcript it holds the model id, for example `claude-opus-5`.
+  Never a boolean, never a sentence: a reader has to be able to answer
+  "which model wrote this" from the field alone.
+- `audio_retained` is a boolean, meaningful on `note_type: meeting` only.
+  `true` when you kept the audio somewhere you control, `false` when the
+  audio is gone or lives only in a third-party tool. It exists because
+  "can I still re-listen to this" is a question you will ask, and the
+  answer is not derivable from anything else in the note.
+- **Three fields, not a copy of the transcript.** Attendees, duration and
+  what was said stay where they are. A second copy of a fact is a fact that
+  drifts.
+
+**Consent is yours, not ours.** The Scaffold never starts a recording, so
+it never asks for consent on your behalf. Whatever your transcriber asks,
+and whatever the law where you and the other people are, is between you and
+them. A `transcript` field is a pointer, and pointing at a recording you
+were not allowed to make does not become allowed because it is in a note.
+
+- The link rule is unchanged: a meeting note still carries at least one of
+  `projects`, `key_elements`, `topics`. When the member skips the link
+  question at Stop, the plugin writes a quick capture in
+  `00 Daily Scratchpad/` instead and no note is made, so no note is ever
+  manufactured that `Scripts/validate-scaffold.py` must fail.
+
+**Why those three break the no-copy rule.** Each answers a question asked
+from outside the note, and a question you can only answer by opening a
+JSON file in an asset folder is a question nobody answers. `audio_retained`
+is the member's evidence for a GDPR Art. 13 retention question, and it has
+to read true or false at a glance across every meeting note at once.
+`ai_summary` is the EU AI Act Art. 50(2) marking obligation as data rather
+than as prose, so a query can find every AI-written summary in the vault
+and the visible label in the body has something to agree with. Holding the
+model id rather than `true` costs nothing and answers the follow-up
+question in the same breath. `transcribed_by` is "transcribed on device by
+<model>" as a field, which is what makes "did anything leave this machine"
+answerable without reading the package. Duration, consent and the recorded
+times stay in the package alone, because nothing outside the note ever asks
+them in bulk. Written for the 2026-09-09 legal ruling on the recorder so
+the build does not invent these three field names itself.
 
 ## PDF highlights: one note per highlight (ruling 2026-09-07)
 

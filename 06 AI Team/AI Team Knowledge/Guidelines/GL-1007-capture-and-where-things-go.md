@@ -14,9 +14,47 @@ this page says what YOU do with a thought, a link, a file or a draft.
 
 ## The one rule
 
-At capture time you never choose a destination. You choose a door, and
-there are exactly two. Everything else is processing, and processing
-happens later, by the team or by you, never in the moment of capture.
+**Ask what this connects to, before you ask where it goes.**
+
+That order is the whole method, and it is the opposite of how filing
+feels. The connection question is what makes a capture findable in six
+months. The storage question is what makes it disappear into a folder you
+will never think to open.
+
+So every capture has two halves, and only the second one is optional in
+the moment:
+
+1. **Name one thing it connects to.** A Project, a Key Element, a Topic, a
+   person. Type it as a `[[wikilink]]` while you write, and let the
+   autocomplete find it. Ten seconds.
+2. **Then put it down.** If you already know where it lives, put it there
+   directly. If you do not, use a door.
+
+**Orphan notes are dead notes.** A capture that connects to nothing will
+help with nothing. The test is one sentence: can you say why this matters
+to something you are actively working on? If yes, make the link explicit.
+If no, the capture is either premature or not worth keeping, and letting
+it go is a valid answer. That is the Capturing Beast, below, doing its job
+at the moment of capture rather than weeks later.
+
+### Direct placement is normal. The door is the fallback.
+
+If you know the home, go to the home. A phone number goes on the person's
+note. A thought about a live Project goes on that Project. `Cmd+O` opens
+any note by name in about a second, which is faster than capturing and
+processing twice.
+
+The inbox exists for the case where direct placement is not practical: you
+are walking, you are in a meeting, you do not yet know what the thing is.
+**The inbox is your backup plan, not your primary strategy.** A vault where
+everything routes through an inbox has an inbox that takes an hour to
+process, and an inbox that takes an hour to process stops being processed.
+
+The test is the five-minute rule: if emptying your inbox regularly takes
+longer than five minutes, too much is being captured that could have been
+placed.
+
+### When you do use a door, there are exactly two
 
 ICOR calls this rule one: whenever you come across something noteworthy,
 send it to an inbox immediately. Two inboxes, one per world.
@@ -26,7 +64,23 @@ send it to an inbox immediately. Two inboxes, one per world.
 | Inner World | you are the author: a thought, an idea, meeting notes, a half plan | `00 Daily Scratchpad/` |
 | Outer World | someone else is the author: a video, an article, a post, a scan, a mail | `01 Inbox/Outer World/` |
 
-If you can say who wrote it, you know the door.
+If you can say who wrote it, you know the door. In practice you rarely
+decide this at all, because the **tool** decides it: the Web Clipper writes
+to the Outer World inbox, and the quick-capture key writes to the
+Scratchpad. The table is there to explain the split, not to make you stop
+and choose.
+
+**`01 Inbox/Outer World/` is named for what ARRIVES there, not for where
+outer material lives.** This trips people up, because `04 Inner World/` is
+a permanent room and looks like its opposite number. It is not. Outer
+material does not stay in a room of its own: once you have pulled the
+insight out and added your own thought, it has become part of what you
+know, and it lives in `04 Inner World/Notes/` as `note_type: reference`
+with its `source_url`. The source is recorded in a property, not in a
+folder path. To see everything that came from outside, open `Notes.base`
+and filter on `note_type`; that view is your Outer World library, and it
+is a view rather than a folder because the same note is often several
+things at once.
 
 ## Door 1: the Daily Scratchpad (your Inner World inbox)
 

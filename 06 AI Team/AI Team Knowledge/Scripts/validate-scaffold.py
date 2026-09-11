@@ -4,7 +4,9 @@
 Checks (all deterministic, per GL-1001 and GL-1004):
   1. The six rooms and their required subfolders exist.
   2. No folder at any level is named after an ICOR stage.
-  3. Daily Scratchpads are named YYYY-MM-DD.md.
+  3. Daily Scratchpad files sit in YYYY/MM/ and are named YYYY-MM-DD.md
+     (daily note), YYYYMMDDHHmm.md (quick capture) or
+     YYYY-MM-DD_canvas.canvas.
   4. Journal entries sit in YYYY/MM/ and are named YYYY-MM-DD_<slug>.md.
   5. Session logs and done/cancelled tasks sit in YYYY/MM/.
   6. Every folder inside a room resolves a colour and a glyph from the
@@ -22,7 +24,8 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      identity), checked by mint-agent-ids.py --check so the rule has one
      home.
  10. Every `type: note` file in 04 Inner World/Notes/ carries a note_type
-     from GL-1002's set (reference, outline, meeting, draft, other) and at
+     from GL-1002's set (reference, idea, outline, meeting, draft, other)
+     and at
      least one non-empty link list among projects / key_elements / topics
      (GL-1007: a note that lives on is filed under something).
  11. .obsidian/daily-notes.json carries no `template` key: the daily
@@ -88,19 +91,50 @@ for p in ROOT.rglob("*"):
     if p.is_dir() and not p.name.startswith(".") and p.name.lower() in BANNED:
         fails.append(f"ICOR stage name used as folder (GL-1004): {p.relative_to(ROOT)}")
 
+# The Daily Scratchpad is date-nested exactly like the Journal (GL-1004,
+# amended 2026-09-10). This check walked `sp.glob("*.md")` until that date,
+# i.e. the ROOM ROOT ONLY, so the moment a vault nested its scratchpads
+# correctly the glob matched zero files and the check passed by finding
+# nothing. It rglobs now, and the nesting is part of what it asserts.
+#
+# A collision suffix is Obsidian's own " 2" (space, number) on a same-minute
+# capture; " - Title" is the member naming a capture after the fact, which
+# GL-1004 allows because the timestamp stays at the front and keeps the
+# folder chronological.
+SCRATCHPAD_SHAPES = (
+    r"\d{4}-\d{2}-\d{2}\.md",                        # daily note
+    r"\d{12}( \d+)?( - .+)?\.md",                     # quick capture, YYYYMMDDHHmm
+    r"\d{4}-\d{2}-\d{2}-\d{6}(-\d+)?\.md",          # legacy YYYY-MM-DD-HHmmss
+    r"\d{14}(-\d+)?\.md",                            # legacy YYYYMMDDHHMMSS
+    r"Untitled( \d+)?\.md",                           # subject note, before it is named
+    # The toolbar names a canvas YYYY-MM-DD_canvas; anything after that is
+    # the member titling it (`_canvas-test-2`) or Obsidian numbering a copy
+    # (` 1`), the same freedom a quick capture has after its timestamp.
+    r"\d{4}-\d{2}-\d{2}_canvas([-_ ].*)?\.canvas",
+    r".+\.base",                                      # a saved view of the room
+)
 sp = ROOT / "00 Daily Scratchpad"
 if sp.is_dir():
-    for f in sp.glob("*.md"):
-        if f.name in ("README.md", "_template.md"):
+    for f in sp.rglob("*"):
+        if not f.is_file() or f.name.startswith("."):
             continue
-        # Two legal shapes: the daily note (YYYY-MM-DD) and the quick
-        # capture the Unique-note button creates (YYYY-MM-DD-HHmmss,
-        # plus a -N suffix on same-second collisions; the older
-        # YYYYMMDDHHMMSS strays stay legal).
-        if (not re.fullmatch(r"\d{4}-\d{2}-\d{2}\.md", f.name)
-                and not re.fullmatch(r"\d{4}-\d{2}-\d{2}-\d{6}(-\d+)?\.md", f.name)
-                and not re.fullmatch(r"\d{14}(-\d+)?\.md", f.name)):
-            fails.append(f"scratchpad not named YYYY-MM-DD.md or YYYY-MM-DD-HHmmss.md: {f.name}")
+        if f.name in ("README.md", "_template.md", "INDEX.md"):
+            continue
+        rel = f.relative_to(sp)
+        # A .base is a view of the whole room and belongs at its root.
+        if f.suffix == ".base":
+            if len(rel.parts) != 1:
+                fails.append(f"scratchpad view not at the room root: {rel}")
+            continue
+        if (len(rel.parts) != 3
+                or not re.fullmatch(r"\d{4}", rel.parts[0])
+                or not re.fullmatch(r"\d{2}", rel.parts[1])):
+            fails.append(f"scratchpad not in YYYY/MM/: {rel}")
+            continue
+        if not any(re.fullmatch(shape, f.name) for shape in SCRATCHPAD_SHAPES):
+            fails.append(
+                "scratchpad not named YYYY-MM-DD.md, YYYYMMDDHHmm.md or "
+                f"YYYY-MM-DD_canvas.canvas: {rel}")
 
 jr = ROOT / "04 Inner World/Journal"
 if jr.is_dir():
@@ -233,7 +267,7 @@ if routines.is_dir():
 # The set of kinds is fixed here AND in GL-1002; a fifth kind is a guideline
 # edit first. The link lists are read with fm_list: `[]`, an empty inline
 # value and an absent key all count as "no link".
-NOTE_TYPES = ("reference", "outline", "meeting", "draft", "other")
+NOTE_TYPES = ("reference", "idea", "outline", "meeting", "draft", "other")
 NOTE_LINK_FIELDS = ("projects", "key_elements", "topics")
 notes_dir = ROOT / "04 Inner World/Notes"
 if notes_dir.is_dir():
@@ -246,9 +280,9 @@ if notes_dir.is_dir():
             continue
         nt = re.search(r"^note_type:\s*(\S+)", front, re.M)
         if not nt:
-            fails.append(f"note without a note_type (GL-1002: reference|outline|meeting|draft|other): {f.name}")
+            fails.append(f"note without a note_type (GL-1002: reference|idea|outline|meeting|draft|other): {f.name}")
         elif nt.group(1).strip("'\"") not in NOTE_TYPES:
-            fails.append(f"note_type must be reference|outline|meeting|draft|other: {f.name} has '{nt.group(1)}'")
+            fails.append(f"note_type must be reference|idea|outline|meeting|draft|other: {f.name} has '{nt.group(1)}'")
         linked = any(
             any(v.strip() for v in (fm_list(front, k) or []))
             for k in NOTE_LINK_FIELDS)

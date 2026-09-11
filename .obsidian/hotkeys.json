@@ -34,5 +34,32 @@
       ],
       "key": "P"
     }
+  ],
+  "icor-for-life-pdf-annotation:highlight-selection": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "H"
+    }
+  ],
+  "icor-for-life-pdf-annotation:open-highlights-sidebar": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "L"
+    }
+  ],
+  "icor-for-life-canvases:toggle-drawing-mode": [
+    {
+      "modifiers": [
+        "Mod",
+        "Alt"
+      ],
+      "key": "D"
+    }
   ]
 }

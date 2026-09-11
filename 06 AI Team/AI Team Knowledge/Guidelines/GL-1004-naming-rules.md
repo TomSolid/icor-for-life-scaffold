@@ -19,11 +19,12 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
    order: 00 Daily Scratchpad, 01 Inbox, 02 Planner, 03 WiP,
    04 Inner World, 05 Assets, 06 AI Team, 07 Databases. Users may add
    rooms; agents may not.
-3. Date-nested shapes are `YYYY/MM/` (Journal, Session Logs,
-   Tasks/done, Tasks/cancelled).
+3. Date-nested shapes are `YYYY/MM/` (00 Daily Scratchpad, Journal,
+   Session Logs, Tasks/done, Tasks/cancelled).
 4. **Who creates a folder.** The rooms and their fixed subfolders are
    the Scaffold's; they arrive with the download and are never renamed.
-   Date folders (`YYYY/MM/`) under Journal, Session Logs, the task
+   Date folders (`YYYY/MM/`) under the Daily Scratchpad, Journal,
+   Session Logs, the task
    archives, and `05 Assets/Images` when you nest it, may be created by
    hand (right-click the parent, New folder, `2026`, then `09`) or by
    the scripts. Anything else asks the AI first, so the folder lands in
@@ -33,7 +34,8 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
 
 | Kind | Pattern | Example |
 | --- | --- | --- |
-| Daily Scratchpad | `YYYY-MM-DD.md` | `2026-08-27.md` |
+| Daily note | `YYYY/MM/YYYY-MM-DD.md` | `2026/08/2026-08-27.md` |
+| Quick capture | `YYYY/MM/YYYYMMDDHHmm.md` | `2026/08/202608271432.md` |
 | Journal entry | `YYYY-MM-DD_<slug>.md` | `2026-08-27_best-business-partner.md` |
 | WiP folder | `YYYY-MM-DD-<slug>/` | `2026-08-27-pivot-video/` |
 | Task | `YYYY-MM-DD-<slug>.md` | `2026-08-27-seed-example-notes.md` |
@@ -67,12 +69,46 @@ backlinked, so every knowledge doc shows where it is used. The same
 holds for frontmatter `uses:` lists (full quoted wikilinks). Code
 blocks and this guideline's naming-example tables stay literal.
 
-## Quick captures and folder creation (ruling 2026-08-28)
+## Quick captures and folder creation (ruling 2026-08-28, amended 2026-09-10)
 
-- `00 Daily Scratchpad/` holds two legal filename shapes: `YYYY-MM-DD.md`
-  (daily note) and `YYYY-MM-DD-HHmmss.md` with an optional `-N` collision
-  suffix (quick capture via the Unique-note button / zk-prefixer). `Scripts/validate-scaffold.py` enforces both.
-- Canvases created from the toolbar land in `00 Daily Scratchpad/` as
-  `YYYY-MM-DD_canvas.canvas` (`-N` on same-day collisions).
-- Folders: rule 4 under Folder names above. A new month under Journal
-  is yours to make; a new kind of folder is a question to the AI.
+**The Daily Scratchpad is date-nested, exactly like the Journal.** Everything
+lands in `00 Daily Scratchpad/YYYY/MM/`; nothing stays loose at the room root.
+A room whose files pile up flat stops being a room and becomes a drawer, and
+the first thing anyone does with a drawer is stop opening it.
+
+Three legal shapes, all inside `YYYY/MM/`:
+
+| What | Name | Written by |
+| --- | --- | --- |
+| Daily note | `YYYY-MM-DD.md` | Obsidian's Daily notes core plugin |
+| Quick capture | `YYYYMMDDHHmm.md`, optionally ` - Title` added later by you, ` 2` on a same-minute collision | ICOR for Life - Scratchpad |
+| Canvas | `YYYY-MM-DD_canvas.canvas`, `-N` on same-day collisions | the toolbar |
+
+**The name is the minute, not the subject.** A quick capture is stamped
+`YYYYMMDDHHmm` because at capture time you do not yet know what the thing is,
+and being asked for a title is the friction the room exists to remove
+([[GL-1007-capture-and-where-things-go|GL-1007]]). You may append ` - Title`
+afterwards once you do know; the timestamp stays at the front so the folder
+sorts chronologically.
+
+**A title-named note does not live here.** `Omarchy.md` or `Vo UU.md` sitting
+in the Scratchpad is a note that has a subject and therefore has a home in
+`04 Inner World/Notes/`, or an entity that belongs in `04 Inner World/My Life/`
+or `Contacts/`. Obsidian creates these by accident every time you click a
+`[[wikilink]]` that has no note behind it, because the new-file location points
+at this room. Process them out; do not file them here.
+
+**Two settings must agree with this page**, and they are the reason the rule
+reads the way it does rather than the other way round:
+
+- `.obsidian/daily-notes.json`: `folder: 00 Daily Scratchpad`, `format: YYYY/MM/YYYY-MM-DD`
+- `.obsidian/plugins/icor-for-life-scratchpad/data.json`: `subfolderFormat: YYYY/MM`, `newNoteFormat: YYYYMMDDHHmm`
+
+`Scripts/validate-scaffold.py` enforces the shapes AND the nesting, walking the
+whole room rather than its root. It walked only the root until 2026-09-10,
+which meant that the moment a vault nested its scratchpads correctly the check
+matched zero files and went green by finding nothing. A guard whose green is
+reachable without the thing being true is worse than no guard.
+
+- Folders: rule 4 under Folder names above. A new month under the Scratchpad or
+  the Journal is yours to make; a new kind of folder is a question to the AI.

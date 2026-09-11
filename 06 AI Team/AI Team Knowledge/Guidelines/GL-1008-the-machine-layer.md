@@ -27,6 +27,21 @@ team is building writes it, Scaffold Check reads it and shows it. Its
 shape is versioned with a top-level `schema` integer; the fields are not
 fixed yet and are documented with the script when it lands.
 
+Two examples of what a `<plugin-id>/` subfolder holds:
+
+- `<plugin-id>/runs/<id>/<ISO stamp>.json`, `schema: 1`: one record per AI
+  run the plugin made (model, duration, the raw structured output, the
+  verification verdicts, token usage). Run history, which this guideline
+  names as machine-layer state rather than a setting. Deleting it loses no
+  knowledge: what the run produced is in the note.
+- `<plugin-id>/models/`: downloaded weights or other large artifacts,
+  fetched on the member's click and re-fetchable at any time.
+
+Neither is ever a note, and neither is ever the only copy of anything. A
+file the member brought in is the opposite case and stays in `05 Assets/`:
+it is a source, nothing regenerates it, and the membership test below
+refuses it.
+
 ## The membership test (one sentence)
 
 > A file belongs in `.icor-for-life/` only if something regenerates it.

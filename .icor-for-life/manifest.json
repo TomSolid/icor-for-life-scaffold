@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.18.0",
-  "built": "2026-09-09T13:19:18Z",
-  "commit": "6825f52",
+  "built": "2026-09-11T12:15:32Z",
+  "commit": "b2028de",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -45,6 +45,7 @@
     "icor-for-life-pdf-annotation",
     "icor-for-life-planner",
     "icor-for-life-scaffold-check",
+    "icor-for-life-scratchpad",
     "icor-for-life-sqlite-viewer",
     "icor-for-life-terminal"
   ],
@@ -124,7 +125,7 @@
     },
     {
       "path": ".obsidian/community-plugins.json",
-      "sha256": "4b8e4e5b2d04a7b86e8f7c92a84ee2e2dfdf3884d1e29935383515dd676a12c2",
+      "sha256": "47e5f1e33b98cc329249cdc8151a17b76105b8e95621cf37dfe4d4275242a8e9",
       "kind": "config",
       "example": false
     },
@@ -148,7 +149,7 @@
     },
     {
       "path": ".obsidian/hotkeys.json",
-      "sha256": "d88a0ef1b42c6361eca0a95a84e91f9c4d72260f94670e3aa00078f977daaec7",
+      "sha256": "85209b1654b51297fed9559eebcb1acfb88058d1cf090c2b91a4b8a374ed2063",
       "kind": "config",
       "example": false
     },
@@ -196,7 +197,7 @@
     },
     {
       "path": ".obsidian/types.json",
-      "sha256": "5cfb9cb1109f0bbf090ddb2105792f8a35e7588775c5a384dde2982ee771c630",
+      "sha256": "820e87295f8f89904a2d1c3c847307ce0941337397432f037b4d26411c45104f",
       "kind": "config",
       "example": false
     },
@@ -214,7 +215,7 @@
     },
     {
       "path": "00 Daily Scratchpad/README.md",
-      "sha256": "05167c3ba05f433b357149cae3b31489e31032a2fa32c5f5a566b464b4cb97f3",
+      "sha256": "323201e8747340d9bb21aa86b1e9d240c47822658577c9466bd927011e6b3991",
       "kind": "doc",
       "example": false
     },
@@ -232,7 +233,7 @@
     },
     {
       "path": "01 Inbox/README.md",
-      "sha256": "7c9f23373876529748eee0c2cfd45d8c1dd38f4132f27e89b08f4bc6322787f5",
+      "sha256": "a34accb1a39df892f1619d99649b519bc63c5e1adf1c51cd85da1b7bb8d10fac",
       "kind": "doc",
       "example": false
     },
@@ -358,7 +359,7 @@
     },
     {
       "path": "04 Inner World/Notes/Notes.base",
-      "sha256": "3fb3ea1583a7d96feac2f376d29ffcc7b271a8b7905575ca87f8199bfee89ec0",
+      "sha256": "87a3790645a695bb92ba9e561b4033393c6364027a3ec179ae8eec10322e962c",
       "kind": "base",
       "example": false
     },
@@ -388,7 +389,7 @@
     },
     {
       "path": "05 Assets/README.md",
-      "sha256": "2d084341a84f5fe2007ea3b9d06d02cf509dec4d5bf81293bddae8a099075966",
+      "sha256": "91687d9a09d96ee12e8fc3b45028ae53d3f402d92660fa683e66e1ca318d1de2",
       "kind": "doc",
       "example": false
     },
@@ -508,13 +509,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
-      "sha256": "b0cfd322837ebcc5a3141a947b9485a5394db82c2ac97d583dbb840f93d58392",
+      "sha256": "8090e5393b039a2d08dd2d909e472812bd10274f88ad9ed5e4405a4aaaaacf3c",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "0a8bddacceb3b07caaf809d2582fcdf9576d310b6977010412c3e59b98ed2813",
+      "sha256": "c13dffc1478593e5c8f2033c99609f38b8f6bd99cb755d3da103977626d011e0",
       "kind": "guideline",
       "example": false
     },
@@ -526,7 +527,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1004-naming-rules.md",
-      "sha256": "f99ccd107909aad50b51ba0ac72f90c91781d478f888e3f734b577eb1dbf99a2",
+      "sha256": "a046444485ca33bff9abc8cd18fcc7db6179b6640ba64fb7f9dbdf4ba2b045b9",
       "kind": "guideline",
       "example": false
     },
@@ -544,19 +545,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
-      "sha256": "9e748743ac3cfbc8aa945b1c6ddbf922910b46b72c548a3d40bd0018662a69c1",
+      "sha256": "6e3b7b72ce4f5b4d4a38a6aba57982f279d968efcea3ca6fc19dcefd00d107f4",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1008-the-machine-layer.md",
-      "sha256": "d71b5cfdf11abbb2a880f309eaa04dd368a20915d2cb2862cbc70a59fb00355b",
+      "sha256": "82e34ea5cc2fc7396cf7fd2a495ed3dea3ae9739c873c46fde5402119591ba84",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
-      "sha256": "b1a70f2240180efd300ade7a16c941d3c3156cca7671d757e5cda146b5479eba",
+      "sha256": "400d5c2178c87d68854674e92098dd0af65680584b1c1393cdd8030194cc9c9c",
       "kind": "sop",
       "example": false
     },
@@ -712,7 +713,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "6b59628830b01f3b49fe89fa45cf3466b48125fd0ad8051203e9e19963f89c51",
+      "sha256": "64173fce25f4eceec82bfbb6f805c184dd3e84547c1e2f95aabbcd9156469c0d",
       "kind": "script",
       "example": false
     },
@@ -766,7 +767,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "367760c2528fafff4605cf25156d2c63eff80c58157b411949b7127f29564e7d",
+      "sha256": "6b211e0e44b8e753f0a0afbdb24f8e779c4dbdb9022120ea1b4b1c06c7aa8331",
       "kind": "script",
       "example": false
     },
@@ -808,7 +809,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Templates/note.md",
-      "sha256": "6c410db22fd87581a70fafb38747133beb1fd454fd9932db1af0a02df2d740c8",
+      "sha256": "46b798e442cf38f3638be55f78117ebb832a6c9fa2de1703763e68f393eb81fb",
       "kind": "doc",
       "example": false
     },
@@ -1024,7 +1025,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "8cf416fb4224ec1c1e49b4e0dde252b5e6b43ec7251830953bcd25f20e12bb30",
+      "sha256": "cba4a19577667820fd0364eab3f5bb6963d501c6e67f70c0b657f9d423207a41",
       "kind": "doc",
       "example": false
     },

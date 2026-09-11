@@ -10,6 +10,108 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## Unreleased
+
+### Added
+
+- **`GL-1010` The five capture workflows.** One page that answers "which of
+  the five ways of taking a note am I doing, which key do I press, and why
+  does this vault ship the plugin that makes it work". Eight Mermaid
+  diagrams, a step-by-step for each workflow, the key table, and an honest
+  shipping-status column: Canvases, PDF Annotation, Outliner, Planner and
+  Scaffold Check ship today; Scratchpad and Handwriting are built and not
+  yet released. Workflow 4 has no plugin by design, see Removed. Every
+  diagram was rendered through mermaid-cli before shipping rather than
+  assumed to parse.
+- **`note_type: idea`**, the sixth note kind, with `idea_status`
+  (`open` / `promoted` / `parked` / `dropped`) and a template. A Topic is a
+  quarterly exploration and you run three; a Project is bounded work with a
+  finish line. A video idea is neither, and was previously filed as an
+  `outline`, which worked and told you nothing about whether the idea was
+  still alive. `dropped` with the reason is the valuable state: it stops you
+  having the same idea again next year.
+- **Three named views on `Notes.base`**: Sources (every `reference`),
+  Reading queue (unconsumed sources only) and Open ideas. `new-base.py`
+  grew an `extra_views` key to declare them, because a second KIND inside
+  one type is a view, never a second Base and never a second folder.
+- **Three hotkeys** for the shipped plugins: `Cmd+Alt+H` highlight a PDF
+  selection, `Cmd+Alt+L` the highlights sidebar, `Cmd+Alt+D` the canvas pen.
+  Only command ids verified in the plugins' own source were bound, because a
+  hotkey pointing at an id that does not exist is silently inert.
+
+### Removed
+
+- **The Meeting Recorder is cancelled and the Scaffold will not record
+  meetings** (Tom, 2026-09-11). You already have a transcriber you trust,
+  or your company does: Wispr Flow, Granola, Otter, Fireflies, the one in
+  your call software. Building a worse one inside Obsidian would have been
+  a second-rate copy of a solved problem and would have tied your meeting
+  notes to our plugin. What the Scaffold owns is the part no transcriber
+  does: turning an hour of what was said into the few lines of what you now
+  think.
+
+  What this changed. `GL-1002` §"Meeting recordings: the four recording
+  fields" is now §"Meeting notes: bring your own transcriber". The
+  `recording` field (a wikilink into a package) becomes `transcript`, which
+  holds a URL to your tool, a wikilink to an exported file, or a wikilink
+  to a transcript note, whichever is true for you. `transcribed_by` now
+  holds the tool's name in the words you would say out loud (`Wispr Flow`),
+  not an engine and model id. `audio_retained` now means "can I still
+  re-listen to this", which is a question the note cannot otherwise answer.
+  `SOP-1015 Process a meeting recording` is now `SOP-1015 Digest a meeting
+  transcript`, tool-agnostic, taking a transcript and a steer and returning
+  note content. `05 Assets/Recordings/` is gone; exported audio, if you keep
+  any, goes in `05 Assets/Audio/`. `GL-1001` and `GL-1008` no longer
+  describe a package.
+
+  **Consent moved with it.** The Scaffold never starts a recording, so it
+  never asks for consent on your behalf. Whatever your transcriber asks,
+  and whatever the law where you and the other people are, is between you
+  and the room.
+
+### Changed
+
+- **`GL-1007` now states the capture rule in the order ICOR states it:
+  ask what this connects to, before you ask where it goes.** The page
+  previously carried only the negative half ("at capture time you never
+  choose a destination") and omitted the positive half, so captures landed
+  fast and landed unfindable. One link is now the price of closing a
+  capture, and orphan captures are named as the thing to let go.
+- **`GL-1007`: direct placement is normal, the door is the fallback.** The
+  page opened with an absolute that contradicted ICOR's own inbox doctrine
+  ("the inbox is your backup plan, not your primary strategy"). A phone
+  number goes on the person's note; `Cmd+O` is the key. The five-minute rule
+  is stated as the health check.
+- **`GL-1007` says where outer material actually lives.**
+  `01 Inbox/Outer World/` is named for what ARRIVES there, not for where
+  outer material stays, and the asymmetry with the permanent `04 Inner
+  World/` room is what confuses people. Outer material lives in
+  `04 Inner World/Notes/` as `note_type: reference` with its `source_url`;
+  the outer-world library is the Sources view, not a room. The folder was
+  deliberately NOT renamed: the Web Clipper template writes to that path in
+  every installed vault, and breaking workflow 5 everywhere to improve a
+  name is a bad trade.
+
+- **`GL-1004` now rules that the Daily Scratchpad is date-nested, exactly like
+  the Journal.** Everything lands in `00 Daily Scratchpad/YYYY/MM/`, and the
+  quick capture is named `YYYYMMDDHHmm.md` (optionally ` - Title` added after
+  the fact), not `YYYY-MM-DD-HHmmss.md`. This is the shape the Scaffold's own
+  two settings already produce: `.obsidian/daily-notes.json` writes
+  `YYYY/MM/YYYY-MM-DD` and the ICOR for Life - Scratchpad plugin writes
+  `YYYYMMDDHHmm` into `YYYY/MM`. The guideline described a vault nobody was
+  running, so the guideline moved.
+
+### Fixed
+
+- **`Scripts/validate-scaffold.py` could not enforce the scratchpad rule it
+  claimed to enforce.** It globbed the room ROOT (`sp.glob("*.md")`), so the
+  moment a vault nested its scratchpads the check matched zero files and
+  passed by finding nothing. It walks the whole room now and asserts the
+  `YYYY/MM/` nesting as well as the name. Watched going red on a file loose at
+  the root, a file nested only by year, and a title-named note, and green on
+  the daily note, the quick capture, a titled quick capture and both canvas
+  shapes.
+
 ## 1.18.0
 
 Released 2026-09-09.

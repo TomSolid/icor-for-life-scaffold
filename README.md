@@ -87,6 +87,11 @@ cannot hold.
    nothing else to decide at capture time; where everything goes
    afterwards is one page:
    `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`.
+6. **Learn the five ways of taking a note**, which key each one uses and
+   why the vault ships the plugin that makes it work:
+   `06 AI Team/AI Team Knowledge/Guidelines/GL-1010-the-five-capture-workflows.md`.
+   Start there if the rest of this list felt like a lot; it is the one
+   page with the diagrams.
 
 ## Updating from an earlier download
 

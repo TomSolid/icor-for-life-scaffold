@@ -37,7 +37,11 @@ Guidelines, or Scripts in AI Team Knowledge.
 1. A markdown note with knowledge -> Inner World; see
    [[GL-1007-capture-and-where-things-go|GL-1007]] for the homes inside
    Inner World (Journal, Notes, My Life, Contacts).
-2. A binary file -> Assets, embedded from wherever it is used.
+2. A binary file -> Assets, embedded from wherever it is used. Its
+   fixed subfolders are `Images/`, `Audio/` and `Documents/`. Exported
+   meeting audio, when you keep a copy at all, goes in `Audio/`; the
+   Scaffold does not record meetings
+   ([[GL-1010-the-five-capture-workflows|GL-1010]], workflow 4).
 3. Something to work ON -> a dated WiP folder.
 4. Something for the team to handle -> Inbox.
 5. A rule about HOW the team works -> AI Team Knowledge.

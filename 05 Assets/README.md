@@ -1,7 +1,14 @@
 # Assets
 
-The binary shelf: `Images/`, `Audio/`, `Documents/`. Notes embed and link
-these files; no knowledge lives here, only files.
+The binary shelf: `Images/`, `Audio/` and `Documents/`. Notes embed and
+link these files; no knowledge lives here, only files.
+
+`Audio/` is where an exported recording or transcript audio goes if you
+choose to keep a copy in the vault. The Scaffold does not record meetings
+([[GL-1010-the-five-capture-workflows|GL-1010]], workflow 4): you bring
+your own transcriber, and whether its audio ever lands here is your call.
+The meeting note points at it with `transcript` and says so with
+`audio_retained`.
 
 Rule of thumb: if it is a markdown note, it never belongs in Assets. If
 it is a binary file, it never belongs anywhere else. Obsidian files

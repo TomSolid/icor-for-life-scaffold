@@ -1,5 +1,10 @@
 # Daily Scratchpad
 
+**The keys:** `Cmd+Alt+S` opens today's note. `Cmd+Alt+N` makes a new quick
+capture stamped with the minute. Before you close either one, name one
+thing it connects to with `[[`. That ten seconds is what makes it findable
+later; see [[GL-1010-the-five-capture-workflows|GL-1010]], workflow 2.
+
 Your post-it. One note per day, named `YYYY-MM-DD.md`, written by you all
 day long: thoughts, meeting notes, quotes, half-ideas, links. It is
 deliberately a mess; light headings help the AI parse it, but no rules

@@ -35,3 +35,45 @@ views:
     sort:
       - property: file.name
         direction: ASC
+  - type: table
+    name: Sources
+    filters:
+      and:
+        - note.note_type == "reference"
+    order:
+      - file.name
+      - note.source_url
+      - note.consumed
+      - note.topics
+      - note.key_elements
+    sort:
+      - property: note.consumed
+        direction: ASC
+  - type: table
+    name: Reading queue
+    filters:
+      and:
+        - note.note_type == "reference"
+        - note.consumed == false
+    order:
+      - file.name
+      - note.source_url
+      - note.topics
+      - note.key_elements
+    sort:
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: Open ideas
+    filters:
+      and:
+        - note.note_type == "idea"
+        - note.idea_status == "open"
+    order:
+      - file.name
+      - note.key_elements
+      - note.projects
+      - note.topics
+    sort:
+      - property: file.name
+        direction: ASC
