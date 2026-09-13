@@ -17,6 +17,9 @@ rooms, cleanly separated from your knowledge.
     long-term memory
 - `AI Sessions/` - the record of your conversations with the team: one
   folder per conversation, transcripts kept with their session ids.
+- `Expansions/` - optional packs that add capabilities to the AI Team;
+  see [[GL-1012-ai-team-expansions]] and
+  [[WS-1006-install-an-ai-team-expansion]].
 
 Knowledge lives OUTSIDE the agents so several agents can share one
 procedure. The operating law: code for anything a machine could check,

@@ -60,6 +60,7 @@ skipped = []   # {"check", "name", "reason"}: a check that could not run here
 sources = {}   # check -> the file it read
 
 REQUIRED = [
+    "06 AI Team/Expansions",
     "01 Inbox/Outer World/archive",
     "01 Inbox/Scanner Inbox",
     "00 Daily Scratchpad",

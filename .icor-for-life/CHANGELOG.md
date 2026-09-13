@@ -10,6 +10,21 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.22.0 — 2026-09-13
+
+- Added `06 AI Team/Expansions/` as the home for optional AI Team packs.
+  This is an additive myPKA layer, not a replacement architecture or the
+  retired top-level runtime expansion system.
+- Added `GL-1012-ai-team-expansions` and
+  `WS-1006-install-an-ai-team-expansion` for discovery, review, installation,
+  activation, updates and removal. Root session discovery now checks packs.
+- Added `expansion-pack.py`: hash-checked, additive file installation and
+  removal that refuses changed owned files; no lifecycle hooks execute.
+- No core agents, personal knowledge, credentials or existing files are
+  replaced by a pack. Existing members add the new folder and scripts and
+  merge the new discovery step into their root contract, preserving custom
+  instructions. No existing folder is moved or removed.
+
 ## 1.21.0 — 2026-09-13
 
 - Added root `AGENTS.md` as the single runtime-independent operating contract.

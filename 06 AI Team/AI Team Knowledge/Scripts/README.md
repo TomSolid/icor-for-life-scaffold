@@ -143,3 +143,11 @@ The thirteen metrics, in their fixed order:
 
 The thresholds are judgement, not doctrine: they live in one dict at the
 top of `check-quality.py`, one comment per line, and are yours to move.
+
+## Optional AI Team packs
+
+`expansion-pack.py list|inspect|install|remove` manages additive pack files.
+See [[GL-1012-ai-team-expansions]] for the manifest and
+[[WS-1006-install-an-ai-team-expansion]] for the LLM-guided procedure.
+`test-expansion-pack.py` exercises ownership, conflict and path boundaries
+in temporary vaults.

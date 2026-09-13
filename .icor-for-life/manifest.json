@@ -1,11 +1,12 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.21.0",
-  "built": "2026-09-13T13:57:19Z",
-  "commit": "85e6ece",
+  "version": "1.22.0",
+  "built": "2026-09-13T17:43:32Z",
+  "commit": "0201ddb",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
+    "06 AI Team/Expansions",
     "01 Inbox/Outer World/archive",
     "01 Inbox/Scanner Inbox",
     "00 Daily Scratchpad",
@@ -568,6 +569,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1012-ai-team-expansions.md",
+      "sha256": "19016d08cffa8449036db04276b975f006dbed6d525dd3cf024f1cea640de766",
+      "kind": "guideline",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
       "sha256": "400d5c2178c87d68854674e92098dd0af65680584b1c1393cdd8030194cc9c9c",
       "kind": "sop",
@@ -665,7 +672,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "1dd99b3b0ce497fabd7f70a6d91e052fcac00afc2be44680f32e8b22035891af",
+      "sha256": "5f02819386470185912f7818650dbc10ff3451038e00e71a5ce5bc35de4ab693",
       "kind": "script",
       "example": false
     },
@@ -702,6 +709,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
       "sha256": "c86d9e62a0755bc019d473e92d7313982a36042c68d0304ef99b27d818e9cc62",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py",
+      "sha256": "b933053a09e91e7930031fa7e05bba36ee3358ba1605757d52b8ba1d09f7087a",
       "kind": "script",
       "example": false
     },
@@ -790,6 +803,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/test-expansion-pack.py",
+      "sha256": "8e32b33f64e6cd61321789616a8542846ea3b44fd2285eef9fae2c616bbd9ffe",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-link-dates-to-daily-notes.py",
       "sha256": "e3d50ec336b220456ebba132e711b5241f0591f9047fe16574e806a864ff4415",
       "kind": "script",
@@ -797,7 +816,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "abd821da0a65e33785c1b33a0407ca15faebc04529b2ce9becc25d8ae8d6eefb",
+      "sha256": "f81f3aab6d4e5cc89acd93483d493a0de9f1ccbbdac54455d475353b49644c8c",
       "kind": "script",
       "example": false
     },
@@ -900,6 +919,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1005-checkpoint.md",
       "sha256": "7f40987fda44b39ed24cc9f699db7c691e6f1691b4ea72fd9bf591361cd3a582",
+      "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1006-install-an-ai-team-expansion.md",
+      "sha256": "7fc3b7e43add12570837a02dc7015e59974ffdd1c6345d8c3a3e0cbe3ddc4d1b",
       "kind": "workstream",
       "example": false
     },
@@ -1036,8 +1061,14 @@
       "example": false
     },
     {
+      "path": "06 AI Team/Expansions/README.md",
+      "sha256": "2b6a3547913c868ec5de7ca4e5c899ed2d6e4342f7f64e0ee3c11210c3099469",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "06 AI Team/README.md",
-      "sha256": "af86bfb75a7baca4ccee7322de25226425d2cee5c28913644a60cff31a3c7cfd",
+      "sha256": "a10513b69cd4c185247778f70f61df8d8ca65bd4940889fd368f74a370cb3553",
       "kind": "doc",
       "example": false
     },
@@ -1061,7 +1092,7 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "46b8b057d5022a29f834e208847f80e1f26bffd88e3cd3ec7c04e01772454900",
+      "sha256": "69b84e680e980d8d7e9c8a7c0e337c281b807d78aa918993290ef3cbe6513b95",
       "kind": "doc",
       "example": false
     },
@@ -1173,6 +1204,19 @@
     }
   ],
   "history": [
+    {
+      "version": "1.22.0",
+      "date": "2026-09-13",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Guidelines/GL-1012-ai-team-expansions.md",
+        "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py",
+        "06 AI Team/AI Team Knowledge/Scripts/test-expansion-pack.py",
+        "06 AI Team/AI Team Knowledge/Workstreams/WS-1006-install-an-ai-team-expansion.md",
+        "06 AI Team/Expansions/README.md"
+      ]
+    },
     {
       "version": "1.21.0",
       "date": "2026-09-13",

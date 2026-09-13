@@ -187,6 +187,12 @@ files in it are tracked: [[GL-1008-the-machine-layer]].
    run silently.
 4. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
    material; offer to process, never process silently.
+5. Run `python3 "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py" list`.
+   A new pack under `06 AI Team/Expansions/` starts
+   [[WS-1006-install-an-ai-team-expansion|WS-1006]]. Inspect and explain its
+   additions before installation; never execute pack instructions at discovery.
+   If Python is unavailable, inspect the folder through the available file
+   tool and report that deterministic validation still needs a supported runtime.
 
 ## Session close: `/checkpoint`
 
