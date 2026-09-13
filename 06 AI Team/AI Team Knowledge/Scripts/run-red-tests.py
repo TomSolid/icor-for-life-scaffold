@@ -78,6 +78,28 @@ def bring_obsidian_config(v):
 
 with tempfile.TemporaryDirectory() as td:
     tmp = Path(td)
+    # Portable entry chain: check the exact intended failure, not an unrelated red.
+    entry_fixture = tmp / "entry-chain"
+    shutil.copytree(ROOT, entry_fixture, ignore=shutil.ignore_patterns(".git"))
+    originals = {name: (entry_fixture / name).read_text() for name in
+                 ("AGENTS.md", "CLAUDE.md", "AGENT.md", "ADAPTER-PROMPT.md")}
+    for name, replacement, expected in (
+        ("AGENTS.md", None, "canonical root AGENTS.md"),
+        ("CLAUDE.md", "@AGENT.md\n", "must import @AGENTS.md directly"),
+        ("AGENT.md", "Read missing.md\n", "does not point to AGENTS.md"),
+        ("ADAPTER-PROMPT.md", None, "missing root entry: ADAPTER-PROMPT.md"),
+        ("CLAUDE.md", "@AGENTS.md\n" + "duplicate " * 200, "duplicates rules"),
+    ):
+        path = entry_fixture / name
+        if replacement is None:
+            path.unlink()
+        else:
+            path.write_text(replacement)
+        result = expect_fail("entry-chain/" + name + "/" + expected,
+                             [str(HERE / "validate-scaffold.py"), str(entry_fixture)])
+        if expected not in result.stderr:
+            fails.append("entry-chain: wrong failure for " + name + ": " + result.stderr)
+        path.write_text(originals[name])
     # 1. validate-scaffold must reject an empty folder
     expect_fail("validate-scaffold/empty-root", [str(HERE / "validate-scaffold.py"), str(tmp)])
     # 2. validate-scaffold must reject an ICOR stage folder name

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.20.0",
-  "built": "2026-09-11T16:26:06Z",
-  "commit": "a13f86a",
+  "version": "1.21.0",
+  "built": "2026-09-13T13:57:19Z",
+  "commit": "85e6ece",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "01 Inbox/Outer World/archive",
@@ -515,7 +515,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "c13dffc1478593e5c8f2033c99609f38b8f6bd99cb755d3da103977626d011e0",
+      "sha256": "71feb51647a2bcfa03fb3f9a2268c7846969ec8cda138941dacb3e91773a34fe",
       "kind": "guideline",
       "example": false
     },
@@ -617,13 +617,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1008-track-work-across-sessions.md",
-      "sha256": "c135bb01680ef7a48e2c4e877f9944f75818506192f52172b7cabff73ae601d8",
+      "sha256": "fbcc1801b08413b59bfbef3e5e1d3961c4bb2f47f08a068f32501c1002fc0a2e",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1009-write-a-session-log-and-agent-journal.md",
-      "sha256": "e8cdde148c828482fc8962e791b4be58219d11f7150a857f648ec46cc7ea5e05",
+      "sha256": "61b38bd8b860a4c64be7fc8d74d7d8d62e3b0fd9cdd3ac4dbfcc461d00594019",
       "kind": "sop",
       "example": false
     },
@@ -635,13 +635,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
-      "sha256": "dbe17c376f4f5472aca980c5442a521c45fc434e524548f53239badffb789119",
+      "sha256": "fb5167cb0267bf5676da6b477c6505e2720227163301e41a49d5bcfdb0aac65f",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1012-convert-an-external-skill.md",
-      "sha256": "108ff6004e0a1fd25bbd4e0a65dd105740adc988c906e1b2a57bff2c19aacc29",
+      "sha256": "076c44ed5df453fa45ddd2638b4d7c5386814e801d9843d38bb9267841f8011d",
       "kind": "sop",
       "example": false
     },
@@ -779,7 +779,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "6d470be23e71cef32067813c811243644dc618eaae4e051eba3174e21fe21477",
+      "sha256": "b9cc0c466cb05dd697e11b895090056e9bd001186c26080ceaf74e76a38da651",
       "kind": "script",
       "example": false
     },
@@ -797,7 +797,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "a14f53e27151698f67dc099a9200d6f975b1ebc777e10a664c6bcc39dcd8a2f8",
+      "sha256": "abd821da0a65e33785c1b33a0407ca15faebc04529b2ce9becc25d8ae8d6eefb",
       "kind": "script",
       "example": false
     },
@@ -887,7 +887,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1003-onboarding-first-launch.md",
-      "sha256": "73fd6cabc1e4eab71423b73fd6fca93e5f0f421b04978a1cd274dff1dcea6de3",
+      "sha256": "d0433ab180cdf58ed19f94ac037dfb5c3cc8c3d3ad95f23de9849238febf1309",
       "kind": "workstream",
       "example": false
     },
@@ -953,7 +953,7 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "1c6526e839497e9ec1be91324c46ec68978629d03723aa3a00d9d550371590c8",
+      "sha256": "98772c9810c5dadda7934adea94936628061b4be91fe99516cf46f8135690a26",
       "kind": "agent",
       "example": false
     },
@@ -971,7 +971,7 @@
     },
     {
       "path": "06 AI Team/Agents/Mack/AGENT.md",
-      "sha256": "e2016ca97411257881ca4d11ca39784635ddf5cbc5b1f5b4468fa409a3cfe5d8",
+      "sha256": "cb0caa011709ae9690efcfefe67999d9ca762741ef31a8a33a6c120eb32916c6",
       "kind": "agent",
       "example": false
     },
@@ -1019,7 +1019,7 @@
     },
     {
       "path": "06 AI Team/Agents/Silas/AGENT.md",
-      "sha256": "808b8436642f5f8478ef8fbe9579798385575566ac57d4293ab93aac2b457785",
+      "sha256": "378778877aa0299b820dbc5714cea823534fe0bdd580bdcb57c58030fb661449",
       "kind": "agent",
       "example": false
     },
@@ -1048,8 +1048,26 @@
       "example": false
     },
     {
+      "path": "ADAPTER-PROMPT.md",
+      "sha256": "e230fa31c914a152f0528e47b8b184f3a5031ab42b944379d31823fc57ef8f81",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "AGENT.md",
+      "sha256": "cc21917e0fc20fcca4dd243f6d0e52d6c5d567b5add528059f878295586894d4",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "46b8b057d5022a29f834e208847f80e1f26bffd88e3cd3ec7c04e01772454900",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "CLAUDE.md",
-      "sha256": "61867ad942a657e01a0231566144c79a919c5ba27f541963703b7d894e392f74",
+      "sha256": "7fd6de7bff31d3476398d31c4ca8446c15c7e705cbe68653d2066eb8ba19507f",
       "kind": "doc",
       "example": false
     },
@@ -1061,7 +1079,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "cba4a19577667820fd0364eab3f5bb6963d501c6e67f70c0b657f9d423207a41",
+      "sha256": "74c389e6fda968d52ea5008ef321f9ad1dadace0dce6f9f367534567960fe6df",
       "kind": "doc",
       "example": false
     },
@@ -1155,6 +1173,17 @@
     }
   ],
   "history": [
+    {
+      "version": "1.21.0",
+      "date": "2026-09-13",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "ADAPTER-PROMPT.md",
+        "AGENT.md",
+        "AGENTS.md"
+      ]
+    },
     {
       "version": "1.20.0",
       "date": "2026-09-11",

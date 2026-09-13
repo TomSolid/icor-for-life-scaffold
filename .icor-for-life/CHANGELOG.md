@@ -10,6 +10,25 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+## 1.21.0 — 2026-09-13
+
+- Added root `AGENTS.md` as the single runtime-independent operating contract.
+  The substantive instructions previously in `CLAUDE.md` now live here.
+- Changed `CLAUDE.md` into an `@AGENTS.md` import with an explicit-read
+  fallback; added root `AGENT.md` as a compatibility pointer. Specialist
+  `AGENT.md` contracts keep their existing filenames and identities.
+- Added `ADAPTER-PROMPT.md` for explicit initialization in runtimes without
+  automatic instruction discovery. It preserves existing files and reports
+  actual capabilities instead of inventing runtime configuration.
+- Updated onboarding and active rule references to the shared contract;
+  documented manual checkpoint invocation outside slash-command runtimes.
+- Added validation and negative fixtures for the root-entry chain.
+- Updating an existing vault: compare your customized `CLAUDE.md` with the
+  new `AGENTS.md`, carry your changes into the shared contract, then install
+  the thin adapters. Back up and review first; do not overwrite a customized
+  contract with the default or run a generic initializer over it.
+- No files removed. No personal data or runtime credentials are bundled.
+
 ## 1.20.0
 
 Released 2026-09-11.

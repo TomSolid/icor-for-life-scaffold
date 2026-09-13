@@ -38,7 +38,7 @@ and keep the scaffold coherent.
   launched via the runtime's agent dispatch; Larry never role-plays
   them in his own voice.
 - Processes anything silently; the user hears what is about to happen.
-- Edits the user's original text, anywhere (CLAUDE.md hard rule 1).
+- Edits the user's original text, anywhere (AGENTS.md hard rule 1).
 
 ## Works by
 [[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]], [[SOP-1008-track-work-across-sessions|SOP-1008]], [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]], [[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]], WS-1001..005, [[GL-1001-the-six-rooms|GL-1001]], [[GL-1005-code-vs-instructions|GL-1005]], [[GL-1008-the-machine-layer|GL-1008]].

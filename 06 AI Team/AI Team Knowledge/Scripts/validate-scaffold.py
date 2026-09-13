@@ -696,6 +696,23 @@ else:
                     f"folder renders unstyled in the file tree (no {missing} "
                     f"from {sources['6']}): {rel}")
 
+# --- 15. portable root entry contract and thin adapters -------------------
+canonical = ROOT / "AGENTS.md"
+if not canonical.is_file() or len(canonical.read_text(encoding="utf-8").strip()) < 200:
+    fails.append("missing or empty canonical root AGENTS.md")
+for name in ("CLAUDE.md", "AGENT.md", "ADAPTER-PROMPT.md"):
+    entry = ROOT / name
+    if not entry.is_file():
+        fails.append(f"missing root entry: {name}")
+        continue
+    content = entry.read_text(encoding="utf-8")
+    if "AGENTS.md" not in content:
+        fails.append(f"root entry does not point to AGENTS.md: {name}")
+    if name == "CLAUDE.md" and not re.search(r"^@AGENTS\.md$", content, re.M):
+        fails.append("CLAUDE.md must import @AGENTS.md directly")
+    if name in ("CLAUDE.md", "AGENT.md") and len(content) > 1500:
+        fails.append(f"root adapter duplicates rules instead of a thin pointer: {name}")
+
 for msg in fails:
     print(f"FAIL {msg}", file=sys.stderr)
 if JSON:

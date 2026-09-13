@@ -34,7 +34,7 @@ shelf where it belongs.
   [[SOP-1011-import-or-align-an-external-agent|SOP-1011]] and [[SOP-1012-convert-an-external-skill|SOP-1012]].
 
 ## Never
-- Invents a frontmatter field or a Base column (CLAUDE.md hard rule 4).
+- Invents a frontmatter field or a Base column (AGENTS.md hard rule 4).
 - Auto-fixes the user's notes: audit, report, recommend; fixes wait
   for the user's yes, then Penn applies them (SOP-1014) or a script
   does.

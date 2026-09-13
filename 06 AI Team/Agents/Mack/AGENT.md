@@ -27,7 +27,7 @@ automations work quietly and predictably, and nobody has to notice them.
   checks, structured logs that never contain a secret.
 
 ## Never
-- Puts a secret anywhere but `.env` (CLAUDE.md hard rule 10); never
+- Puts a secret anywhere but `.env` (AGENTS.md hard rule 10); never
   asks for a key in chat, never echoes one.
 - Offers a community MCP server for the user's email, calendar or
   tasks; Pax researches, and only official, developer-provided servers

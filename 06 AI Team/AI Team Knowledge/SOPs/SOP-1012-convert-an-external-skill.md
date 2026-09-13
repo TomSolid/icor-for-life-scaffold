@@ -41,7 +41,7 @@ Steps:
      `.claude/skills/<name>/SKILL.md`: frontmatter + one paragraph
      pointing at the owning SOP. The SOP is canonical; the shim is a
      pointer. Never duplicate content into the shim.
-4. Conflicts: a skill instruction that collides with CLAUDE.md hard
+4. Conflicts: a skill instruction that collides with AGENTS.md hard
    rules or an existing SOP loses, and the conflict is reported to
    the user, never silently resolved.
 5. The manifest ([[WS-1004-import-and-convert-external-knowledge|WS-1004]] shape) records source, license note if the

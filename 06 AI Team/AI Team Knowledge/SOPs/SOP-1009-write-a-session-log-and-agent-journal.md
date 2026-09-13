@@ -9,7 +9,7 @@ uses: ["[[GL-1002-frontmatter-conventions]]", "[[GL-1004-naming-rules]]"]
 
 # SOP-1009 Write a session log and an agent journal entry
 
-The team's long-term memory. Runs at every session close (CLAUDE.md
+The team's long-term memory. Runs at every session close (AGENTS.md
 hard rule 9) and whenever the user says "keep this in mind".
 
 1. [SCRIPT] `Scripts/new-session-log.py --agent <lead-agent>

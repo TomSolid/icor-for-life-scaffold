@@ -354,7 +354,7 @@ A scanned PDF, a photo, an audio memo: a binary capture cannot carry
 frontmatter, so it can never carry the processed stamp itself. Two
 rules met on that case and gave different answers.
 [[GL-1001-the-six-rooms|GL-1001]] keeps binaries in `05 Assets/`
-forever; hard rule 2 of `CLAUDE.md` keeps processed outer-world
+forever; hard rule 2 of `AGENTS.md` keeps processed outer-world
 originals in `01 Inbox/Outer World/archive/` forever. This ruling
 breaks the tie:
 

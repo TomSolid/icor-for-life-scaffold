@@ -14,7 +14,7 @@ Tasks are the team's continuity between sessions. They live in
 
 1. [SCRIPT] Create: `Scripts/new-task.py new --slug ... --title ...
    --assignee ...`. Anything unfinished at session end becomes a task
-   BEFORE the session closes (CLAUDE.md hard rule 7).
+   BEFORE the session closes (AGENTS.md hard rule 7).
 2. [SCRIPT] Move: `Scripts/new-task.py move <name> --to in-progress`
    when picked up, `--to done` when delivered, `--to cancelled` when the
    user drops it. The script keeps status field and folder in sync and

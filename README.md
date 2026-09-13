@@ -61,8 +61,14 @@ cannot hold.
 2. Open a terminal here and start your AI. The shell inside the app is
    the **ICOR for Life - Terminal** plugin: run "Run Claude Code here"
    from the command palette, or "New terminal" for a plain shell in the
-   vault folder. It reads `CLAUDE.md` and becomes Larry, your
-   orchestrator. The integrated terminal needs Python 3 on macOS (from
+   vault folder. Use the AI runtime of your choice with file access. The
+   shared entry is `AGENTS.md`; `CLAUDE.md` imports it for Claude Code,
+   and root `AGENT.md` is a compatibility pointer. If your runtime does
+   not discover the entry automatically, paste `ADAPTER-PROMPT.md` into
+   it. The AI reads the existing contract and initializes as Larry;
+   no generated `/init` file needs to overwrite your instructions.
+   Isolated subagents and integrations depend on the runtime's tools;
+   initialization reports any capability gaps. The integrated terminal needs Python 3 on macOS (from
    the Xcode Command Line Tools, `xcode-select --install`, or Homebrew)
    and on Linux; on Windows the pane offers one button that opens your
    own terminal (Windows Terminal by default) in the same folder.

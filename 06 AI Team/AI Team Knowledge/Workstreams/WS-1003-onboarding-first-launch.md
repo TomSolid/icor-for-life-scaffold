@@ -10,7 +10,7 @@ uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1009-write-a-session-lo
 # WS-1003 Onboarding on first launch
 
 Runs when `Scripts/check-onboarding.py` reports FRESH at session start
-(CLAUDE.md ritual step 0). Larry leads; nothing here runs silently.
+(AGENTS.md ritual step 0). Larry leads; nothing here runs silently.
 
 **Hard rule for every scoping and team ruling in this workstream, and
 at the WS-1004 plan gate it routes into:** active work, projects, and
