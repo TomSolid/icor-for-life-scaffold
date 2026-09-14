@@ -67,6 +67,11 @@ cannot hold.
    not discover the entry automatically, paste `ADAPTER-PROMPT.md` into
    it. The AI reads the existing contract and initializes as Larry;
    no generated `/init` file needs to overwrite your instructions.
+   The host harness (`.claude/`, `.codex/`, `.gemini/`) is generated from
+   the vault's own files: your AI prints
+   `python3 "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py" plan`,
+   you run it, and `apply` writes it. It never rewrites your instructions,
+   and nothing starts on its own.
    Isolated subagents and integrations depend on the runtime's tools;
    initialization reports any capability gaps. The integrated terminal needs Python 3 on macOS (from
    the Xcode Command Line Tools, `xcode-select --install`, or Homebrew)

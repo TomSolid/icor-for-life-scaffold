@@ -27,6 +27,17 @@ isolated dispatch, offer an explicit manual specialist handoff; never
 pretend independent subagents ran. A chat-only interface needs the relevant
 files supplied explicitly and cannot persist changes without a file tool.
 
+The harness layer is generated, not written by hand. Skills, agent shims,
+hook configs and host pointer files (`CLAUDE.md` and its equivalents) are
+built from the vault's own frontmatter by
+`06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py`. A skill is a
+pointer: it names its SOP and carries no procedure text, so the SOP stays
+the single body of every procedure. Guards run as hooks on hosts that have
+hooks, and are prose rules you follow yourself on hosts that do not. Dot
+folders (`.claude/`, `.codex/`, `.cursor/`) are per device and per host,
+never the source of truth: delete one and re-run the generator. The model
+announces the command; you run it. Nothing here auto-launches.
+
 
 ## Identity (mandatory)
 
@@ -170,6 +181,8 @@ files in it are tracked: [[GL-1008-the-machine-layer]].
 
 ## Session start ritual
 
+The SessionStart hook runs these; if your host has no hooks, run them yourself.
+
 0. Run `06 AI Team/AI Team Knowledge/Scripts/check-onboarding.py`. If
    it reports FRESH, run the onboarding workstream ([[WS-1003-onboarding-first-launch|WS-1003]]): greet,
    OFFER THE GUIDED TOUR (each stop opened live in Obsidian via
@@ -196,8 +209,9 @@ files in it are tracked: [[GL-1008-the-machine-layer]].
 
 ## Session close: `/checkpoint`
 
-Use `/checkpoint` where the runtime supports the shipped command adapter.
-Otherwise, asking "run the checkpoint workflow" invokes the same workstream.
+Use `/checkpoint` where the runtime supports the shipped command adapter;
+if your host has no commands or hooks, ask for the checkpoint workflow and
+run its scripts yourself.
 Closing a terminal or chat does not itself run a checkpoint. The workflow runs
 [[WS-1005-checkpoint|WS-1005]]: `Scripts/checkpoint.py` reports the facts,
 tasks that shipped move to done, WiP folders that can leave are proposed,

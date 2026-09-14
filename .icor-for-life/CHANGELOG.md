@@ -147,6 +147,20 @@ became a skill of the same name.
   rather than written twice. `Agents/Agent 01/` documents the new fields for
   the next hire.
 - **`06 AI Team/README.md`** names the new `Skills/` room.
+- **`AGENTS.md`** describes the harness layer where it describes the runtime:
+  skills, agent shims, hook configs and host pointer files are generated from
+  the vault's own frontmatter by `scaffold-init.py`, a skill is a pointer to
+  its SOP, a guard is a hook where there are hooks and a prose rule where
+  there are none, and the dot folders are per device and never the source of
+  truth. The session start ritual and the checkpoint now both say the same
+  thing to a member whose host has no hooks and no commands: run the scripts
+  yourself.
+- **`ADAPTER-PROMPT.md`** is generator-aware. The prompt asks the model to
+  name its host and the capabilities it actually has, to report which harness
+  folders exist, and, when the harness is missing or stale, to print
+  `scaffold-init.py plan` and stop rather than run anything. `README.md` step
+  2 names the same two verbs, so the entry path and the front page agree that
+  the model announces the command and the member runs it.
 
 ### Removed
 

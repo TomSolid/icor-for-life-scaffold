@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.23.0",
-  "built": "2026-09-14T18:13:51Z",
-  "commit": "bebdf46",
+  "built": "2026-09-14T19:28:35Z",
+  "commit": "3190d41",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -180,7 +180,7 @@
     },
     {
       "path": ".codex/config.toml",
-      "sha256": "147f13ce4c66054bef41465669855ede9dcd95c1e1c83b61be0b4c3ef4db11d2",
+      "sha256": "810fbead400a2f29cdc3b8ea61c8fec6a828f99c0527d99772f582b87f5afce6",
       "kind": "doc",
       "example": false
     },
@@ -1386,7 +1386,7 @@
     },
     {
       "path": "ADAPTER-PROMPT.md",
-      "sha256": "e230fa31c914a152f0528e47b8b184f3a5031ab42b944379d31823fc57ef8f81",
+      "sha256": "686a12d5e0f7e12cebc3fb27b263d29125f034723b4392327a60766452e39868",
       "kind": "doc",
       "example": false
     },
@@ -1398,7 +1398,7 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "69b84e680e980d8d7e9c8a7c0e337c281b807d78aa918993290ef3cbe6513b95",
+      "sha256": "4ac8ef50a9f4275e4475f4e99f9e4117e1987c293af66fe20bf7554571200b1d",
       "kind": "doc",
       "example": false
     },
@@ -1422,7 +1422,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "74c389e6fda968d52ea5008ef321f9ad1dadace0dce6f9f367534567960fe6df",
+      "sha256": "cbfb9be6bc0c95ef5512596af6950475b7366bc9321b39881949243a87ce6c72",
       "kind": "doc",
       "example": false
     },
