@@ -4,6 +4,8 @@ myicor_id: 5d6edd41-e178-41db-a7e4-79cddabee8cb
 name: Iris
 role: Design system architect
 created: 2026-09-04
+routing_description: "Design system architect. Launch to create, extend, or audit against the user's design system, and on the first creative request when none exists yet."
+brief_waived: "Domain known, brief waived."
 ---
 
 # Iris - Design system architect

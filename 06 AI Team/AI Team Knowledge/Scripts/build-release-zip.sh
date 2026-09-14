@@ -248,6 +248,30 @@ done
 fail=0
 
 # ---------------------------------------------------------------------------
+# 0a. THE RED-TEST GATE
+#
+# No release while a guard has not been watched go red (GL-1005 rule 4).
+#
+# Until 2026-09-14 run-red-tests.py was run "on demand", which meant by
+# nobody: two of its gates sat red for three days because check-bases.py
+# could not import PyYAML, and the suite kept being described as green
+# (tsk-2026-09-11-005). A runner nobody runs is a document. This is the one
+# place that has to run it.
+#
+# It runs against $STAGE, the bytes that will ship, not the dev checkout.
+# A staged tree has no .git, so the suite's manifest guards report SKIP with
+# their reason rather than dying, and a skip prints as itself.
+#
+# The gate body lives in its own file so that run-red-tests.py can test the
+# gate: this script needs a git mirror, the gh CLI and the network, and a
+# red test cannot call it.
+# ---------------------------------------------------------------------------
+echo "==> red-test gate (no release while a guard has not been watched go red)"
+if ! sh "$STAGE/06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh" "$STAGE"; then
+  echo "BLOCKED red-tests: the staged tree carries a guard that did not refuse what it must refuse"; fail=1
+fi
+
+# ---------------------------------------------------------------------------
 # 0. THE RESIDUE GATE
 #
 # This script is our build tooling. It names our local mirror layout, our
@@ -273,6 +297,11 @@ echo "==> residue gate (our build tooling out of the member download)"
 # quoted path per line.
 declare -a RESIDUE_PATHS=(
   "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
+  # The red-test gate is the same kind of thing: it exists so a release
+  # cannot be cut on an unproven tree, and a member cutting no release has
+  # no use for it. run-red-tests.py itself DOES ship, because a member who
+  # writes a guard should be able to watch it go red.
+  "06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh"
   # The release workflow is the same kind of thing one level up: it is how
   # this script runs on every push, it names the same internals, and a
   # workflow file inside a member's vault would do nothing but confuse.

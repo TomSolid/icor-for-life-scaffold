@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.22.0",
-  "built": "2026-09-13T17:43:32Z",
-  "commit": "0201ddb",
+  "version": "1.23.0",
+  "built": "2026-09-14T18:13:51Z",
+  "commit": "bebdf46",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -101,15 +101,141 @@
       "example": false
     },
     {
-      "path": ".claude/commands/checkpoint.md",
-      "sha256": "b50d260e3764c3245f1a25306815f3e887e28d8b649db216033874e17f3207db",
+      "path": ".claude/settings.README.md",
+      "sha256": "91474d7d09d71e35fa5b56692341450a00bc370cbf40d0eb745a0275c84ed51c",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/settings.json",
+      "sha256": "902cd957a400f9d666a3d22142a9c270c4b471546df0157e4af625c0f3f078b3",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/skills/checkpoint/SKILL.md",
+      "sha256": "6b5840bf62b9d6393fbc5306f14d0d13589806109b69b3425e8159f2493e994b",
       "kind": "claude",
       "example": false
     },
     {
       "path": ".claude/skills/import-skill/SKILL.md",
-      "sha256": "4204548e102b18c3349b33c7ecdf9c6162e4eaedf44b52afecfec81f7b4d1867",
+      "sha256": "a9e25818e0488ec01b8160844fd2b574503639526b115bd6294c64b81f093d4f",
       "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/skills/red-tests/SKILL.md",
+      "sha256": "39c5baee9754b1f7f920013ad191821befa6f3d027b8c9c2f495adf55b0aa039",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/charta.toml",
+      "sha256": "7dcc1f8b47a16650ea2a48d9f3ceb21b523710c0d318850b153607834eadb7d5",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/flint.toml",
+      "sha256": "1e1eea245ff6804e620d08de439d9046cb8ebb9e65868a9edc3907f0ff2e0ea0",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/iris.toml",
+      "sha256": "b166d0cfdc6c51476829ba18c8ea898c1069d6a3df86013bf7f456f32313083e",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/mack.toml",
+      "sha256": "a9443d40537fbbeed3f475f891a12a5dac3dc54a4ec8e2a18db9f683ab049b73",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/nolan.toml",
+      "sha256": "f30ee19a8f6ed66283e4825484fa85fa07048c616ab5916d2022c9288540139d",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/pax.toml",
+      "sha256": "82d4656f27b79dbc5cebdc173e65c05b2f510c0dc4e54e711d74e0a52b10507c",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/penn.toml",
+      "sha256": "9d37d40341fd41c66a0c0f8c965acac8ff32fe3f33044f500f1037f206dea8df",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/agents/silas.toml",
+      "sha256": "9a38d8336c49a9bc2e1325993e57dece34cd122eea9bb2bbb5323ae1c074770c",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/config.toml",
+      "sha256": "147f13ce4c66054bef41465669855ede9dcd95c1e1c83b61be0b4c3ef4db11d2",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".codex/hooks.json",
+      "sha256": "7385a89533109734e745c4717a42713008ed3b3d9cf476deae3f7a166f5a3e06",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/charta.md",
+      "sha256": "b6a94665d259cd6983c16a7de2a516da04e3ee8fb4fa1dab9dc163e3c638ecbd",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/flint.md",
+      "sha256": "b3193cc52c2784c161f2524258b8eb4d7e726bdb5bcfde5afdf1345abc8494fa",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/iris.md",
+      "sha256": "4a842fae2d231b6db97a67afb78177dff306e2acd400d60fac7a4ef13955ac26",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/mack.md",
+      "sha256": "b8a22c86cfcbe5f55a610c0afcd1835df446d0890b672249fff2571f062a8791",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/nolan.md",
+      "sha256": "55b0e4f1c2278cc6c2426671c74175cb5ebecdd425459bca4681275a2f14d9e2",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/pax.md",
+      "sha256": "271d815c145ba17b20ad4910bdc7752ea7bb7a824484718ca6ed01bc0e97d4f5",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/penn.md",
+      "sha256": "21c00eff1c6979c75f0504494da03678492bf816079dbfdf8d935217cd7f8940",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/silas.md",
+      "sha256": "b014e41e9f27cd62c82cf725a6288a4b668c7137a3f961c721ab23a8bd9832db",
+      "kind": "doc",
       "example": false
     },
     {
@@ -516,7 +642,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "71feb51647a2bcfa03fb3f9a2268c7846969ec8cda138941dacb3e91773a34fe",
+      "sha256": "1140a212178547664e566ce8655f461ba0bb0ed6ad11b5d7a9897351a96ee4b5",
       "kind": "guideline",
       "example": false
     },
@@ -570,13 +696,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1012-ai-team-expansions.md",
-      "sha256": "19016d08cffa8449036db04276b975f006dbed6d525dd3cf024f1cea640de766",
+      "sha256": "dbe0b194e3c54ac3782011f2c4ccb9304fc6d05ad7ab564d926d5c87ba3677e9",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
-      "sha256": "400d5c2178c87d68854674e92098dd0af65680584b1c1393cdd8030194cc9c9c",
+      "sha256": "6ad6246ba4c0c1e7fa9018d078e96af0798dbf4ff7bcdf97ec0e5037413ff60c",
       "kind": "sop",
       "example": false
     },
@@ -618,7 +744,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
-      "sha256": "ede78cc063b814fc92fff618afef6205fa6e59874fa43ec2d6f80f9540ef7f83",
+      "sha256": "58a079a4599e3615cbe3d9cd783387dd4f78b8e3c7579143c1c19409550fd00f",
       "kind": "sop",
       "example": false
     },
@@ -642,13 +768,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
-      "sha256": "fb5167cb0267bf5676da6b477c6505e2720227163301e41a49d5bcfdb0aac65f",
+      "sha256": "20df0303b7477cb6255fa4dcb17623f801eeec2eec3c5362440e792c4b60b635",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1012-convert-an-external-skill.md",
-      "sha256": "076c44ed5df453fa45ddd2638b4d7c5386814e801d9843d38bb9267841f8011d",
+      "sha256": "7702c39002fd5f86d0b8aa34bd4f426ec6797aeeace4f90f3ddb38cc50d87e25",
       "kind": "sop",
       "example": false
     },
@@ -671,8 +797,14 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1016-run-the-red-tests-and-gate-a-release.md",
+      "sha256": "d1959cd9e063b1afffbbfaa01d981dc90cafbd48e8e1aa8e8bf457f1d3d88f19",
+      "kind": "sop",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "5f02819386470185912f7818650dbc10ff3451038e00e71a5ce5bc35de4ab693",
+      "sha256": "c88c090575853cbfd3d1c071a10ff88e44b68889e86384d65e8c6bcb546d76a7",
       "kind": "script",
       "example": false
     },
@@ -690,7 +822,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-bases.py",
-      "sha256": "d13a70e849a22c604fdd1a1337a5ceac3425def612796f2ab58621aa82649dc1",
+      "sha256": "97ff160e9504010ffaa5b965f78bf650de760bb35f0f991d6435e81f843f4753",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
+      "sha256": "8caba7f3e704a64035682b57b4bd91c22ead9007e83b4a8a45a072c2bc294cb8",
       "kind": "script",
       "example": false
     },
@@ -708,7 +846,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "c86d9e62a0755bc019d473e92d7313982a36042c68d0304ef99b27d818e9cc62",
+      "sha256": "064252b6e044cf9d42e7dd3fce3e59118322f3b2f131267ce3439ec2690f531d",
       "kind": "script",
       "example": false
     },
@@ -721,6 +859,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/find-entity.py",
       "sha256": "b5f8257251cea278cf0c5af53c7b4a86383d4d58c2d810bc3a887821218412fe",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
+      "sha256": "74164eaa14dc2ce86f49dca7abe026ce66cf59dc461a35c597f7da92b995970a",
       "kind": "script",
       "example": false
     },
@@ -745,6 +889,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py",
       "sha256": "0efc269edc54852c6533c75063025db35c6da9ea7aa5317603269b95f07a3403",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
+      "sha256": "68394be66f33a5ed4256c5642ad7a758ca9ab589b3986beb74ae2fdfc5f92780",
       "kind": "script",
       "example": false
     },
@@ -792,7 +942,31 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "b9cc0c466cb05dd697e11b895090056e9bd001186c26080ceaf74e76a38da651",
+      "sha256": "869e9611f7b198807b0da26a2036b753f7fbec3c1d49de0e6afb9fae27c4cfb6",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py",
+      "sha256": "677fdb92907af0eee1d656734a894cd27cae4763d60d0639d220d590478554ad",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
+      "sha256": "668b6eddadcad84060537841c511d3266688091abdd961663b5452e533e38725",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
+      "sha256": "a85f7429ccc1c1dafa45edfea567536d84efaac3f4983d85fd18f5fe7ae6d74f",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/skill-doctor.py",
+      "sha256": "77eadede4b450a97fa85ab466609b0da8b5f4ce555ebd9789ca4b5c6ad1af34a",
       "kind": "script",
       "example": false
     },
@@ -818,6 +992,42 @@
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
       "sha256": "f81f3aab6d4e5cc89acd93483d493a0de9f1ccbbdac54455d475353b49644c8c",
       "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/write-guard.py",
+      "sha256": "16da8f9386fc4145b87018feac01ca9fc54c1e2a9afe2d36df0430163316f5ea",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Skills/README.md",
+      "sha256": "6aa02eede0060b7f6fc9ebed750df9c490044afc75e68b8c9396c4d3cb7f5422",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Skills/_template.md",
+      "sha256": "2f03ac69b1368a7d1e60d6bdec7c4258d2e892724e879107c7f9daf6a092be21",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Skills/checkpoint/SKILL.md",
+      "sha256": "9b5055e893938fdf85edfe82006fd0efe7bf8943b04b64d872852d8e80db254f",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Skills/import-skill/SKILL.md",
+      "sha256": "143d9919ca092bec4159e98490bf7956db53e22ffc34400fc9826e8fe7d0b70b",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Skills/red-tests/SKILL.md",
+      "sha256": "74589b62fa5347264b390836a7b38677ba5bc7463a446f0075c058db6aba476e",
+      "kind": "doc",
       "example": false
     },
     {
@@ -918,19 +1128,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1005-checkpoint.md",
-      "sha256": "7f40987fda44b39ed24cc9f699db7c691e6f1691b4ea72fd9bf591361cd3a582",
+      "sha256": "6c09dbbfb2543fec9ab82c93b57160bb0434a6dfac10a81169f54f2c9894ab7a",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1006-install-an-ai-team-expansion.md",
-      "sha256": "7fc3b7e43add12570837a02dc7015e59974ffdd1c6345d8c3a3e0cbe3ddc4d1b",
+      "sha256": "7e955157c5ff4f72450ec281d7a2a42d9fbed8acd829f1466811689e736f75e9",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Agent 01/AGENT.md",
-      "sha256": "37b8806c761075dc0a97a3b56caa551131639110a8826100d7fc15df655620a2",
+      "sha256": "cd77489da049d7c9e8add8cd19cae7fc999212fcaaf77a7806643832ab7208ee",
       "kind": "agent",
       "example": false
     },
@@ -942,7 +1152,7 @@
     },
     {
       "path": "06 AI Team/Agents/Charta/AGENT.md",
-      "sha256": "1237a844e3265eba28e7d2b7a8449df5f2db1ec48b770f1cfd488e6444fdb3af",
+      "sha256": "5e6bff42a323d17c8572af1cdf7a57de81840e330f7bcf33173af8458bafb5d2",
       "kind": "agent",
       "example": false
     },
@@ -953,8 +1163,20 @@
       "example": false
     },
     {
+      "path": "06 AI Team/Agents/Charta/Journal/2026-09-14-first-entry.md",
+      "sha256": "5e535cda6620a4e56ede921832173cac8f872a4df3d1983a775498b328a211ea",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Charta/Journal/_template.md",
+      "sha256": "20dbf810602cfde15977984690f9dc6f7f40cc3142da5b4882439d782c702be9",
+      "kind": "agent",
+      "example": false
+    },
+    {
       "path": "06 AI Team/Agents/Flint/AGENT.md",
-      "sha256": "7e87ed36b5e6c8d210497cbfceb7eacf1d605dfa0e41fbf43d180d8efec06365",
+      "sha256": "3dc85564b815a0e6b7b72c35a8404cefbf911a30d1626e78ede2836494acdf1f",
       "kind": "agent",
       "example": false
     },
@@ -965,14 +1187,38 @@
       "example": false
     },
     {
+      "path": "06 AI Team/Agents/Flint/Journal/2026-09-14-first-entry.md",
+      "sha256": "e0999fce307c192f0e38446566af9ca58c222e7589d6942620f00fe7c238cc5e",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Flint/Journal/_template.md",
+      "sha256": "fa3969f43056391f2e5f7c583d78ca7b32b58e699f5d3a627571c7730b6b8ccb",
+      "kind": "agent",
+      "example": false
+    },
+    {
       "path": "06 AI Team/Agents/Iris/AGENT.md",
-      "sha256": "e390ed100cbf0f4f1739d8674e8eae2f5a2c2dd16ddd27d897f18bcbc05f195f",
+      "sha256": "4a4d3974f4e28999b15f47ec0e41a13a134a03b9ddafac5db1880ae83a942689",
       "kind": "agent",
       "example": false
     },
     {
       "path": "06 AI Team/Agents/Iris/Iris.md",
       "sha256": "a29a64b8e200227131c38580f4ae145307bb5a8d04cb97b725c60c1a263f80ed",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Iris/Journal/2026-09-14-first-entry.md",
+      "sha256": "e956d64870194a3a1f76c7c5033cc2a0034d965f8adc8783dd9ec2492a378fc2",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Iris/Journal/_template.md",
+      "sha256": "677365e4adb7a13214230558cc86628cb6c117fa4f6a035d72394868b64a1d78",
       "kind": "agent",
       "example": false
     },
@@ -996,7 +1242,19 @@
     },
     {
       "path": "06 AI Team/Agents/Mack/AGENT.md",
-      "sha256": "cb0caa011709ae9690efcfefe67999d9ca762741ef31a8a33a6c120eb32916c6",
+      "sha256": "1c88d0eb695a6bc4815223e413b8fadd4f159f0911ba973db5833869d89f672e",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mack/Journal/2026-09-14-first-entry.md",
+      "sha256": "8a30fa12ea39c84e0e822f19092a412ad0ac6cfa0781054355cbe3551c9b6bdd",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mack/Journal/_template.md",
+      "sha256": "5ce0f51f38f457e5502210fee78e8018ca923576b6e7baee6b63fa68dd2161db",
       "kind": "agent",
       "example": false
     },
@@ -1008,7 +1266,19 @@
     },
     {
       "path": "06 AI Team/Agents/Nolan/AGENT.md",
-      "sha256": "c6d1bc4d5d5b7ef01e462489ecf4ee74b622df5763d2d16cf4b5b4c1ff5867b1",
+      "sha256": "b2ac8d2a01589932bb934dfc0d8505d489798060ccb20d70dcc8b311feb2be03",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Nolan/Journal/2026-09-14-first-entry.md",
+      "sha256": "7a362530549cd0e70aeaff033df9b08dcc186cb8d603e0adf524c60b02ba5aba",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Nolan/Journal/_template.md",
+      "sha256": "e786c86c0255bfe6853e50340e2ec3f6e5745438d251eafb7c0a21bdf355b6ec",
       "kind": "agent",
       "example": false
     },
@@ -1020,7 +1290,19 @@
     },
     {
       "path": "06 AI Team/Agents/Pax/AGENT.md",
-      "sha256": "0e8464a50b29ac282b63fab08eb66f9c0fe17c296e6cd44afa0e6c671b33a31e",
+      "sha256": "d26160396b3784bbd905278fdfb3300ce8e9d6ade0b16164e765d1b69a52494a",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Pax/Journal/2026-09-14-first-entry.md",
+      "sha256": "5b6060542e382a837f0a6114a7ff815cc5ff30ac31de13ac8a536766c8aa22b2",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Pax/Journal/_template.md",
+      "sha256": "77dab2199098c5937ed7a7dd838f6af7c7548d3e9661b5d0e3bb6bebcdba36ac",
       "kind": "agent",
       "example": false
     },
@@ -1032,7 +1314,19 @@
     },
     {
       "path": "06 AI Team/Agents/Penn/AGENT.md",
-      "sha256": "5db80b31e95972b49909af48239a0ec0a9068fd6f907873998812d7cdd2bceb9",
+      "sha256": "56656b74ddb935541009226d420c1aece6b80164c11ce21e1fa36410a99b6238",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Penn/Journal/2026-09-14-first-entry.md",
+      "sha256": "095074b6e88803408ef8483c778b88e7a1131b6b3f408f9a51edaea6413a8fb1",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Penn/Journal/_template.md",
+      "sha256": "f1dc35f462afc9d0cee6e879a940115a204bc043785ae2456f2cdd574010759d",
       "kind": "agent",
       "example": false
     },
@@ -1044,7 +1338,19 @@
     },
     {
       "path": "06 AI Team/Agents/Silas/AGENT.md",
-      "sha256": "378778877aa0299b820dbc5714cea823534fe0bdd580bdcb57c58030fb661449",
+      "sha256": "0522339ae252547b991d161fa40040c976e8c52defd573c768a44002009b72cf",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Silas/Journal/2026-09-14-first-entry.md",
+      "sha256": "df00da3536974bc8c40dfa008df8a17e4fc033df45a128103a6953f6c2f37fa6",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Silas/Journal/_template.md",
+      "sha256": "f8526eb1e76d0afa3383ad460959aac840948139263e34e188afadf2fc05884e",
       "kind": "agent",
       "example": false
     },
@@ -1068,7 +1374,7 @@
     },
     {
       "path": "06 AI Team/README.md",
-      "sha256": "a10513b69cd4c185247778f70f61df8d8ca65bd4940889fd368f74a370cb3553",
+      "sha256": "23fe573ac0b544d8c73c272f9553dd5cbc0378c23d63d9cba0601b6d514d656c",
       "kind": "doc",
       "example": false
     },
@@ -1099,6 +1405,12 @@
     {
       "path": "CLAUDE.md",
       "sha256": "7fd6de7bff31d3476398d31c4ca8446c15c7e705cbe68653d2066eb8ba19507f",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "GEMINI.md",
+      "sha256": "fa3be0c631c423814556490d11e6db2247a1fa9fbeb7cc306e917b0b70f92a56",
       "kind": "doc",
       "example": false
     },
@@ -1204,6 +1516,74 @@
     }
   ],
   "history": [
+    {
+      "version": "1.23.0",
+      "date": "2026-09-14",
+      "removed": [
+        {
+          "path": ".claude/commands/checkpoint.md",
+          "sha256": "b50d260e3764c3245f1a25306815f3e887e28d8b649db216033874e17f3207db",
+          "note": "became `.claude/skills/checkpoint/SKILL.md`, and the skill runs the script before the model reads step 1"
+        }
+      ],
+      "renamed": [],
+      "added": [
+        ".claude/settings.README.md",
+        ".claude/settings.json",
+        ".claude/skills/checkpoint/SKILL.md",
+        ".claude/skills/red-tests/SKILL.md",
+        ".codex/agents/charta.toml",
+        ".codex/agents/flint.toml",
+        ".codex/agents/iris.toml",
+        ".codex/agents/mack.toml",
+        ".codex/agents/nolan.toml",
+        ".codex/agents/pax.toml",
+        ".codex/agents/penn.toml",
+        ".codex/agents/silas.toml",
+        ".codex/config.toml",
+        ".codex/hooks.json",
+        ".gemini/agents/charta.md",
+        ".gemini/agents/flint.md",
+        ".gemini/agents/iris.md",
+        ".gemini/agents/mack.md",
+        ".gemini/agents/nolan.md",
+        ".gemini/agents/pax.md",
+        ".gemini/agents/penn.md",
+        ".gemini/agents/silas.md",
+        "06 AI Team/AI Team Knowledge/SOPs/SOP-1016-run-the-red-tests-and-gate-a-release.md",
+        "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
+        "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
+        "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
+        "06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh",
+        "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py",
+        "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
+        "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
+        "06 AI Team/AI Team Knowledge/Scripts/skill-doctor.py",
+        "06 AI Team/AI Team Knowledge/Scripts/write-guard.py",
+        "06 AI Team/AI Team Knowledge/Skills/README.md",
+        "06 AI Team/AI Team Knowledge/Skills/_template.md",
+        "06 AI Team/AI Team Knowledge/Skills/checkpoint/SKILL.md",
+        "06 AI Team/AI Team Knowledge/Skills/import-skill/SKILL.md",
+        "06 AI Team/AI Team Knowledge/Skills/red-tests/SKILL.md",
+        "06 AI Team/Agents/Charta/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Charta/Journal/_template.md",
+        "06 AI Team/Agents/Flint/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Flint/Journal/_template.md",
+        "06 AI Team/Agents/Iris/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Iris/Journal/_template.md",
+        "06 AI Team/Agents/Mack/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Mack/Journal/_template.md",
+        "06 AI Team/Agents/Nolan/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Nolan/Journal/_template.md",
+        "06 AI Team/Agents/Pax/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Pax/Journal/_template.md",
+        "06 AI Team/Agents/Penn/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Penn/Journal/_template.md",
+        "06 AI Team/Agents/Silas/Journal/2026-09-14-first-entry.md",
+        "06 AI Team/Agents/Silas/Journal/_template.md",
+        "GEMINI.md"
+      ]
+    },
     {
       "version": "1.22.0",
       "date": "2026-09-13",

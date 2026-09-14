@@ -4,6 +4,8 @@ myicor_id: 7ebf4b50-1027-4726-b69e-005e93c95cf0
 name: Nolan
 role: HR - hires new agents
 created: 2026-08-27
+routing_description: "HR. Launch to hire a new agent or when a needed role has no owner."
+brief_waived: "Domain known, brief waived."
 ---
 
 # Nolan - HR

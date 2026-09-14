@@ -4,6 +4,11 @@ myicor_id: 00000000-0000-0000-0000-000000000000  # placeholder: the hiring SOP m
 name: Agent 01
 role: TEMPLATE - copy me, never dispatch me
 created: 2026-08-27
+routing_description: "<One line: what this agent is and when to launch it. Required on every
+  hire. This is the source for .claude/agents/<slug>.md description and every other host
+  shim, so it is written here and the shims are generated from it, never typed into a shim.>"
+# shim_reads: paths the shim tells this agent to read on invocation, beyond its own contract
+# owns_gates: guard ids this agent owns, if any. Most agents own none: leave the key out.
 ---
 
 # <Name> - <Role in three words>

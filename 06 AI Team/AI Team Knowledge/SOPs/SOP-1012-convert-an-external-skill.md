@@ -4,6 +4,14 @@ id: SOP-1012
 title: Convert an external skill into scaffold shape
 created: 2026-08-28
 owner: nolan
+skill_name: import-skill
+skill_summary: 'Converts an external skill (a SKILL.md package, a prompt recipe, an agent toolkit found online or on disk) into the scaffold''s own shapes: procedures become SOPs, code becomes red-tested Scripts, reference becomes Guidelines, a role gets an agent ruling, and a trigger becomes a generated pointer skill; the user approves the decomposition before any write.'
+skill_triggers:
+  - 'import this skill'
+  - 'add this skill'
+  - 'convert this skill'
+  - 'here is a skill folder'
+  - 'turn this SKILL.md into scaffold shape'
 uses: ["[[SOP-1007-hire-a-new-agent]]", "[[SOP-1011-import-or-align-an-external-agent]]", "[[GL-1004-naming-rules]]", "[[GL-1005-code-vs-instructions]]"]
 ---
 
@@ -37,10 +45,14 @@ Steps:
    - Scripts land in `Scripts/`, are made ROOT-relative (no absolute
      paths from the source machine), and each new guard gets a case in
      `run-red-tests.py` and is watched go red ([[GL-1005-code-vs-instructions|GL-1005]] rule 4).
-   - If the skill must stay invocable by name, create the shim
-     `.claude/skills/<name>/SKILL.md`: frontmatter + one paragraph
-     pointing at the owning SOP. The SOP is canonical; the shim is a
-     pointer. Never duplicate content into the shim.
+   - If the skill must stay invocable by name, add `skill_summary` and
+     `skill_triggers` (and `skill_prerun` when step 1 is an argument-free
+     script) to the owning SOP's frontmatter; `Scripts/scaffold-init.py
+     --build skills` writes the `SKILL.md` pointer from them into
+     `06 AI Team/AI Team Knowledge/Skills/<name>/` and links it into
+     `.claude/skills/` ([[SOP-1007-hire-a-new-agent|SOP-1007]] step 6b).
+     The SOP is canonical; the generated file is a pointer. Never write
+     or edit a `SKILL.md` by hand.
 4. Conflicts: a skill instruction that collides with AGENTS.md hard
    rules or an existing SOP loses, and the conflict is reported to
    the user, never silently resolved.

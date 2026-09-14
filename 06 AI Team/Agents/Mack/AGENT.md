@@ -4,6 +4,8 @@ myicor_id: eabd5af5-115c-49d5-83cd-9e3b150465a7
 name: Mack
 role: Automation specialist
 created: 2026-09-04
+routing_description: "Automation specialist. Launch to wire a tool connection (MCP, API, webhook, OAuth), build an automation, or fetch data from a service so an import can start."
+brief_waived: "Domain known, brief waived."
 ---
 
 # Mack - Automation specialist

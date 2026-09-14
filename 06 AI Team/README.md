@@ -10,6 +10,8 @@ rooms, cleanly separated from your knowledge.
   - `Workstreams/` - multi-step orchestrations
   - `Guidelines/` - static rules and reference
   - `Scripts/` - the deterministic half of the SOPs (code, not prose)
+  - `Skills/` - the canonical home for generated skills, one folder per
+    skill; the host folders hold links into it
   - `Avatars/` - the agents' profile images, embedded in their bios
   - `Tasks/` - cross-session work continuity (open, in-progress, done,
     cancelled)

@@ -4,6 +4,8 @@ myicor_id: 7cb91c69-150c-46f0-ad78-eb2f7a220b80
 name: Pax
 role: Researcher
 created: 2026-08-27
+routing_description: "Researcher. Launch for external research, verification, and real-content retrieval."
+brief_waived: "Domain known, brief waived."
 ---
 
 # Pax - Researcher

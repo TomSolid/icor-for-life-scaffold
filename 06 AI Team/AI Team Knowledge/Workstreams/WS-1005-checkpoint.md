@@ -4,6 +4,16 @@ id: WS-1005
 title: Checkpoint (end a session on purpose)
 created: 2026-09-06
 owner: larry
+skill_name: checkpoint
+skill_summary: 'Ends a session on purpose: reads the checkpoint report, closes or carries every task the session touched, rules on each WiP folder with the user, links the dates the session wrote, writes the session log and asserts it exists before the session is allowed to be over.'
+skill_triggers:
+  - 'checkpoint'
+  - 'close the session'
+  - 'wrap up'
+  - 'we are done for today'
+  - 'end the session'
+  - 'let us stop here'
+skill_prerun: 'python3 "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py" --json'
 uses: ["[[SOP-1008-track-work-across-sessions]]", "[[SOP-1006-start-work-and-archive-a-wip-folder]]", "[[SOP-1009-write-a-session-log-and-agent-journal]]", "[[WS-1002-weekly-review]]", "[[GL-1005-code-vs-instructions]]", "[[GL-1011-date-mentions-link-to-daily-notes]]"]
 ---
 # WS-1005 Checkpoint
@@ -38,9 +48,21 @@ whenever you stop for the day, and whenever a piece of work is done.
    [[SOP-1009-write-a-session-log-and-agent-journal|SOP-1009]]: what
    happened, decisions, open threads. Agents that learned something
    durable append to their own `Journal/`.
-6. [SCRIPT] `Scripts/checkpoint.py --assert-logged --assert-dates-linked`
-   must exit 0. A checkpoint that ends without today's log is not a
-   checkpoint, and neither is one that leaves a date pointing at nothing.
+6. [SCRIPT] **The receipt.** `Scripts/checkpoint.py --write-receipt
+   --output "<the session log you just wrote>"` records what this session
+   closed: the workflow, the session id, the outputs and their hashes, and
+   anything knowingly left open (`--unresolved "..."`, repeatable).
+7. [SCRIPT] `Scripts/checkpoint.py --assert-logged --assert-dates-linked`
+   must exit 0. `--assert-logged` reads the receipt for THIS session, so a
+   log written this morning can no longer close a session that ran this
+   afternoon and wrote nothing. A checkpoint that ends without its own log
+   is not a checkpoint, and neither is one that leaves a date pointing at
+   nothing.
+
+   On a runtime with no session start hook there is no session id, and the
+   assert says so and names the lever. Use `--assert-logged-today` there,
+   knowing it is weaker: it proves a file exists with today's date on it
+   and nothing else.
 
 **What it does not do.** It does not process the Inbox or the Scratchpad
 (that is [[WS-1001-daily-processing-run|WS-1001]], on your word), and it

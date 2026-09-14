@@ -10,6 +10,183 @@ The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
 those lines and refuses to describe a removal this file does not explain.
 
+A section is opened under the version being cut, never under a heading
+called `Unreleased`: the manifest builder matches removal lines by version
+section, so a removal under any other heading is a removal it cannot
+explain.
+
+## 1.23.0 (2026-09-14)
+
+The harness layer starts here. The rules a machine can check stop being prose
+and become guards, and every host binding is generated from the vault's own
+frontmatter instead of typed into a config by hand. Every guard carries a red
+test and a written statement of what it does not prove.
+
+Minor bump, additive: one generator, a canonical home for skills, six new
+scripts, hook configs and agent shims for three more hosts, one new SOP and
+two rewritten ones, five new frontmatter fields, and one slash command that
+became a skill of the same name.
+
+### Added
+
+- **The generator, `06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py`.**
+  Four verbs: `plan` prints every file it would create, update or remove and
+  writes nothing; `apply` writes them; `check` fails when a second apply would
+  change anything or when a generated file was hand-edited; `doctor` says, per
+  host, what is detected, installed, trusted, tested and unsupported. Nobody
+  writes a host file by hand again: skills come from the SOP's or Workstream's
+  own frontmatter, agent shims from the contract's, hook configs from
+  `hooks-rules.json`. Every generated file opens with a header naming its
+  source and carrying a content hash, and only a generated file whose source
+  is gone is ever removed. It finds the scaffold root by walking up to
+  `AGENTS.md`, never through git, because a member's vault is a plain folder.
+- **The canonical skills home `06 AI Team/AI Team Knowledge/Skills/`**, with
+  three generated skills in it: `checkpoint` (from `WS-1005`), `import-skill`
+  (from `SOP-1012`) and `red-tests` (from `SOP-1016`). The skill is a pointer
+  and the procedure is the body, so procedure text is never copied into a
+  `SKILL.md`. The `.claude/skills/` copies are adapters carrying the
+  Claude-only frontmatter and the injected prerun; `.agents/skills/` holds the
+  links that Codex, Gemini CLI and Cursor read.
+- **`06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json`** (`schema: 1`):
+  one host-neutral table of every guard rule, its event, what it matches,
+  which script answers it, its severity, its unlock and what it does not
+  prove. Each host's hook config is rendered from this table, so a matcher
+  typed into a host config by hand is host lock-in and is now a defect.
+  Adding a host is one entry under `host_matchers`, never a sweep through the
+  rules. The `codex` entry is verified against OpenAI's own hooks
+  documentation: twelve events, the same config shape, exit 2 to deny, and
+  matcher aliases where `Edit` and `Write` both match a file edit.
+- **`Scripts/session-start.sh` and `Scripts/session-start.py`**: a SessionStart
+  hook that runs steps 0, 3 and 5 of the session start ritual
+  (`check-onboarding.py`, `check-quality.py --write` when `quality.json` is
+  stale, `expansion-pack.py list`) and puts the results in front of the model
+  instead of asking it to fetch them. Where python3 is missing it prints one
+  plain line and the session still starts.
+- **`Scripts/write-guard.py`**: a PreToolUse guard on the file-writing tools.
+  It refuses a write to `00 Daily Scratchpad/`, to root `AGENTS.md` or
+  `CLAUDE.md`, or to a specialist `AGENT.md`, and refuses any write carrying a
+  secret-shaped value (hard rules 1, 3 and 10, enforced for the first time).
+  `ICOR_UNLOCK_WRITES=1` lifts it for one call, and the unlock has its own red
+  test.
+- **`Scripts/skill-doctor.py`**: reads every skill in the vault and checks the
+  name, the description and its trigger phrase, the body length, the single
+  pointer, the generated header, host-only frontmatter in the wrong place, em
+  and en dashes, a clash with a remaining slash command, and the total
+  description budget the host spends on skills before a session starts.
+- **`Scripts/new-agent.py`**: the scripted half of a hire. It creates the
+  agent folder, the contract skeleton, the bio card, the `Journal/` with its
+  template and first entry, mints `myicor_id` through `mint-agent-ids.py` so
+  one script owns identities, and adds the agent-index row. It writes
+  skeletons with blanks in them and never the words, never a shim and never a
+  `SKILL.md`: those are generated. It refuses to run without a deliberate
+  unlock, and refuses to overwrite a contract that already exists.
+- **`Scripts/check-hire.py`**: twenty-two checks that refuse an incomplete
+  hire, from the folder shape and the frontmatter through the identity, the
+  bio, the avatar, the journal and the shim, to whether the shim points at a
+  contract path that exists. A shim pointing at a missing path used to fail
+  silently at dispatch time, months later, as "the agent did not answer".
+- **`Scripts/release-gate-red-tests.sh`**, called by `build-release-zip.sh`:
+  no release while any guard in the tree about to ship did not refuse what it
+  must refuse. Build tooling, stripped from the member download like the
+  builder itself.
+- **`06 AI Team/AI Team Knowledge/SOPs/SOP-1016-run-the-red-tests-and-gate-a-release.md`**:
+  how the team watches a guard go red, and how the same suite blocks a build
+  while any guard has not. A `SKIP` is not a pass and the count is reported
+  with its skips every time.
+- **The host adapters, all generated**: `.claude/settings.json` with
+  `.claude/settings.README.md` beside it, `.codex/agents/*.toml` (Codex
+  subagents are TOML and their prompt lives in `developer_instructions`),
+  `.codex/hooks.json`, `.codex/config.toml` (raising `project_doc_max_bytes`),
+  `.gemini/agents/*.md`, `GEMINI.md`, and the `.agents/skills/` links. Cursor
+  gets nothing on purpose: it reads Claude Code's skills, agents and hooks.
+- **`Journal/` for all eight shipped agents**, each with the journal template
+  and a first entry, so a durable insight has a home from the first session
+  rather than after the first hire.
+- **Five frontmatter fields, in `GL-1002-frontmatter-conventions`.** On an SOP
+  or a Workstream: `skill_name`, the skill's folder slug, required as soon as
+  `skill_triggers` is non-empty. A slug derived from the title would break
+  every host link the first time the title was reworded, with no error
+  anywhere, so the name is a field somebody decides rather than something the
+  generator guesses. On an agent contract: `routing_description` (required on
+  every new hire, the one source for every host shim's routing text),
+  `shim_reads`, `owns_gates` and `brief_waived`.
+
+### Changed
+
+- **`checkpoint.py`**: `--assert-logged` now reads a completion receipt for
+  THIS session (`.icor-for-life/scripts/receipts/<session-id>.json`,
+  `schema: 1`: workflow, session, started and finished, input and output
+  hashes, validator version, unresolved items) written by the new
+  `--write-receipt`. It used to pass on any session log dated today, so a log
+  written in the morning closed an afternoon session that wrote nothing.
+  `--assert-logged-today` keeps the old check under its true name, documented
+  as weaker. `WS-1005-checkpoint` gains the receipt step.
+- **`check-bases.py`** reads `.base` files with the standard library only. It
+  was the one script here that imported PyYAML, and on a python3 without it
+  two red-test gates reported a failed guard when the guard had never run. The
+  reader is strict, and a red test compares it with PyYAML on every shipped
+  `.base` wherever PyYAML is present, so it cannot drift from real YAML
+  unnoticed.
+- **`run-red-tests.py`**: a case that must be refused plus a clean control for
+  every new guard, including the unlock, the missing-python path, the receipt
+  that belongs to another session, the release gate refusing on a red, and
+  five cases for the generator watched go red against a deliberately broken
+  copy of it. One of those five is a control that stops another passing for
+  the wrong reason: a shim carrying nothing the contract does not must be
+  replaced, or "a shim with extra instructions survives" would pass on a
+  generator that never replaced anything.
+- **`SOP-1007-hire-a-new-agent`** is rewritten around the two scripts: the
+  hire is `new-agent.py`, then the words, then the generator, then
+  `check-hire.py` exiting 0 before the hire is announced.
+  **`SOP-1011-import-or-align-an-external-agent`** and
+  **`SOP-1012-convert-an-external-skill`** follow the same shape, and
+  `WS-1006-install-an-ai-team-expansion` and `GL-1012-ai-team-expansions` name
+  the generator where they used to describe host files by hand.
+- **The eight shipped agent contracts** carry `routing_description`, so the
+  `.claude`, `.codex` and `.gemini` shims are rendered from the contract
+  rather than written twice. `Agents/Agent 01/` documents the new fields for
+  the next hire.
+- **`06 AI Team/README.md`** names the new `Skills/` room.
+
+### Removed
+
+- `.claude/commands/checkpoint.md` became `.claude/skills/checkpoint/SKILL.md`, and the skill runs the script before the model reads step 1
+
+  A skill wins the name `/checkpoint` over a command of the same name, so the
+  two could not both stand. Nothing else was removed in this version.
+
+### Known limits
+
+- **`.agents/skills/` is not shipped and not tracked.** `.claude/`, `.codex/`,
+  `.gemini/` and `GEMINI.md` are real generated files and ship with the
+  scaffold, because they are rendered from tracked frontmatter and carry a
+  hash of their source. `.agents/skills/<name>` is different: it is a link
+  into `06 AI Team/AI Team Knowledge/Skills/`, and where the platform has no
+  symlinks the generator writes a copy instead, so the kind is decided per
+  device at write time. Two things follow and both are true today: the
+  manifest describes a file by its content hash and a link has none, and
+  `build-release-zip.sh` lists the staged tree with `find . -type f`, which
+  never matches a link. Codex, Gemini CLI and Cursor users run
+  `scaffold-init.py apply` once after copying the vault and the links appear;
+  the Claude Code skills under `.claude/skills/` are real files and are
+  already there.
+- **A hook is not an enforcement boundary.** `write-guard.py` refuses the
+  file-writing tools it is registered for. It does not stop a shell command, a
+  script, another process or a person, and the unlock is one environment
+  variable away by design. It proves that the rule fires on the path it
+  guards, and nothing wider.
+- **Gemini CLI gets no hooks**, because it has none. Its agents are generated;
+  its guards are not, and a Gemini session runs unguarded.
+- **`project_doc_max_bytes` in a project-local `.codex/config.toml` is
+  unverified.** Whether Codex honours the key outside `~/.codex/config.toml`
+  is not something we have watched work, `scaffold-init.py doctor` reports it
+  as unverified on every run, and the documented path is to set the same line
+  in the home config.
+- **Nothing here proves a host reads any of it.** `scaffold-init.py check`
+  proves the generated bytes are the bytes the sources produce. That a hook
+  fires, a skill gets selected or a shim is picked up is a different claim,
+  and it is the one `doctor` reports per host rather than asserts.
+
 ## 1.22.0 — 2026-09-13
 
 - Added `06 AI Team/Expansions/` as the home for optional AI Team packs.

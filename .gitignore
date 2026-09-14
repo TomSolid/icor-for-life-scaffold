@@ -52,6 +52,19 @@
 !.icor-for-life/manifest.json
 !.icor-for-life/CHANGELOG.md
 !.icor-for-life/README.md
+# Named explicitly, though the wildcard above already covers them: per-session
+# state written by the checkpoint receipt and the session-start hook. A receipt
+# belongs to one session on one device and is never a note (GL-1008).
+.icor-for-life/scripts/receipts/
+.icor-for-life/scripts/session.json
+
+# The host link layer, written by scaffold-init.py apply: `.agents/skills/<name>`
+# is a link (or, where the platform has no symlinks, a copy) into the canonical
+# 06 AI Team/AI Team Knowledge/Skills/. It is per device by construction: the
+# generator decides the kind at write time, the manifest describes files by
+# content hash and a link has none, and the release zip lists files only. The
+# source of truth is tracked; this rendering of it is not.
+.agents/skills/
 
 # Python bytecode, regenerated on every script run
 __pycache__/

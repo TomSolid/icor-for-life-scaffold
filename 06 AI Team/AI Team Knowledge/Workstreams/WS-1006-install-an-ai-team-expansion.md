@@ -53,19 +53,31 @@ permission on its own. The tool verifies hashes and destinations again,
 creates only absent files and saves the ownership receipt. It never
 executes payload code or registers tools by itself.
 
-Use the existing hiring/knowledge procedures to register the installed
-capability. Write `activation.md` beside the manifest with the registration
-references and the example used to verify it. Do not duplicate specialist
-instructions into the root contract. Do not create credentials or runtime
-access by implication.
+Register the installed capability through
+[[SOP-1007-hire-a-new-agent|SOP-1007]]. A pack can deliver a contract,
+a bio and SOPs, but never a harness file ([[GL-1012-ai-team-expansions]]
+forbids dot-path targets), so a copied contract is a role-play agent until
+the harness layer exists. For every agent the pack installed, run SOP-1007
+step 6 (the dispatch shim) and step 6b (a skill for each SOP that carries
+`skill_triggers`): announce `Scripts/scaffold-init.py --build shims,skills`
+and the owner runs it; then step 7 (the agent-index row). Installed SOPs,
+Workstreams and Guidelines are registered in their INDEX files. Write
+`activation.md` beside the manifest with the registration references and
+the example used to verify it. Do not duplicate specialist instructions
+into the root contract. Do not create credentials or runtime access by
+implication.
 
 ## 4. Verify and report
 
-Run the scaffold's validation scripts and one small, authorized job that
-actually uses the addition. Check the resulting artifact. If registration
-or the example fails, report "files installed; activation incomplete" and
-track the unfinished work. Only call the pack ready when it is discoverable
-and its bounded example succeeds. Report what changed and how to remove it.
+Run `Scripts/validate-scaffold.py`, then `Scripts/check-hire.py <Name>`
+for every agent the pack installed (it reads the pack's `installation.json`
+and fails an installed agent that has no shim), then one small, authorized
+job that actually uses the addition. Check the resulting artifact. If
+`check-hire.py` fails, or registration or the example fails, report
+"files installed; activation incomplete" and track the unfinished work.
+Only call the pack ready when every installed agent passes `check-hire.py`,
+the pack is discoverable, and its bounded example succeeds. Report what
+changed and how to remove it.
 
 ## Removal and updates
 

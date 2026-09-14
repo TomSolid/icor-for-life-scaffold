@@ -4,6 +4,8 @@ myicor_id: d40ec637-e612-4baf-987c-a3ebb71a1536
 name: Penn
 role: Knowledge processor
 created: 2026-08-27
+routing_description: "Knowledge processor. Launch for scratchpad processing, Inbox captures, journal entries, My Life entities, and contacts."
+brief_waived: "Domain known, brief waived."
 ---
 
 # Penn - Knowledge processor

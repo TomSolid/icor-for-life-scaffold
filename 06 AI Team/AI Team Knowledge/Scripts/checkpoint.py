@@ -20,23 +20,73 @@ Answers, from the files alone, the questions a checkpoint asks:
      so GL-1011's scope has one home.
 
 It decides nothing (GL-1005): the operator reads the report and rules.
-Exit 0 always, except --assert-logged, which exits 1 with a FAIL line when
-no session log exists for today, so a checkpoint that ended without its
-log cannot be reported green, and --assert-dates-linked, which does the
-same for unlinked date mentions.
+Exit 0 always, except the asserts, which exit 1 with a FAIL line.
+
+THE COMPLETION RECEIPT, AND WHY --assert-logged CHANGED
+-------------------------------------------------------
+Until 2026-09-14 --assert-logged asked one question: is there a file in
+Session Logs/ whose name starts with today's date. A log written at 09:00
+therefore passed the checkpoint of a session that ran at 17:00 and wrote
+nothing, and the gate read green for a session that never closed. The check
+was bound to the DATE. Sessions are not days.
+
+It is bound to the SESSION now. Closing a session writes a receipt:
+
+  .icor-for-life/scripts/receipts/<session-id>.json   (schema 1)
+    workflow           which workflow this receipt closes (WS-1005)
+    session_id         whose session it was
+    started, finished  when
+    inputs             path -> sha256 of what the work read
+    outputs            path -> sha256 of what it wrote, the session log
+                       among them
+    validator_version  which version of THIS script wrote it
+    unresolved         what is knowingly left open
+
+--assert-logged then checks the receipt for THIS session: that it exists,
+that it names this script's current validator version, that it names a
+session log among its outputs, and that every output it names is still on
+disk with the hash it recorded. Yesterday's receipt belongs to yesterday's
+session id and cannot answer for this one.
+
+The session id comes from `.icor-for-life/scripts/session.json`, written by
+the SessionStart hook (session-start.py). No environment variable carries a
+session id to a script on any host we checked, so where there is no hook
+there is no id, and the assert says exactly that instead of guessing.
+
+--assert-logged-today keeps the old behaviour under its true name, for a
+runtime with no session start hook. It is WEAKER, by design and by name: it
+proves a file exists with today's date on it and nothing else.
+
+WHAT A RECEIPT DOES NOT PROVE
+- That the work was any good, or that the log says anything true. It proves
+  which bytes were written, by which version, in which session.
+- That nothing else changed. Only the paths named in the receipt are
+  hashed; a file the checkpoint never listed is invisible to it.
+- That the session id is the host's. Where the host sends none, one is
+  minted, and the receipt is then bound to a local id rather than a real
+  session. session.json records which of the two it was.
 
 Usage:
   Scripts/checkpoint.py [<vault-root>] [--window 30] [--json]
-                        [--assert-logged] [--assert-dates-linked]
+                        [--assert-logged] [--assert-logged-today]
+                        [--assert-dates-linked]
+  Scripts/checkpoint.py --write-receipt --output "<session log path>" [...]
 """
-import argparse, datetime, json, os, re, subprocess, sys
+import argparse, datetime, hashlib, json, os, re, subprocess, sys
 from pathlib import Path
 
 ap = argparse.ArgumentParser()
 ap.add_argument("root", nargs="?", default=None)
 ap.add_argument("--window", type=int, default=30, help="days a WiP folder may sit untouched before it is a candidate to leave")
 ap.add_argument("--json", action="store_true")
-ap.add_argument("--assert-logged", action="store_true", help="exit 1 unless a session log exists for today")
+ap.add_argument("--assert-logged", action="store_true", help="exit 1 unless this session has a completion receipt naming a session log that is still on disk unchanged")
+ap.add_argument("--assert-logged-today", action="store_true", help="the pre-2026-09-14 check, kept for runtimes with no session start hook: exit 1 unless SOME session log carries today's date. Weaker: a morning log passes an afternoon checkpoint")
+ap.add_argument("--write-receipt", action="store_true", help="write this session's completion receipt")
+ap.add_argument("--workflow", default="WS-1005", help="which workflow the receipt closes")
+ap.add_argument("--session-id", default=None, help="override the session id from .icor-for-life/scripts/session.json")
+ap.add_argument("--input", action="append", default=[], help="a path the work read; repeatable")
+ap.add_argument("--output", action="append", default=[], help="a path the work wrote; repeatable. The session log belongs here")
+ap.add_argument("--unresolved", action="append", default=[], help="something knowingly left open; repeatable")
 ap.add_argument("--assert-dates-linked", action="store_true", help="exit 1 unless every date mention in scope links to its daily note (GL-1011)")
 ap.add_argument("--today", default=None, help="override today's date, YYYY-MM-DD (tests)")
 a = ap.parse_args()
@@ -149,7 +199,146 @@ else:
         ref = "task" if w["referenced_by_open_task"] else "none"
         print(f"    {flag}  {w['days_untouched']:>4}d  ref:{ref:<4}  {w['folder']}")
 
-if a.assert_logged and not todays:
+# --- 5. the completion receipt (schema 1) ---------------------------------
+# Bumped by hand whenever the receipt's meaning changes. A receipt written by
+# a different version is refused rather than half-trusted: the fields would
+# still parse, and that is exactly what makes a silent version drift
+# dangerous.
+RECEIPT_SCHEMA = 1
+VALIDATOR_VERSION = "checkpoint.py/2026-09-14"
+MACHINE = ROOT / ".icor-for-life" / "scripts"
+RECEIPTS = MACHINE / "receipts"
+
+
+def sha256_of(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def session_id():
+    """This session's id, and where it came from. Never invented here: a
+    receipt bound to an id this script made up would bind to nothing."""
+    if a.session_id:
+        return a.session_id, "--session-id"
+    env = os.environ.get("ICOR_SESSION_ID")
+    if env:
+        return env, "ICOR_SESSION_ID"
+    sf = MACHINE / "session.json"
+    if sf.is_file():
+        try:
+            data = json.loads(sf.read_text(encoding="utf-8"))
+            if data.get("schema") == 1 and data.get("session_id"):
+                return str(data["session_id"]), "session.json"
+        except (ValueError, OSError):
+            pass
+    return None, None
+
+
+def hashes(paths):
+    out = {}
+    for raw in paths:
+        p = Path(raw)
+        if not p.is_absolute():
+            p = ROOT / raw
+        rel = p.relative_to(ROOT).as_posix() if str(p).startswith(str(ROOT)) else str(p)
+        out[rel] = sha256_of(p) if p.is_file() else None
+    return out
+
+
+def receipt_path(sid):
+    return RECEIPTS / (re.sub(r"[^A-Za-z0-9._-]", "_", sid) + ".json")
+
+
+if a.write_receipt:
+    sid, how = session_id()
+    if not sid:
+        print("FAIL: no session id, so a receipt would be bound to nothing. "
+              "The SessionStart hook writes .icor-for-life/scripts/session.json; "
+              "on a runtime without hooks, pass --session-id or set ICOR_SESSION_ID.",
+              file=sys.stderr)
+        sys.exit(1)
+    missing = [p for p, h in hashes(a.output).items() if h is None]
+    if missing:
+        print("FAIL: the receipt names output(s) that are not on disk: "
+              + ", ".join(missing), file=sys.stderr)
+        sys.exit(1)
+    started = None
+    sf = MACHINE / "session.json"
+    if sf.is_file():
+        try:
+            started = json.loads(sf.read_text(encoding="utf-8")).get("started")
+        except (ValueError, OSError):
+            started = None
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    RECEIPTS.mkdir(parents=True, exist_ok=True)
+    receipt = {
+        "schema": RECEIPT_SCHEMA,
+        "workflow": a.workflow,
+        "session_id": sid,
+        "session_id_source": how,
+        "started": started or now_utc.isoformat().replace("+00:00", "Z"),
+        "finished": now_utc.isoformat().replace("+00:00", "Z"),
+        "inputs": hashes(a.input),
+        "outputs": hashes(a.output),
+        "validator_version": VALIDATOR_VERSION,
+        "unresolved": list(a.unresolved),
+    }
+    receipt_path(sid).write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+    print(f"OK receipt written: {receipt_path(sid).relative_to(ROOT)} "
+          f"({len(receipt['outputs'])} output(s), {len(receipt['unresolved'])} unresolved)")
+
+if a.assert_logged:
+    sid, how = session_id()
+    if not sid:
+        print("FAIL: no session id to check a receipt against. The SessionStart "
+              "hook writes .icor-for-life/scripts/session.json; on a runtime "
+              "without hooks use --assert-logged-today (weaker: it only proves "
+              "some log carries today's date) or pass --session-id.",
+              file=sys.stderr)
+        sys.exit(1)
+    rp = receipt_path(sid)
+    if not rp.is_file():
+        print(f"FAIL: session {sid} has no completion receipt at "
+              f"{rp.relative_to(ROOT)}; finish WS-1005 and run "
+              f"checkpoint.py --write-receipt --output '<the session log>'",
+              file=sys.stderr)
+        sys.exit(1)
+    try:
+        rec = json.loads(rp.read_text(encoding="utf-8"))
+    except (ValueError, OSError) as exc:
+        print(f"FAIL: the receipt for session {sid} is unreadable ({exc})", file=sys.stderr)
+        sys.exit(1)
+    problems = []
+    if rec.get("schema") != RECEIPT_SCHEMA:
+        problems.append(f"it is schema {rec.get('schema')!r}, this script writes {RECEIPT_SCHEMA}")
+    if rec.get("validator_version") != VALIDATOR_VERSION:
+        problems.append(f"it was written by {rec.get('validator_version')!r}, "
+                        f"this script is {VALIDATOR_VERSION!r}")
+    if rec.get("workflow") != a.workflow:
+        problems.append(f"it closes {rec.get('workflow')!r}, not {a.workflow!r}")
+    outputs = rec.get("outputs") or {}
+    logs_prefix = LOGS.relative_to(ROOT).as_posix() + "/"
+    if not any(p.startswith(logs_prefix) for p in outputs):
+        problems.append("it names no session log among its outputs")
+    for rel, recorded in sorted(outputs.items()):
+        f = ROOT / rel
+        if not f.is_file():
+            problems.append(f"the output {rel} it names is gone")
+        elif recorded and sha256_of(f) != recorded:
+            problems.append(f"the output {rel} changed after the receipt was written")
+    if problems:
+        print(f"FAIL: the completion receipt for session {sid} does not close this "
+              f"checkpoint: " + "; ".join(problems), file=sys.stderr)
+        sys.exit(1)
+    if rec.get("unresolved"):
+        print(f"NOTE: the receipt records {len(rec['unresolved'])} unresolved item(s): "
+              + "; ".join(str(u) for u in rec["unresolved"]))
+    print(f"OK receipt {rp.relative_to(ROOT)} closes {rec.get('workflow')} for session {sid}")
+
+if a.assert_logged_today and not todays:
     print(f"FAIL: no session log for {today.isoformat()} under {LOGS.relative_to(ROOT)}; run new-session-log.py before ending the session", file=sys.stderr)
     sys.exit(1)
 if a.assert_dates_linked and dates_unlinked != 0:
