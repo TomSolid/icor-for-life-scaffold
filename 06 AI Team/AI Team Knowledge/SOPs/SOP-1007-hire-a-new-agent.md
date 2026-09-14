@@ -33,11 +33,11 @@ missing.
 
 | # | Artifact | Where | Who | Required |
 | --- | --- | --- | --- | --- |
-| 1 | Pax brief, or a one-line "domain known, brief waived" note | the hire's WiP folder | Pax / Nolan | required |
-| 2 | Hire WiP folder with `proposal.md` (frontmatter `skills:`) | `03 WiP/YYYY-MM-DD-<name>-hire/` | Nolan | required |
+| 1 | Pax brief linked from the contract, or the contract's `brief_waived` field with the reasoning written in the workup's `proposal.md` | the WiP folder for the brief or the reasoning; the contract for the waiver itself | Pax / Nolan | required |
+| 2 | Hire WiP folder with `proposal.md` (frontmatter `type: hire-proposal` and `skills:`, per [[GL-1002-frontmatter-conventions|GL-1002]]) | `03 WiP/YYYY-MM-DD-<name>-hire/` | Nolan | required |
 | 3 | `AGENT.md`, the system prompt, GL-1002 shape, `myicor_id` minted | `06 AI Team/Agents/<Name>/` | Nolan | required |
 | 4 | `<Name>.md`, the user-facing bio | same folder | Nolan | required |
-| 5 | Avatar | `06 AI Team/AI Team Knowledge/Avatars/<name>.png` | Pixel | required |
+| 5 | Avatar | `06 AI Team/AI Team Knowledge/Avatars/<name>.png` | a Pixel-class (image-generating) specialist if one exists in this vault; otherwise a placeholder | required; a placeholder is allowed when no Pixel-class specialist exists, and check 5 reports it as WARN until the real one lands |
 | 6 | `Journal/` with its first entry, the hire itself, so git keeps the folder | same folder | `new-agent.py` | required |
 | 7 | Dispatch shim | `.claude/agents/<slug>.md` | the generator | required where the host has one |
 | 8 | Skill(s), one per nameable procedure | `06 AI Team/AI Team Knowledge/Skills/<slug>-<verb-noun>/SKILL.md`, linked into `.claude/skills/` | the generator | conditional (step 6b) |
@@ -59,18 +59,35 @@ missing.
    names, or reads `none, judgement role`), and does it own a gate
    (step 6c)?
 2. [JUDGEMENT] Pax researches the domain if it is new to the team,
-   delivering a short brief into the hire's WiP folder. When the
-   domain is known, a one-line "brief waived" note goes there instead,
-   so the validator can tell "waived" from "forgotten".
+   delivering a short brief into the hire's WiP folder, linked from
+   the contract. When the domain is known, the waiver has one primary
+   home, the contract's `brief_waived` field, because it ships with
+   the agent and check 21 reads it; the workup's `proposal.md` is
+   where the reasoning behind the waiver is written, not a second copy
+   of the fact. That is how the validator tells "waived" from
+   "forgotten".
 3. [SCRIPT] `Scripts/new-agent.py <Name> --slug <slug> --role "<Role>"`
    copies `Agents/Agent 01/` to `Agents/<Name>/`, renames `Agent 01.md`
    to `<Name>.md`, mints the `myicor_id` through `mint-agent-ids.py`,
    writes the first `Journal/` entry (the hire, dated today, so git
-   carries the folder), and adds the agent-index row stub. The contract
-   path is one `Scripts/write-guard.py` protects: set
-   `ICOR_UNLOCK_WRITES=1` in the environment of the run that writes it,
-   let it lapse afterwards, and say in step 8 that the unlock was used.
-4. [JUDGEMENT] Fill BOTH files completely; they are two different documents:
+   carries the folder), and adds the agent-index row stub. It refuses
+   a name that already has a contract: a contract is never
+   overwritten; edit it, or retire the agent first. The contract path
+   is one `Scripts/write-guard.py` protects, and the hire has its own
+   key. `new-agent.py` drops `06 AI Team/Agents/<Name>/.hiring`, and that
+   marker is what lets the write guard accept writes to that one
+   contract for the next 24 hours. Do not set `ICOR_UNLOCK_WRITES`, and
+   never write the contract from a shell to get past a block: a green
+   `check-hire.py <Name>` deletes the marker and closes the door again.
+   Inside a Codex session the validator cannot go green (the sandbox
+   refuses the `.codex/` shim write), so the marker stays open for its
+   full 24 hours there; run `check-hire.py <Name>` from your own
+   terminal after `scaffold-init.py apply` to close it early.
+4. [JUDGEMENT] Fill BOTH files completely, through the host's file
+   tools (Write or Edit), never through a shell redirect or a script
+   write: the `.hiring` marker from step 3 is what lets those tools
+   through, and a shell write is one the guard cannot see. They are
+   two different documents:
    - `<Name>.md` is the USER-FACING bio: who the agent is, the jobs the
      user can hand over, when to call it, all in plain language. Every
      SOP, Workstream, and Guideline the agent works by gets a wikilink
@@ -88,10 +105,17 @@ missing.
 5. [JUDGEMENT] Store the agent's profile avatar as
    `AI Team Knowledge/Avatars/<name>.png` (lowercase) and embed it at
    the top of `<Name>.md`. Team avatars live in AI Team Knowledge, not
-   in the user's 05 Assets.
+   in the user's 05 Assets. A Pixel-class (image-generating) specialist
+   makes it if one exists in this vault; otherwise a placeholder is
+   allowed, disclosed as such in step 8, and check 5 reports it as
+   WARN until the real one lands.
 6. [SCRIPT] The runtime dispatch shim `.claude/agents/<slug>.md` is
    generated, never copied or typed: announce
-   `Scripts/scaffold-init.py --build shims,skills` and the user runs it.
+   `Scripts/scaffold-init.py plan`, then `Scripts/scaffold-init.py apply`,
+   and the user runs both from a terminal (`plan` shows what will be
+   written, `apply` writes it). On Codex the session sandbox refuses
+   writes to `.codex/` and `.agents/`, so the generator has to run
+   outside the session or the new agent gets no Codex shim.
    The shim is a pointer that tells the subagent to read its canonical
    `AGENT.md` every invocation, rendered from the contract's
    frontmatter with the generated-file header on top. Never duplicate
@@ -99,9 +123,13 @@ missing.
 6b. [JUDGEMENT] The skill. An agent gets a skill only for a nameable,
    repeatable procedure the user would invoke by name: the same steps
    in the same order every time, written as an SOP this agent owns,
-   and a thing the user asks for in those words ("checkpoint",
-   "import this skill"). Judgement roles get none; their contract is
-   their skill. One skill per procedure, named `<slug>-<verb-noun>`
+   a thing the user asks for in those words ("checkpoint",
+   "import this skill"), and an SOP with at least one `[SCRIPT]` step
+   specific to this procedure, not the shared progress-report or
+   open-in-Obsidian call every WiP folder gets. A role whose only
+   scripts are those shared ones is a judgement role wrapped in an
+   SOP. Judgement roles get none; their contract is their skill. One
+   skill per procedure, named `<slug>-<verb-noun>`
    ([[GL-1004-naming-rules|GL-1004]]); more than five and it is a
    Workstream with one skill. For each skill, add to the owning SOP's
    frontmatter ([[GL-1002-frontmatter-conventions|GL-1002]]):
@@ -115,8 +143,10 @@ missing.
    skill is the door ([[GL-1005-code-vs-instructions|GL-1005]] rule 2).
    Scripts for the SOP's `[SCRIPT]` steps land in `Scripts/`, each with
    a `run-red-tests.py` case that was watched go red. The new agent
-   runs its skill once as its first bounded task; the result is the
-   proof in step 8. When the agent is retired, remove the `skill_*`
+   runs its skill once as its first bounded task only after the user
+   has approved in step 8; that run is the agent's first dispatch, and
+   its result goes into the step 9 log line, never into the approval.
+   When the agent is retired, remove the `skill_*`
    fields and re-run the generator the same day; the SOP stays.
 6c. [JUDGEMENT] The gate. A hook rule exists only when the hire
    introduces a guard: a rule with a surface a script can detect (a
@@ -141,8 +171,13 @@ missing.
    generated file.
 8. [JUDGEMENT] The user approves BOTH files, the generated shim, the
    skill(s) and the index row, with the validator output in front of
-   them, before the agent takes its first task.
+   them, before the agent takes its first task; the first bounded task
+   from step 6b runs after this approval, never before it. Say here
+   whether the avatar is a placeholder, and whether
+   `ICOR_UNLOCK_WRITES=1` was used at all (on a hire it should not be).
 9. [SCRIPT] Larry logs the hire: `Scripts/new-session-log.py`, and
-   `Scripts/checkpoint.py --assert-logged` at the checkpoint. The
+   `Scripts/checkpoint.py --assert-logged` at the checkpoint; the log
+   line names the validator result and, when step 6b applies, the
+   result of the first bounded task. The
    manifest entries for the new files are written by the release
    build (`build-scaffold-manifest.py`), never by hand.

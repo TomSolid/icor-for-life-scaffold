@@ -372,5 +372,10 @@ if MODE == "check":
         print(f"FAIL {len(items)} date mention(s) in scope are not linked to "
               f"their daily note (GL-1011); run --fix", file=sys.stderr)
         sys.exit(1)
-    print("OK every date mention in scope links to its daily note (GL-1011)")
+    # Under --json, stdout is the JSON document and nothing else. It used to
+    # carry this line too, so every caller's json.loads raised on a CLEAN
+    # vault and read the count as "no answer" forever, which is the one state
+    # that looks like a normal state (pilot A finding F7, pilot B F3).
+    print("OK every date mention in scope links to its daily note (GL-1011)",
+          file=sys.stderr if a.json else sys.stdout)
 sys.exit(0)

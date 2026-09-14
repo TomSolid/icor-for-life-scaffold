@@ -35,6 +35,7 @@ import datetime
 import json
 import os
 import subprocess
+import select
 import sys
 import uuid
 from pathlib import Path
@@ -70,12 +71,24 @@ def record_session():
     sid = os.environ.get("ICOR_SESSION_ID") or ""
     source = "ICOR_SESSION_ID"
     if not sid and not sys.stdin.isatty():
+        # WAIT FOR A PAYLOAD, DO NOT WAIT FOREVER. A hook hands this script its
+        # payload and closes the pipe immediately. Anything else that inherits
+        # an open stdin (a script, a CI step, a test harness) never closes it,
+        # and a bare `stdin.read()` then blocks for as long as that caller
+        # lives: one red-test run sat here for ten minutes printing nothing,
+        # which reads exactly like a slow suite. A fifth of a second is far
+        # longer than a hook needs and short enough that nobody notices.
         try:
-            payload = json.loads(sys.stdin.read() or "{}")
-            sid = str(payload.get("session_id") or "")
-            source = "host hook payload"
-        except (ValueError, OSError):
-            sid = ""
+            ready = select.select([sys.stdin], [], [], 0.2)[0]
+        except (OSError, ValueError):
+            ready = []
+        if ready:
+            try:
+                payload = json.loads(sys.stdin.read() or "{}")
+                sid = str(payload.get("session_id") or "")
+                source = "host hook payload"
+            except (ValueError, OSError):
+                sid = ""
     if not sid:
         sid = "local-" + uuid.uuid4().hex[:12]
         source = "minted here (the host sent no session id)"
@@ -90,6 +103,19 @@ def record_session():
     return sid
 
 
+def _no_host_session_id(sid):
+    """True when this ritual had to mint its own id.
+
+    Reads the artefact rather than a variable in scope, because the artefact is
+    what a resuming session, a red test and a member can all look at, and a
+    second definition of "was there a hook" is a second thing to keep true."""
+    try:
+        doc = json.loads((MACHINE / "session.json").read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return str(sid or "").startswith("local-")
+    return str(doc.get("id_source") or "").startswith("minted here")
+
+
 def quality_is_stale():
     q = MACHINE / "quality.json"
     if not q.is_file():
@@ -102,11 +128,56 @@ def quality_is_stale():
         return True
 
 
+def last_receipt_line():
+    """One line naming the newest completion receipt and what it left open.
+
+    A receipt carries the machine-readable answer to "what did the last
+    session do": its outputs with hashes, and its `unresolved` list. Nothing
+    pointed a resuming session at it, so both pilot CLIs reconstructed the
+    answer from the session log's prose instead and the receipt stayed a
+    validator artifact (pilot B finding F6). This is the pointer.
+
+    It never fails a start: an unreadable receipts folder returns the plain
+    sentence that there is none, because a start ritual that blocks a session
+    is worse than one that did not run."""
+    try:
+        recs = sorted((MACHINE / "receipts").glob("*.json"),
+                      key=lambda q: q.stat().st_mtime, reverse=True)
+    except OSError:
+        recs = []
+    if not recs:
+        return ("last receipt: none yet. WS-1005 writes one at the end of a "
+                "session; until then there is nothing machine-readable to resume from.")
+    try:
+        doc = json.loads(recs[0].read_text(encoding="utf-8"))
+    except (ValueError, OSError) as exc:
+        return "last receipt: %s is unreadable (%s)" % (recs[0].name, exc)
+    unresolved = doc.get("unresolved") or []
+    return ("last receipt: %s, session %s, %d unresolved item(s)%s"
+            % (recs[0].relative_to(ROOT).as_posix(),
+               doc.get("session_id") or "unknown", len(unresolved),
+               ("; " + "; ".join(str(u) for u in unresolved[:3])) if unresolved else ""))
+
+
 def main():
     lines = ["Session start ritual (run by the SessionStart hook, not by the model):"]
 
     sid = record_session()
     lines.append("  session id: %s" % sid)
+    # NOTHING INSIDE THE SESSION SAID THE GUARDS WERE OFF (Silas's Codex
+    # re-run 2026-09-14/15, R2). The trust state is readable from `doctor` and
+    # from the block at the top of .codex/config.toml, and across four
+    # hooks-OFF Codex runs no model opened either, so neither line entered any
+    # transcript and a scripted run reported a clean pass with no guard behind
+    # it. This script already knew: it had to mint its own id precisely
+    # BECAUSE no hook payload arrived. That fact was sitting in session.json
+    # and nothing told anyone to read it as a trust signal. Now it is a line.
+    if _no_host_session_id(sid):
+        lines.append("  GUARDS: no host session id received, so this ritual was "
+                     "run by hand and not by a hook. On Codex that means the "
+                     "project hooks are UNTRUSTED and every guard is OFF for "
+                     "this session (codex exec never asks). Report this line, "
+                     "and run `scaffold-init.py doctor` for the trust state.")
 
     r, err = run("check-onboarding.py")
     if err:
@@ -145,6 +216,7 @@ def main():
         for extra in out[1:8]:
             lines.append("    " + extra)
 
+    lines.append("  " + last_receipt_line())
     lines.append("  still yours: read your contract, walk Tasks/open and "
                  "Tasks/in-progress, look at 01 Inbox and today's scratchpad.")
     print("\n".join(lines))

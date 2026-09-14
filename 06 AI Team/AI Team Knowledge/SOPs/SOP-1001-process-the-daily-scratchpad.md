@@ -16,7 +16,7 @@ each script step below names its by-hand twin.
 Runs when the user says "process my scratchpad" (or via [[WS-1001-daily-processing-run|WS-1001]]). Never
 runs silently.
 
-1. [SCRIPT] Locate today's note: `00 Daily Scratchpad/YYYY-MM-DD.md`. If
+1. [SCRIPT] Locate today's note: `00 Daily Scratchpad/YYYY/MM/YYYY-MM-DD.md`. If
    the user names another day, use that date. By hand: open it from the
    file explorer.
 2. [JUDGEMENT] Read the whole note. For each section or bullet decide

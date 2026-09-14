@@ -59,8 +59,8 @@ a bio and SOPs, but never a harness file ([[GL-1012-ai-team-expansions]]
 forbids dot-path targets), so a copied contract is a role-play agent until
 the harness layer exists. For every agent the pack installed, run SOP-1007
 step 6 (the dispatch shim) and step 6b (a skill for each SOP that carries
-`skill_triggers`): announce `Scripts/scaffold-init.py --build shims,skills`
-and the owner runs it; then step 7 (the agent-index row). Installed SOPs,
+`skill_triggers`): announce `Scripts/scaffold-init.py plan`, then `apply`,
+and the owner runs both; then step 7 (the agent-index row). Installed SOPs,
 Workstreams and Guidelines are registered in their INDEX files. Write
 `activation.md` beside the manifest with the registration references and
 the example used to verify it. Do not duplicate specialist instructions

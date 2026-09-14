@@ -75,6 +75,7 @@ WHY THE SKILL NAME IS A FIELD AND NOT A DERIVATION
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -686,12 +687,24 @@ def render_claude_skill(sk, root, dispatchable=()):
         fm.append("user-invocable: true")
         fm.append("shell: bash")
         fm.append("allowed-tools: Bash")
-        # $CLAUDE_PROJECT_DIR, because a skill runs from wherever the
-        # session started and a vault-relative path resolves against that.
+        # ${CLAUDE_PROJECT_DIR}, WITH the braces, because a skill runs from
+        # wherever the session's shell happens to be and a vault-relative path
+        # resolves against that.
+        #
+        # The braces are the whole fix (pilot B finding F2). Claude Code
+        # SUBSTITUTES `${CLAUDE_PROJECT_DIR}` into a skill's markdown before
+        # the shell ever sees it; it does not export it into the prerun's
+        # environment. The unbraced `$CLAUDE_PROJECT_DIR` is therefore not
+        # substituted, reaches the shell as an ordinary variable, expands to
+        # EMPTY, and the command becomes `python3 "/06 AI Team/..."`. Claude
+        # Code then aborts the whole invocation on the failed prerun, so
+        # `/checkpoint` returned in 177 ms with 0 turns and the model never
+        # read the skill at all. The variable resolves fine in hooks, which is
+        # what made this look like a working pattern.
         cmd = normalise_prerun(sk["prerun"])
-        cmd = cmd.replace('"06 AI Team/', '"$CLAUDE_PROJECT_DIR/06 AI Team/')
-        if "$CLAUDE_PROJECT_DIR" not in cmd:
-            cmd = re.sub(r"(^|\s)(06 AI Team/)", r"\1$CLAUDE_PROJECT_DIR/\2", cmd)
+        cmd = cmd.replace('"06 AI Team/', '"${CLAUDE_PROJECT_DIR}/06 AI Team/')
+        if "CLAUDE_PROJECT_DIR" not in cmd:
+            cmd = re.sub(r"(^|\s)(06 AI Team/)", r"\1${CLAUDE_PROJECT_DIR}/\2", cmd)
         prerun_line = [
             "The deterministic half has already run. Its output is below; read "
             "it, do not run it again.",
@@ -1121,6 +1134,30 @@ def render_codex_config(root):
         "# the path that is documented.",
         "project_doc_max_bytes = 65536",
         "",
+        "# YOUR GUARDS ARE OFF UNTIL YOU TRUST THEM, AND `codex exec` CANNOT ASK.",
+        "#",
+        "# This vault ships hooks in .codex/hooks.json: one of them refuses a",
+        "# write to your raw daily notes, to AGENTS.md, to a specialist contract,",
+        "# and to any content carrying a secret-shaped value. Codex runs NO",
+        "# project hook until you have reviewed and trusted it, the trust prompt",
+        "# lives in the interactive TUI (`/hooks`), and `codex exec` never shows",
+        "# it. A scripted Codex run in a fresh vault therefore has no guards at",
+        "# all and says nothing about it.",
+        "#",
+        "# Open Codex interactively in this folder ONCE, run `/hooks`, and trust",
+        "# them. Nothing in this vault can do it for you: trust is recorded in",
+        "# ~/.codex/config.toml under [hooks.state], and the key contains this",
+        "# vault's ABSOLUTE PATH, so moving or renaming the folder drops the",
+        "# trust silently and the guards go quiet with no message. Trust them",
+        "# again after a move. `--dangerously-bypass-hook-trust` runs them for",
+        "# one invocation without recording anything, and is for automation that",
+        "# has already vetted the hook source.",
+        "#",
+        "# One more thing a script cannot do for you: Codex's workspace-write",
+        "# sandbox refuses writes into .codex/ and .agents/, so",
+        "# `scaffold-init.py apply` has to be run by YOU, from your own terminal,",
+        "# not by the model inside a Codex session.",
+        "",
     ]
     return _with_header(body, "AGENTS.md", 0, toml_header)
 
@@ -1246,6 +1283,20 @@ def generated_on_disk(root):
     return sorted(set(out))
 
 
+def generated_counts(b, same):
+    """`same` split into (generated files, host links).
+
+    One definition in one place. `check` prints these and `doctor --json`
+    writes them, and two numbers in the product that mean the same thing and
+    disagree is a defect a member has no way to resolve: it just reads as the
+    plugin being wrong. A symlink carries no header and no content hash, so it
+    is never counted among the files whose hash matched, which is what the old
+    single tally claimed about all of them.
+    """
+    files = len([r for r in same if r in b.files])
+    return files, len(same) - files
+
+
 def diff(root, b):
     create, update, same, remove, edited = [], [], [], [], []
     orphans = []
@@ -1352,14 +1403,44 @@ def apply_settings(root, b):
     p.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+# A SANDBOX THAT REFUSES THE WRITE MUST SAY SO IN WORDS, NOT IN A TRACEBACK
+# (pilot C finding F4). Codex's `workspace-write` sandbox refuses writes into
+# `.codex/` and `.agents/` even though they sit inside the workspace: Nolan's
+# probe got "operation not permitted". So `apply` cannot finish from inside a
+# Codex session and the new agent silently gets no Codex shim. There is no
+# documented environment variable that says "you are in a Codex sandbox", so
+# this does not guess: it attempts the write and reads EPERM, which is the
+# only evidence that exists. The answer is not to retry, it is to hand the
+# member the command to run in their own terminal.
+def sandbox_note(root, rel, exc):
+    return ("PERMISSION DENIED writing %s (%s). A host sandbox is refusing this "
+            "path: Codex's workspace-write sandbox refuses .codex/ and .agents/ "
+            "even inside the workspace. Nothing here can talk it round. Run this "
+            "from your OWN terminal, outside the session:\n"
+            "    python3 \"%s/06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py\" apply"
+            % (rel, exc, root))
+
+
 def do_apply(root, b, out):
     create, update, same, remove, edited = diff(root, b)
     modes = {}
+    denied = []
     for rel in sorted(set(create + update)):
-        if rel in b.files:
-            write(root, rel, b.files[rel])
-        elif rel in b.links:
-            modes[rel] = link(root, rel, b.links[rel])
+        try:
+            if rel in b.files:
+                write(root, rel, b.files[rel])
+            elif rel in b.links:
+                modes[rel] = link(root, rel, b.links[rel])
+        except PermissionError as exc:
+            denied.append(rel)
+            out(sandbox_note(root, rel, exc))
+            continue
+        except OSError as exc:
+            if getattr(exc, "errno", None) in (1, 13):   # EPERM, EACCES
+                denied.append(rel)
+                out(sandbox_note(root, rel, exc))
+                continue
+            raise
     for rel, why in remove:
         p = root / rel
         if p.is_symlink() or p.is_file():
@@ -1372,123 +1453,380 @@ def do_apply(root, b, out):
     act, _ = settings_diff(root, b)
     if act in ("create", "update"):
         apply_settings(root, b)
-    out("apply: %d created, %d updated, %d already current, %d removed"
-        % (len(create), len(update), len(same), len(remove)))
+    out("apply: %d created, %d updated, %d already current, %d removed%s"
+        % (len(create) - len([r for r in denied if r in create]),
+           len(update) - len([r for r in denied if r in update]),
+           len(same), len(remove),
+           ", %d REFUSED by a host sandbox" % len(denied) if denied else ""))
+    if denied:
+        # AND IT EXITS NON-ZERO (Silas's Codex re-run 2026-09-14/15, R3).
+        # Until now this said INCOMPLETE in prose and returned 0, so a model
+        # that read the exit code rather than the paragraph reported a clean
+        # activation with no shims, no skills and no guards behind it. Silas's
+        # run caught it only by reading the prose and then running `check`. A
+        # script that says INCOMPLETE and exits 0 is a green that is not green,
+        # which is the exact shape this folder's own doctrine forbids.
+        out("apply: the harness is INCOMPLETE. %d path(s) were refused: %s. Until "
+            "they are written from your own terminal, the hosts that read them "
+            "have no shims, no skills and no guards."
+            % (len(denied), ", ".join(denied[:6])))
     if act in ("create", "update"):
         out("apply: .claude/settings.json hooks key %sd (every other key kept)" % act)
     if modes:
         kinds = sorted(set(modes.values()))
         out("apply: .agents/skills entries written as %s" % ", ".join(kinds))
-    return create, update, same, remove
+    return create, update, same, remove, denied
 
 
 # ---------------------------------------------------------------------------
 # doctor
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Does Codex trust THIS folder's hooks?
+# ---------------------------------------------------------------------------
+#
+# Codex records the answer in its own config and never in the vault, keyed by
+# the absolute path of the hooks file plus the position of the hook inside it:
+#
+#   [hooks.state."<abs vault>/.codex/hooks.json:<event>:<i>:<j>"]
+#   trusted_hash = "..."
+#
+# So the answer is per machine AND per path, and moving or renaming the folder
+# silently drops it. It is worth reading because the failure it hides is the
+# worst shape a guard can have: `codex exec` never asks and runs no untrusted
+# hook, without printing anything, so a member with untrusted hooks has every
+# guard off and a terminal that looks exactly like one where they are on.
+#
+# An unreadable or absent config is "unknown" and never "no". Telling somebody
+# their guards are off when the truth is that a file could not be opened sends
+# them to fix something that may not be broken, and a guess wearing the clothes
+# of a measurement is the one thing this whole report exists not to do.
+
+CODEX_TRUST_TEXT = {
+    "yes": ('yes, for this exact path. ~/.codex/config.toml records a '
+            'trusted_hash under [hooks.state] for "%s/.codex/hooks.json". '
+            'Moving or renaming this folder drops it, because the key carries '
+            'the absolute path.'),
+    "no": ('NOT TRUSTED, guards off in codex exec until trusted. '
+           '~/.codex/config.toml carries no [hooks.state] entry for '
+           '"%s/.codex/hooks.json", so no hook here has been reviewed on this '
+           'machine. Codex asks only in an interactive session (/hooks); codex '
+           'exec never asks and runs none of them, silently. Open Codex in this '
+           'folder once and trust them.'),
+    "unknown": ('not readable: ~/.codex/config.toml could not be read, so this '
+                'says nothing rather than guessing.'),
+}
+
+CODEX_SANDBOX_TEXT = (
+    "Codex's workspace-write sandbox refuses writes into .codex/ and .agents/, "
+    "so scaffold-init.py apply must be run by the member from their own "
+    "terminal, not by a model inside a Codex session. apply names every path it "
+    "was refused and says the harness is incomplete.")
+
+# A table header, and the one key inside it that proves a review happened.
+_TOML_TABLE = re.compile(r'^\s*\[\s*hooks\.state\s*\.\s*"(.*)"\s*\]\s*$')
+_TOML_ANY_TABLE = re.compile(r"^\s*\[")
+_TOML_HASH = re.compile(r"^\s*trusted_hash\s*=")
+
+
+def codex_config_path():
+    """`${CODEX_HOME:-~}/.codex/config.toml`, as Codex resolves it."""
+    home = os.environ.get("CODEX_HOME") or os.path.expanduser("~")
+    return Path(home) / ".codex" / "config.toml"
+
+
+def codex_trust(root, config_path=None):
+    """'yes', 'no' or 'unknown' for this folder's hooks on this machine.
+
+    Read as text rather than through a TOML parser on purpose: tomllib landed
+    in 3.11 and this script runs on whatever python3 a member has. check-bases
+    learned the same lesson the hard way when its PyYAML import turned two red
+    tests green by never running them.
+    """
+    path = Path(config_path) if config_path else codex_config_path()
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return "unknown"
+    prefix = "%s/.codex/hooks.json:" % Path(root).resolve()
+    key, has_hash = None, False
+
+    def _proved():
+        return key is not None and key.startswith(prefix) and has_hash
+
+    for line in text.split("\n"):
+        m = _TOML_TABLE.match(line)
+        if m:
+            if _proved():
+                return "yes"
+            key, has_hash = m.group(1), False
+            continue
+        if _TOML_ANY_TABLE.match(line):
+            if _proved():
+                return "yes"
+            key, has_hash = None, False
+            continue
+        if key is not None and _TOML_HASH.match(line):
+            has_hash = True
+    return "yes" if _proved() else "no"
+
+
 BINARIES = {"claude-code": "claude", "codex": "codex",
             "gemini": "gemini", "cursor": "cursor-agent"}
 FOLDERS = {"claude-code": ".claude", "codex": ".codex",
            "gemini": ".gemini", "cursor": ".cursor"}
 
+# `doctor --json` writes this for the Scaffold Check plugin. Machine-layer
+# data under GL-1008: per device, regenerated, never tracked and never a
+# source. `schema` is the first thing a reader checks.
+HARNESS_SCHEMA = 1
+HARNESS_PATH = ".icor-for-life/scripts/harness.json"
 
-def do_doctor(root, b, out, run_tests=True):
-    out("=" * 47)
-    out("doctor: %s" % root)
-    out("=" * 47)
+
+def _red_tests(root, run_tests):
+    """The red-test suite's verdict, once: ({status, summary, skips}, lines).
+
+    `status` is one of ok, red, absent, error, skipped. `lines` is what the
+    terminal prints under `tested`, first line then continuations.
+    """
+    runner = tk(root) / "Scripts" / "run-red-tests.py"
+    if not runner.is_file():
+        msg = ("no run-red-tests.py in this folder, so no guard here has been "
+               "watched go red")
+        return {"status": "absent", "summary": msg, "skips": []}, [msg]
+    if not run_tests:
+        msg = "not run (--no-tests)"
+        return {"status": "skipped", "summary": msg, "skips": []}, [msg]
+    # --fast, because doctor is a health check somebody is WAITING for and the
+    # full suite grew past a minute. The flag skips the groups that clone the
+    # repo, read the build script and build fixture vaults; every guard case
+    # still runs and a failure still exits 1. The release gate and CI call the
+    # same file with no arguments and get the whole thing, so nothing that
+    # ships was proved by a fast run. The suite names the skipped groups on its
+    # own summary line and that line is what lands under `tested:` here.
+    try:
+        r = subprocess.run([sys.executable, str(runner), "--fast"],
+                           capture_output=True, text=True, timeout=900)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        msg = "could not run the suite here (%s)" % e
+        return {"status": "error", "summary": msg, "skips": []}, [msg]
+    # A failing run prints its findings on stderr and exits before the
+    # summary line ever reaches stdout, so reading stdout alone reports
+    # "no output" for the one case that matters most.
+    tail = [l for l in (r.stdout or "").strip().split("\n") if l.strip()]
+    err = [l for l in (r.stderr or "").strip().split("\n") if l.strip()]
+    if r.returncode == 0:
+        # the summary line, not the last line: both runners print a
+        # standing reminder about SKIPs after their tally, and quoting
+        # that as the result reports a warning as a count.
+        ok = [l for l in tail if l.startswith("OK ")]
+        summary = ok[-1] if ok else (tail[-1] if tail else "no output")
+        skips = [l for l in tail if l.startswith("SKIP ")
+                 or l.startswith("FAST-SKIP ") or l.startswith("FAST RUN")]
+        return ({"status": "ok", "summary": summary, "skips": skips},
+                [summary] + [l[:160] for l in skips])
+    summary = ("RED, exit %d. The suite found something; this is not a green."
+               % r.returncode)
+    return ({"status": "red", "summary": summary, "skips": []},
+            [summary] + (err or tail)[:6])
+
+
+def doctor_report(root, b, run_tests=True):
+    """Everything doctor knows, worked out once.
+
+    The terminal report and `harness.json` are both rendered from this. Two
+    copies of the per-host logic would drift, and the plugin reading the file
+    would then show a different answer from the terminal, which is the worst
+    kind of wrong: two sources that are each believable on their own.
+
+    Every host dict carries the published keys plus `display`, the extra
+    labelled lines the terminal prints and the file does not.
+    """
+    try:
+        version = (root / ".icor-for-life" / "VERSION").read_text(
+            encoding="utf-8").strip() or None
+    except OSError:
+        version = None
+
+    # `diff` is what fills in b.orphans, so doctor has to run it before it can
+    # report a count. Nothing here is written; plan and check call it the same
+    # way.
+    diff(root, b)
+
+    tests, tests_lines = _red_tests(root, run_tests)
+    hosts = []
     for host in HOSTS:
-        folder = root / FOLDERS[host]
-        binary = shutil.which(BINARIES[host])
         detected = []
-        if folder.is_dir():
+        if (root / FOLDERS[host]).is_dir():
             detected.append("%s/ present" % FOLDERS[host])
-        if binary:
+        if shutil.which(BINARIES[host]):
             detected.append("`%s` on PATH" % BINARIES[host])
-        out("")
-        out("%s" % host)
-        out("  detected    : %s" % (", ".join(detected) or "no, neither its folder nor its binary is here"))
+        # `trusted` is "unknown" on every host today, and the note says why.
+        # No host writes its trust answer anywhere this script can read, so a
+        # "yes" here would be a guess wearing the clothes of a measurement.
+        h = {"id": host, "detected": detected, "trusted": "unknown",
+             "unsupported": [], "display": []}
         if host == "claude-code":
             n_sk = len([r for r in b.files if r.startswith(".claude/skills/")])
             n_sh = len([r for r in b.files if r.startswith(".claude/agents/")])
             act, _ = settings_diff(root, b)
             state = {"same": "current", "create": "not written yet",
                      "update": "would change on the next apply"}.get(act, "no rule table")
-            out("  installed   : %d skills, %d generated shims plus %d held by hand, "
-                "hooks in .claude/settings.json (%s)" % (n_sk, n_sh, len(b.keep), state))
-            out("  trusted     : not readable from disk. Claude Code asks once per "
-                "project and stores the answer outside the vault, so this line "
-                "can only ever say it does not know.")
-            out("  unsupported : nothing. This is the host every mechanism exists on.")
+            h["installed"] = ("%d skills, %d generated shims plus %d held by hand, "
+                              "hooks in .claude/settings.json (%s)"
+                              % (n_sk, n_sh, len(b.keep), state))
+            h["trusted_note"] = ("Claude Code asks once per project and stores the "
+                                 "answer outside the vault, so this line can only "
+                                 "ever say it does not know.")
+            h["tested"] = tests["status"]
+            h["display"].append(("trusted", "not readable from disk. " + h["trusted_note"]))
+            h["display"].append(("unsupported",
+                                 "nothing. This is the host every mechanism exists on."))
         elif host == "codex":
             n_sh = len([r for r in b.files if r.startswith(".codex/agents/")])
-            out("  installed   : %d shims (TOML), %d skills via .agents/skills/, "
-                "hooks in .codex/hooks.json"
-                % (n_sh, len(b.links)))
-            out("  trusted     : not readable from disk.")
-            out("  unverified  : .codex/config.toml sets project_doc_max_bytes. "
-                "OpenAI documents the key and its 32 KiB default, and documents "
-                "<repo>/.codex/config.toml as a config location, but does not say "
-                "the key is honoured project-locally. Set the same line in "
-                "~/.codex/config.toml if a Codex session truncates the entry.")
+            h["installed"] = ("%d shims (TOML), %d skills via .agents/skills/, "
+                              "hooks in .codex/hooks.json" % (n_sh, len(b.links)))
+            trust = codex_trust(root)
+            body = CODEX_TRUST_TEXT[trust]
+            h["trusted"] = trust
+            h["trusted_note"] = (body % Path(root).resolve()) if "%s" in body else body
+            # The sandbox note travels WITH the flag rather than being retyped
+            # in the plugin: two copies of one sentence is two things to keep
+            # true, and the one that drifts is always the copy nobody edits.
+            h["sandbox"] = True
+            h["sandbox_note"] = CODEX_SANDBOX_TEXT
+            h["tested"] = tests["status"]
+            h["display"].append(("trusted", h["trusted_note"]))
+            h["display"].append(("sandbox", CODEX_SANDBOX_TEXT))
+            h["display"].append(("unverified",
+                                 ".codex/config.toml sets project_doc_max_bytes. "
+                                 "OpenAI documents the key and its 32 KiB default, and "
+                                 "documents <repo>/.codex/config.toml as a config "
+                                 "location, but does not say the key is honoured "
+                                 "project-locally. Set the same line in "
+                                 "~/.codex/config.toml if a Codex session truncates "
+                                 "the entry."))
             for n in b.notes:
                 if n.startswith("hooks/codex:"):
-                    out("  skipped     : " + n.split(":", 1)[1].strip())
+                    h["display"].append(("skipped", n.split(":", 1)[1].strip()))
         elif host == "gemini":
             n_sh = len([r for r in b.files if r.startswith(".gemini/agents/")])
-            out("  installed   : %d shims (Markdown), %d skills via .agents/skills/, "
-                "GEMINI.md pointer" % (n_sh, len(b.links)))
-            out("  unsupported : hooks. Gemini CLI has no lifecycle hook system of "
-                "any kind, so every guard in the rule table is unenforced there. "
-                "Nothing is written to .gemini for hooks and nothing should be.")
-            out("  note        : Gemini asks the user to approve a skill before its "
-                "body loads, and workspace-scope skills need /trust.")
+            h["installed"] = ("%d shims (Markdown), %d skills via .agents/skills/, "
+                              "GEMINI.md pointer" % (n_sh, len(b.links)))
+            h["unsupported"] = ["hooks"]
+            h["trusted_note"] = ("Gemini asks the user to approve a skill before its "
+                                 "body loads, and workspace-scope skills need /trust.")
+            # There is no hook system here at all, so the red-test suite proves
+            # nothing about this host and must not borrow the others' green.
+            h["tested"] = "unsupported"
+            h["display"].append(("unsupported",
+                                 "hooks. Gemini CLI has no lifecycle hook system of "
+                                 "any kind, so every guard in the rule table is "
+                                 "unenforced there. Nothing is written to .gemini for "
+                                 "hooks and nothing should be."))
+            h["display"].append(("note", h["trusted_note"]))
         else:
-            out("  installed   : nothing, on purpose. Cursor reads .claude/skills/, "
-                ".claude/agents/ and Claude Code's hooks for compatibility, so a "
-                "fourth copy would be a fourth thing to keep true.")
-            out("  unsupported : nothing of its own.")
+            h["installed"] = ("nothing, on purpose. Cursor reads .claude/skills/, "
+                              ".claude/agents/ and Claude Code's hooks for "
+                              "compatibility, so a fourth copy would be a fourth "
+                              "thing to keep true.")
+            h["trusted_note"] = ("Cursor reads Claude Code's files, so its trust "
+                                 "answer is Claude Code's and is kept outside the vault.")
+            h["tested"] = "unsupported"
+            h["display"].append(("unsupported", "nothing of its own."))
+        hosts.append(h)
+
+    return {
+        "generated": datetime.datetime.now(datetime.timezone.utc)
+                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "scaffold_version": version,
+        "skills": {"count": b.skill_count, "tokens": b.tokens,
+                   "budget": MAX_SKILL_TOKENS},
+        # `generated` is how many files this generator produces, not how many
+        # are currently correct on disk. That question is `check`, and answering
+        # it twice in two places is how the two come to disagree.
+        "files": {"generated": len(b.files), "hand_kept": len(b.keep),
+                  "orphans": len(b.orphans)},
+        "tests": tests,
+        "problems": list(b.problems),
+        "notes": list(b.notes),
+        "hosts": hosts,
+        "display": {"tests": tests_lines},
+    }
+
+
+def harness_doc(report):
+    """The published `harness.json`, listed key by key.
+
+    Explicit rather than a filtered copy of the report: this file is a contract
+    the Scaffold Check plugin reads, and it must not gain a key because someone
+    added one to the report for the terminal.
+    """
+    return {
+        "schema": HARNESS_SCHEMA,
+        "generated": report["generated"],
+        "scaffold_version": report["scaffold_version"],
+        "skills": report["skills"],
+        "files": report["files"],
+        "tests": report["tests"],
+        "problems": report["problems"],
+        "notes": report["notes"],
+        "hosts": [_harness_host(h) for h in report["hosts"]],
+    }
+
+
+def _harness_host(h):
+    """One host row of `harness.json`. `sandbox` and `sandbox_note` appear only
+    where a sandbox exists, so "when present" in the plugin is a real test and
+    not a check against a key that is always there and usually false."""
+    row = {"id": h["id"], "detected": h["detected"], "installed": h["installed"],
+           "trusted": h["trusted"], "trusted_note": h["trusted_note"],
+           "tested": h["tested"], "unsupported": h["unsupported"]}
+    if h.get("sandbox"):
+        row["sandbox"] = True
+        row["sandbox_note"] = h.get("sandbox_note", "")
+    return row
+
+
+def do_doctor(root, b, out, run_tests=True, write_json=False):
+    report = doctor_report(root, b, run_tests=run_tests)
+    out("=" * 47)
+    out("doctor: %s" % root)
+    out("=" * 47)
+    for h in report["hosts"]:
+        out("")
+        out("%s" % h["id"])
+        out("  detected    : %s" % (", ".join(h["detected"])
+                                    or "no, neither its folder nor its binary is here"))
+        out("  installed   : %s" % h["installed"])
+        for label, text in h["display"]:
+            out("  %-12s: %s" % (label, text))
     out("")
     out("skills      : %d, about %d startup tokens estimated, budget %d"
-        % (b.skill_count, b.tokens, MAX_SKILL_TOKENS))
+        % (report["skills"]["count"], report["skills"]["tokens"],
+           report["skills"]["budget"]))
     out("hand-kept   : %d shim(s) left alone because they carry instructions the "
-        "contract does not" % len(b.keep))
-    runner = tk(root) / "Scripts" / "run-red-tests.py"
-    if not runner.is_file():
-        out("tested      : no run-red-tests.py in this folder, so no guard here has "
-            "been watched go red")
-    elif not run_tests:
-        out("tested      : not run (--no-tests)")
-    else:
-        try:
-            r = subprocess.run([sys.executable, str(runner)], capture_output=True,
-                               text=True, timeout=900)
-            # A failing run prints its findings on stderr and exits before the
-            # summary line ever reaches stdout, so reading stdout alone reports
-            # "no output" for the one case that matters most.
-            tail = [l for l in (r.stdout or "").strip().split("\n") if l.strip()]
-            err = [l for l in (r.stderr or "").strip().split("\n") if l.strip()]
-            if r.returncode == 0:
-                # the summary line, not the last line: both runners print a
-                # standing reminder about SKIPs after their tally, and quoting
-                # that as the result reports a warning as a count.
-                ok = [l for l in tail if l.startswith("OK ")]
-                out("tested      : %s" % (ok[-1] if ok else (tail[-1] if tail else "no output")))
-                skipped = [l for l in tail if l.startswith("SKIP ")]
-                for l in skipped:
-                    out("              " + l[:160])
-            else:
-                out("tested      : RED, exit %d. The suite found something; this is "
-                    "not a green." % r.returncode)
-                for l in (err or tail)[:6]:
-                    out("              " + l)
-        except (subprocess.TimeoutExpired, OSError) as e:
-            out("tested      : could not run the suite here (%s)" % e)
-    for n in b.notes:
+        "contract does not" % report["files"]["hand_kept"])
+    for i, line in enumerate(report["display"]["tests"]):
+        out(("tested      : " if i == 0 else "              ") + line)
+    for n in report["notes"]:
         if not n.startswith("hooks/codex:"):
             out("note        : " + n)
-    for p in b.problems:
+    for p in report["problems"]:
         out("PROBLEM     : " + p)
-    return 1 if b.problems else 0
+    if write_json:
+        path = root / HARNESS_PATH
+        # GL-1008: never assume the machine layer is there. A vault that
+        # arrived on a second device through Obsidian Sync has no dot folders
+        # at all, and a write into a missing parent is the usual way this
+        # fails on the machine nobody tested on.
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(harness_doc(report), indent=2,
+                                   ensure_ascii=False) + "\n", encoding="utf-8")
+        out("")
+        out("wrote       : %s" % HARNESS_PATH)
+    return 1 if report["problems"] else 0
 
 
 # ---------------------------------------------------------------------------
@@ -1564,9 +1902,11 @@ def do_check(root, b, out):
         out("FAIL check: %d finding(s). Run `scaffold-init.py apply`, or repair "
             "the source and re-run." % len(fails))
         return 1
+    n_files, n_links = generated_counts(b, same)
     out("OK check: a second apply would change nothing, %d generated file(s) still "
-        "match the hash in their header, %d shim(s) held by hand, %d orphan(s)"
-        % (len(same), len(b.keep), len(b.orphans)))
+        "match the hash in their header, %d host link(s) in place, %d shim(s) held "
+        "by hand, %d orphan(s)"
+        % (n_files, n_links, len(b.keep), len(b.orphans)))
     out("What this does not prove: that any host reads any of it, that a hook "
         "fires, or that a skill gets selected. It proves these bytes are the "
         "bytes the sources produce.")
@@ -1583,6 +1923,10 @@ def main(argv=None):
                          "script holding AGENTS.md next to '06 AI Team/'")
     ap.add_argument("--no-tests", action="store_true",
                     help="doctor: do not run run-red-tests.py")
+    ap.add_argument("--json", action="store_true",
+                    help="doctor: also write %s, which the Scaffold Check "
+                         "plugin reads. The text report is still printed."
+                         % HARNESS_PATH)
     a = ap.parse_args(argv)
     root = find_root(a.root) if a.root else find_root()
     lines = []
@@ -1600,12 +1944,11 @@ def main(argv=None):
                 out("FAIL " + p)
             out("FAIL apply refused: fix the source and re-run. Nothing written.")
             return 1
-        do_apply(root, b, out)
-        rc = 0
+        rc = 1 if do_apply(root, b, out)[4] else 0
     elif a.verb == "check":
         rc = do_check(root, b, out)
     else:
-        rc = do_doctor(root, b, out, run_tests=not a.no_tests)
+        rc = do_doctor(root, b, out, run_tests=not a.no_tests, write_json=a.json)
     return rc
 
 

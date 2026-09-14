@@ -166,7 +166,11 @@ if linker.is_file():
     r = subprocess.run([sys.executable, str(linker), str(ROOT), "--check", "--json"],
                        capture_output=True, text=True)
     try:
-        dates_unlinked = json.loads(r.stdout)["mentions"]
+        # The first JSON object on stdout, not the whole stream. Belt and
+        # braces with the linker's own fix: a caller that demands a pure
+        # stdout is a caller that reports None the day anything adds a line.
+        dates_unlinked = json.JSONDecoder().raw_decode(
+            r.stdout[r.stdout.find("{"):])[0]["mentions"]
     except (ValueError, KeyError):
         dates_unlinked = None
 
@@ -264,6 +268,20 @@ if a.write_receipt:
     if missing:
         print("FAIL: the receipt names output(s) that are not on disk: "
               + ", ".join(missing), file=sys.stderr)
+        sys.exit(1)
+    # A receipt records a hash and later asserts the file still matches it, so
+    # an output the machine layer rewrites every session is a receipt that is
+    # guaranteed to rot. Codex's first pilot session listed session.json and
+    # quality.json, and from session 2 onward that receipt could never verify
+    # again (pilot B finding F8). This is one line instead of a lesson.
+    MACHINE_REL = MACHINE.relative_to(ROOT).as_posix() + "/"
+    self_writing = [p for p in hashes(a.output)
+                    if p.startswith(MACHINE_REL)]
+    if self_writing:
+        print("FAIL: the receipt names output(s) the machine layer rewrites on "
+              "its own: " + ", ".join(self_writing) + ". Those files change every "
+              "session, so a receipt naming them can never verify again. Name "
+              "the work: the session log, a note, a deliverable.", file=sys.stderr)
         sys.exit(1)
     started = None
     sf = MACHINE / "session.json"

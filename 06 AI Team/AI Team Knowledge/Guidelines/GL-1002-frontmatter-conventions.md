@@ -49,7 +49,8 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements | `[[Templates/project]]` |
 | habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) | `[[Templates/habit]]` |
 | task | status (open/in-progress/done/cancelled), assignee | related, due | none: `Scripts/new-task.py` |
-| progress-report | status (live/closed), updated (ISO datetime) | plan, skills (list of skill slugs, or the literal `none, judgement role`; only meaningful in a hire's WiP folder) | none: `Scripts/new-progress-report.py` |
+| progress-report | status (live/closed), updated (ISO datetime) | plan | none: `Scripts/new-progress-report.py` |
+| hire-proposal | owner, title | status (draft/decision-ready/approved), skills (list of skill slugs, or the literal `none, judgement role`; the field `check-hire.py` checks 15 and 18 read) | none: the `proposal.md` in `03 WiP/YYYY-MM-DD-<name>-hire/`, [[SOP-1007-hire-a-new-agent]] row 2 |
 | session-log | date, agents | - | none: `Scripts/new-session-log.py` |
 | sop / workstream / guideline | id, title | skill_name (the skill's folder slug; REQUIRED once skill_triggers is non-empty), skill_summary (one sentence), skill_triggers (list of user phrases; non-empty makes the procedure skill-eligible), skill_prerun (one script invocation, injected before step 1); the four only meaningful on `sop` and `workstream` | none |
 | agent-journal | date, agent | - | none |
@@ -708,8 +709,9 @@ says the same thing for an imported skill, and this is that rule applied
 to the ones we author. The canonical home carries the README that states
 it; the dot folders hold links, and links are per device.
 
-`skills` on a hire's progress report is the other half: it names which
-skills the hire ships, one slug per nameable repeatable procedure, each
+`skills` on a hire's `proposal.md` (`type: hire-proposal`) is the other
+half: it names which skills the hire ships, one slug per nameable
+repeatable procedure, each
 matching a folder under `06 AI Team/AI Team Knowledge/Skills/`. A
 judgement role that ships none writes the literal `none, judgement role`
 rather than omitting the key, because an absent key and a deliberate zero

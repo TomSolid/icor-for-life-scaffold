@@ -22,7 +22,8 @@ THE 22 CHECKS
   2  frontmatter required contract fields present, no forbidden ones, parses
   3  id          myicor_id valid and unique (relayed from mint-agent-ids.py --check)
   4  bio         <Name>.md exists, type agent-bio, links AGENT.md
-  5  avatar      exists at this folder's convention, real PNG, square
+  5  avatar      exists at this folder's convention, real PNG, square, and
+                 not a placeholder (WARN, never OK, when it is one)
   6  journal     Journal/ exists and is not empty
   7  shim        .claude/agents/<slug>.md exists, name equals slug equals folder
   8  shim-desc   description present and opens with the role phrase from the contract
@@ -74,6 +75,7 @@ import subprocess
 import sys
 import tempfile
 import zlib
+from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -188,9 +190,120 @@ def png_size(path):
     return struct.unpack(">II", head[16:24])
 
 
-def write_png(path, w, h):
-    """Smallest legal PNG of the given size. Used by the self-test only."""
-    raw = b"".join(b"\x00" + b"\xff\xff\xff" * w for _ in range(h))
+# A PLACEHOLDER IS NOT AN AVATAR (pilot C finding F6). Both pilot models drew
+# one to turn check 5 green: a teal square with a letter in it, and a flat
+# 1254x1254 fill. Check 5 accepted both, because it only asked "is this a
+# square PNG". A green reachable without the thing being true is the exact
+# defect GL-1005 rule 4 names, and this one had two models find it in one
+# afternoon. The three shapes below are what a placeholder looks like from
+# outside: it says so in its name, it is too small to be a portrait, or it is
+# one flat colour. None of them proves the image is GOOD; they prove it is not
+# yet a picture of anybody, which is all a validator can honestly claim.
+MIN_AVATAR_PX = 128
+
+
+def png_is_solid(path):
+    """True when every pixel is the same colour. None when it cannot be read.
+
+    Reads the IDAT stream and refuses to guess: an interlaced PNG, a palette,
+    or anything it cannot unfilter comes back None and the caller says nothing
+    rather than something wrong."""
+    try:
+        data = open(path, "rb").read()
+    except (OSError, IOError):
+        return None
+    if data[:8] != b"\x89PNG\r\n\x1a\n" or len(data) < 33:
+        return None
+    w, h, depth, colour = struct.unpack(">IIBB", data[16:26])
+    interlace = data[28]
+    if depth != 8 or interlace != 0 or colour not in (0, 2, 4, 6):
+        return None
+    channels = {0: 1, 2: 3, 4: 2, 6: 4}[colour]
+    idat, i = b"", 8
+    while i + 8 <= len(data):
+        ln = struct.unpack(">I", data[i:i + 4])[0]
+        tag = data[i + 4:i + 8]
+        if tag == b"IDAT":
+            idat += data[i + 8:i + 8 + ln]
+        i += 12 + ln
+    try:
+        raw = zlib.decompress(idat)
+    except zlib.error:
+        return None
+    stride = w * channels
+    if len(raw) < h * (stride + 1):
+        return None
+    first = None
+    for y in range(h):
+        row = raw[y * (stride + 1):(y + 1) * (stride + 1)]
+        if row[0] not in (0, 2):        # None or Up: anything else needs a real decoder
+            return None
+        line = row[1:]
+        if row[0] == 2:                 # Up filter: all-zero deltas repeat the row above
+            if any(line):
+                return False
+            continue
+        px = line[:channels]
+        if line != px * w:
+            return False
+        if first is None:
+            first = px
+        elif px != first:
+            return False
+    return True
+
+
+# THE HIRING MARKER (pilot C finding F1). `new-agent.py` drops
+# `06 AI Team/Agents/<Name>/.hiring` and `write-guard.py` stands down on that
+# one contract while it is fresh. This script is the other end: a green run
+# deletes it, and a marker still lying there after 24 hours is residue that
+# reads like an open door and is not one.
+HIRING_MARKER = ".hiring"
+HIRING_MAX_AGE_H = 24
+
+
+def hiring_age_hours(marker):
+    """Hours since the hire started, or None when the file says nothing."""
+    try:
+        doc = json.loads(marker.read_text(encoding="utf-8"))
+        stamp = str(doc.get("started") or "").replace("Z", "+00:00")
+        started = datetime.fromisoformat(stamp)
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=timezone.utc)
+    except Exception:
+        try:
+            started = datetime.fromtimestamp(marker.stat().st_mtime, timezone.utc)
+        except OSError:
+            return None
+    return (datetime.now(timezone.utc) - started).total_seconds() / 3600.0
+
+
+def avatar_is_placeholder(path, size):
+    """(True, why) when this file is a stand-in rather than a portrait."""
+    name = path.name.lower()
+    if "placeholder" in name or "_placeholder" in path.parent.name.lower():
+        return True, "the file name says so"
+    if (path.parent / (path.stem + ".placeholder")).is_file():
+        return True, "a .placeholder sidecar sits beside it"
+    if size and (size[0] < MIN_AVATAR_PX or size[1] < MIN_AVATAR_PX):
+        return True, ("%dx%d is below the %dpx a roster portrait needs"
+                      % (size[0], size[1], MIN_AVATAR_PX))
+    if png_is_solid(path) is True:
+        return True, "every pixel is the same colour"
+    return False, ""
+
+
+def write_png(path, w, h, solid=True):
+    """Smallest legal PNG of the given size. Used by the self-test only.
+
+    `solid=False` varies the pixels, because the clean fixture's avatar has to
+    be something check 5 accepts as a picture rather than a stand-in."""
+    if solid:
+        raw = b"".join(b"\x00" + b"\xff\xff\xff" * w for _ in range(h))
+    else:
+        raw = b"".join(b"\x00" + bytes(bytearray(
+            ((x * 7 + y * 13) % 256, (x * 3) % 256, (y * 5) % 256)[c]
+            for x in range(w) for c in range(3))) for y in range(h))
 
     def chunk(tag, data):
         c = tag + data
@@ -541,7 +654,14 @@ def check_agent(vault, name):
             res.fail(5, "avatar", "%s is %dx%d; the roster wants a square"
                      % (rel_av, size[0], size[1]))
         else:
-            res.ok(5, "avatar", "%s, %dx%d" % (rel_av, size[0], size[1]))
+            placeholder, why = avatar_is_placeholder(avatar, size)
+            if placeholder:
+                res.warn(5, "avatar", "%s is a placeholder (%s), not a portrait. "
+                         "Pixel still owes the real one; a drawn stand-in turns "
+                         "this check green without the thing being true"
+                         % (rel_av, why))
+            else:
+                res.ok(5, "avatar", "%s, %dx%d" % (rel_av, size[0], size[1]))
 
     # 6. journal
     jdir = d / "Journal"
@@ -909,6 +1029,24 @@ def check_agent(vault, name):
             res.fail(22, "pack", "files installed; activation incomplete: %s was installed by an "
                      "Expansion pack and has no dispatch shim" % name)
 
+
+    # 23. the hiring marker
+    marker = d / HIRING_MARKER
+    if not marker.is_file():
+        res.ok(23, "hiring", "no open hiring marker")
+    else:
+        age = hiring_age_hours(marker)
+        if age is None or age > HIRING_MAX_AGE_H:
+            res.warn(23, "hiring", "%s/%s is %s old; write-guard.py stopped "
+                     "honouring it at %d hours, so it reads like an open door and "
+                     "is not one. Delete it."
+                     % (d.relative_to(root).as_posix(), HIRING_MARKER,
+                        "of unknown age" if age is None else "%.0f hours" % age,
+                        HIRING_MAX_AGE_H))
+        else:
+            res.ok(23, "hiring", "%s open, %.1f h in; a green run clears it"
+                   % (HIRING_MARKER, age))
+
     return res, slug
 
 
@@ -1103,7 +1241,7 @@ def build_fixture(dest, public=False, scripts_dir=None):
         (dest / ".icor-for-life" / "manifest.json").write_text('{"schema": 1}')
         av = dest / "06 AI Team/AI Team Knowledge/Avatars"
         av.mkdir(parents=True, exist_ok=True)
-        write_png(av / "testy.png", 8, 8)
+        write_png(av / "testy.png", 256, 256, solid=False)
         (a / "AGENT.md").write_text(
             "---\ntype: agent\nmyicor_id: 11111111-2222-4333-8444-555555555555\n"
             "name: Testy\nrole: Fixture specialist\ncreated: 2026-09-14\n"
@@ -1116,7 +1254,7 @@ def build_fixture(dest, public=False, scripts_dir=None):
             "agent.\n---\n\nYou are Testy. Read `06 AI Team/Agents/Testy/AGENT.md` every "
             "invocation.\n")
     else:
-        write_png(a / "avatar.png", 8, 8)
+        write_png(a / "avatar.png", 256, 256, solid=False)
     return dest
 
 
@@ -1384,6 +1522,23 @@ def main():
             if r["status"] == "FAIL":
                 per_check.setdefault("%02d %s" % (r["n"], r["check"]), []).append(name)
         report.append({"agent": name, "slug": slug, "checks": res.rows, "fails": len(res.fails)})
+        # A green run closes the hire, so it closes the door the hire opened.
+        # Left alone, the marker would keep this one contract writable by every
+        # later session, which is the standing open door the marker exists to
+        # avoid being.
+        if not res.fails:
+            mk = vault.agents_dir / name / HIRING_MARKER
+            if mk.is_file():
+                try:
+                    mk.unlink()
+                    if not args.json:
+                        print("     cleared %s (the hire is green; the write guard "
+                              "is closed on this contract again)"
+                              % mk.relative_to(root).as_posix())
+                except OSError as e:
+                    print("WARN check-hire: could not delete %s (%s); delete it by "
+                          "hand or the contract stays writable" % (mk, e),
+                          file=sys.stderr)
         if not args.json:
             print_result(name, res, quiet=args.all)
 

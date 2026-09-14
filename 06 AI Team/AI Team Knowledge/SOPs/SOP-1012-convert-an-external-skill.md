@@ -48,7 +48,7 @@ Steps:
    - If the skill must stay invocable by name, add `skill_summary` and
      `skill_triggers` (and `skill_prerun` when step 1 is an argument-free
      script) to the owning SOP's frontmatter; `Scripts/scaffold-init.py
-     --build skills` writes the `SKILL.md` pointer from them into
+     plan`, then `apply`, writes the `SKILL.md` pointer from them into
      `06 AI Team/AI Team Knowledge/Skills/<name>/` and links it into
      `.claude/skills/` ([[SOP-1007-hire-a-new-agent|SOP-1007]] step 6b).
      The SOP is canonical; the generated file is a pointer. Never write

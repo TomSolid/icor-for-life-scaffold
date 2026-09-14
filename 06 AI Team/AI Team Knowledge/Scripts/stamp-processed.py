@@ -13,7 +13,10 @@ Usage:
       --into "[[Acme Corp]]" --capture "01 Inbox/Scanner Inbox/thing.pdf"
 
 Rules enforced here, not in prose:
-  - refuses to run twice on the same note (processed already true)
+  - creates the frontmatter block when the note has none (the daily note
+    ships blank by design), carrying only what GL-1002 requires for it
+  - refuses to run twice on the same note (processed already true), and
+    REPLACES a half-written stamp rather than appending a second one
   - refuses an empty summary or zero --into links
   - never touches the note body; only the frontmatter block
   - the note argument must be a markdown note: a binary is refused by
@@ -64,14 +67,63 @@ try:
 except UnicodeDecodeError:
     sys.exit(f"FAIL {note.name} is not UTF-8 text and a binary cannot carry the stamp; "
              "stamp its wrapper note in 04 Inner World/Notes/ and pass the binary as --capture")
+# A note with NO frontmatter block gets one. The daily note ships blank on
+# purpose (00 Daily Scratchpad/README.md: "no template, no properties;
+# frontmatter appears only when the team stamps it"), so refusing that shape
+# made the last step of SOP-1001 unreachable on a real member's note, and on a
+# host whose model reaches past a dead end it is what sent an agent at the
+# protected path directly (pilot A, F3). The created block carries only what
+# GL-1002 requires for the note's type; the body is not touched.
+DATE_IN_NAME = re.compile(r"(\d{4}-\d{2}-\d{2})")
+
+
+def created_block(note):
+    """The minimum frontmatter a note with none must carry to hold a stamp."""
+    lines = []
+    in_scratchpad = any(p.name == "00 Daily Scratchpad" for p in note.parents)
+    m = DATE_IN_NAME.search(note.stem)
+    if in_scratchpad:
+        if not m:
+            sys.exit(f"FAIL {note.name} is in 00 Daily Scratchpad/ but its name carries "
+                     "no YYYY-MM-DD, so the `date` GL-1002 requires cannot be derived; "
+                     "add a frontmatter block by hand and run this again")
+        lines.append("type: scratchpad")
+    if m:
+        lines.append(f"date: {m.group(1)}")
+    return lines
+
+
 if not text.startswith("---\n"):
-    sys.exit("FAIL note has no frontmatter block")
-end = text.find("\n---\n", 4)
-if end == -1:
-    sys.exit("FAIL unterminated frontmatter block")
-fm, body = text[4:end], text[end + 5:]
-if "processed: true" in fm:
+    fm, body, created = "\n".join(created_block(note)), text, True
+else:
+    end = text.find("\n---\n", 4)
+    if end == -1:
+        sys.exit("FAIL unterminated frontmatter block")
+    fm, body, created = text[4:end], text[end + 5:], False
+if re.search(r"(?m)^processed:\s*true\s*$", fm):
     sys.exit("FAIL note is already stamped processed")
+
+
+def without_stamp(fm):
+    """The block minus any half-written stamp, so a second run REPLACES the
+    keys instead of appending a second set. YAML takes the last of two
+    identical keys, so a duplicate works by luck and reads as a corrupt block
+    in the Properties panel (pilot A, F4)."""
+    out, dropping = [], False
+    for line in fm.split("\n"):
+        if dropping:
+            if line[:1] in (" ", "\t", "-") and line.strip():
+                continue                      # a list item under a dropped key
+            dropping = False
+        key = line.split(":", 1)[0].strip() if ":" in line else ""
+        if key in ("processed", "processed_summary", "processed_into"):
+            dropping = not line.split(":", 1)[1].strip()
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
+fm = without_stamp(fm)
 
 
 def sha256(p):
@@ -118,8 +170,9 @@ if a.capture:
 
 stamp = ["processed: true", f'processed_summary: "{a.summary}"', "processed_into:"]
 stamp += [f'  - "{w}"' for w in a.into]
-new = "---\n" + fm.rstrip("\n") + "\n" + "\n".join(stamp) + "\n---\n" + body
-note.write_text(new, encoding="utf-8")
+head = fm.strip("\n")
+out = "---\n" + (head + "\n" if head else "") + "\n".join(stamp) + "\n---\n" + body
+note.write_text(out, encoding="utf-8")
 
 if a.capture:
     cap.unlink()
@@ -137,4 +190,5 @@ elif a.archive:
     note.rename(dest)
     print(f"OK stamped and archived -> {dest}")
 else:
-    print(f"OK stamped {note.name} (left in place)")
+    print(f"OK stamped {note.name} (left in place%s)"
+          % (", frontmatter block created" if created else ""))

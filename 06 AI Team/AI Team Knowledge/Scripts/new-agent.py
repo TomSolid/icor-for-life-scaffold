@@ -25,18 +25,26 @@ Nolan writes the words. It does not write a shim or a `SKILL.md`: those are
 rendered from frontmatter by the generator (SOP-001 step 5). It does not run
 the validator, and it never announces a hire.
 
-THE UNLOCK
-----------
+THE HIRING MARKER
+-----------------
 Both folders run a PreToolUse write guard that refuses a write to
 `06 AI Team/Agents/<Name>/AGENT.md`, because a contract is canonical and a
 model writing one by accident is exactly the failure the guard exists for.
-A hire is the one time that write is intended, so this script refuses to run
-without the deliberate unlock:
+A hire is the one time that write is intended, so this script drops a marker
+that says so:
 
-    export ICOR_UNLOCK_WRITES=1
+    06 AI Team/Agents/<Name>/.hiring
 
-It is a seatbelt, not a lock. It is here so nobody reaches for the guard's
-delete key the first time it blocks real work.
+`write-guard.py` stands down on THAT contract, and only that one, while the
+marker is younger than 24 hours. A green `check-hire.py <Name>` deletes it.
+
+The marker exists because the old instruction, `export ICOR_UNLOCK_WRITES=1`,
+cannot be carried out on a single tool call: it is an environment variable, so
+a model following it writes the contract from a shell, which is precisely
+where the guard cannot see. Pilot C watched both CLIs do that. The env var
+remains the second unlock, for an approved edit to something that already
+exists. It is a seatbelt, not a lock, and it is here so nobody reaches for the
+guard's delete key the first time it blocks real work.
 
 Idempotent: run it twice and the second run changes nothing. It refuses
 outright when the contract already exists, because overwriting a contract is
@@ -47,12 +55,13 @@ never what anyone meant.
 Exit 0 = created, or already complete. Exit 1 = FAIL line on stderr.
 """
 import argparse
+import json
 import os
 import re
 import shutil
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -60,6 +69,9 @@ DEFAULT_ROOT = HERE.parents[2]
 
 AGENTS_REL = "06 AI Team/Agents"
 UNLOCK = "ICOR_UNLOCK_WRITES"
+# Read by write-guard.py. One name, two scripts, and neither keeps a copy
+# of the other's rule: the guard decides, this one only opens the door.
+HIRING_MARKER = ".hiring"
 NAME_RE = re.compile(r"^[A-Z][a-zA-Z]+$")
 SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{1,23}$")
 
@@ -262,15 +274,25 @@ def main():
             return fail("the slug `%s` is already in agent-index.md. A slug is a dispatch key and "
                         "two agents cannot share one." % slug)
 
-    if os.environ.get(UNLOCK) != "1" and not args.dry:
-        print("FAIL new-agent: writing `%s/%s/AGENT.md` is blocked by the write guard, which is "
-              "correct: a contract is canonical. A hire is the one time that write is intended, "
-              "so say so and run it again:\n\n    export %s=1\n"
-              % (AGENTS_REL, name, UNLOCK), file=sys.stderr)
-        return 1
+    # The hire opens the door, and the door is a file rather than an
+    # environment variable. ICOR_UNLOCK_WRITES cannot be set on one tool call,
+    # so telling the operator to export it routed both CLIs in pilot C into
+    # `cat > AGENT.md` in a shell, which the write guard never sees. The
+    # marker below is what write-guard.py honours: this agent's contract only,
+    # for 24 hours, cleared by a green check-hire.py run.
 
     plan = []
     writes = []
+    marker = d / HIRING_MARKER
+    session_id = None
+    try:
+        session_id = json.loads(
+            (root / ".icor-for-life" / "scripts" / "session.json")
+            .read_text(encoding="utf-8")).get("session_id")
+    except Exception:
+        session_id = None
+    plan.append("write  " + str(marker.relative_to(root)) + "  (the hiring marker: it "
+                "opens this one contract to the write guard for 24 hours)")
 
     def plan_write(path, text):
         plan.append("write  " + str(Path(path).relative_to(root)))
@@ -342,6 +364,18 @@ def main():
         print("\nOK new-agent: %d file(s) would be written or changed" % len(writes))
         return 0
 
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(json.dumps({
+        "started": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "agent": name,
+        "session_id": session_id,
+        "why": ("write-guard.py stands down on this one AGENT.md while this file "
+                "is here and younger than 24 hours; check-hire.py deletes it on a "
+                "green run"),
+    }, indent=2) + "\n", encoding="utf-8")
+    print("wrote  " + str(marker.relative_to(root))
+          + "  (hiring marker, 24h, this contract only)")
+
     for path, text in writes:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
@@ -370,7 +404,8 @@ def main():
     print("  4. Announce the generator run so the shim and any skill are rendered from the "
           "frontmatter. Never type a shim by hand.")
     print("  5. Finish the agent-index row, and add Larry's routing cheatsheet row.")
-    print("  6. Run `check-hire.py %s`. It must exit 0 before the hire is announced." % name)
+    print("  6. Run `check-hire.py %s`. It must exit 0 before the hire is announced, "
+          "and a green run deletes the hiring marker." % name)
     return 0
 
 

@@ -2,8 +2,8 @@
   "schema": 1,
   "name": "ICOR for Life Scaffold",
   "version": "1.23.0",
-  "built": "2026-09-14T19:28:35Z",
-  "commit": "3190d41",
+  "built": "2026-09-14T23:22:53Z",
+  "commit": "ac47799",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -102,19 +102,19 @@
     },
     {
       "path": ".claude/settings.README.md",
-      "sha256": "91474d7d09d71e35fa5b56692341450a00bc370cbf40d0eb745a0275c84ed51c",
+      "sha256": "40d0c21263d062d18120a316d2b57862f21ecdf04db419f119da19d0a81a292e",
       "kind": "claude",
       "example": false
     },
     {
       "path": ".claude/settings.json",
-      "sha256": "902cd957a400f9d666a3d22142a9c270c4b471546df0157e4af625c0f3f078b3",
+      "sha256": "5f19afefb20458540e78a0624e963fccfccf6894600417c00b5ffdffa7142350",
       "kind": "claude",
       "example": false
     },
     {
       "path": ".claude/skills/checkpoint/SKILL.md",
-      "sha256": "6b5840bf62b9d6393fbc5306f14d0d13589806109b69b3425e8159f2493e994b",
+      "sha256": "2dcaab5f87068984f2596c55a3d5cc8953c4d8a32881c5a44f4aad47e07a17f6",
       "kind": "claude",
       "example": false
     },
@@ -126,7 +126,7 @@
     },
     {
       "path": ".claude/skills/red-tests/SKILL.md",
-      "sha256": "39c5baee9754b1f7f920013ad191821befa6f3d027b8c9c2f495adf55b0aa039",
+      "sha256": "12c09733f7048ab52a28c17353cc4f7abfa6f54d4a50c8db72389d8034a8e4f8",
       "kind": "claude",
       "example": false
     },
@@ -180,13 +180,13 @@
     },
     {
       "path": ".codex/config.toml",
-      "sha256": "810fbead400a2f29cdc3b8ea61c8fec6a828f99c0527d99772f582b87f5afce6",
+      "sha256": "abf31a0203ed016f02b9a3d5cdd532e72a95575af19fda4676001aa9d075ea33",
       "kind": "doc",
       "example": false
     },
     {
       "path": ".codex/hooks.json",
-      "sha256": "7385a89533109734e745c4717a42713008ed3b3d9cf476deae3f7a166f5a3e06",
+      "sha256": "5bcdf1e53355945c2a0961ae29b538f1e61197b9d52a5c0b4b3e32447e36d7b8",
       "kind": "doc",
       "example": false
     },
@@ -642,7 +642,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "1140a212178547664e566ce8655f461ba0bb0ed6ad11b5d7a9897351a96ee4b5",
+      "sha256": "1645e89a837c07ad74bc6e887ef62eaa49009a91e068448f4bf13fe72fa92ac8",
       "kind": "guideline",
       "example": false
     },
@@ -696,7 +696,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1012-ai-team-expansions.md",
-      "sha256": "dbe0b194e3c54ac3782011f2c4ccb9304fc6d05ad7ab564d926d5c87ba3677e9",
+      "sha256": "6b723579dc600148c8dd015f58a07cccf64867064e301b4e0759b54cb854e008",
       "kind": "guideline",
       "example": false
     },
@@ -708,7 +708,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1001-process-the-daily-scratchpad.md",
-      "sha256": "7577ef95931edb2dcc021424667b56fb5524fac5f380deb78e7ee44160fba63f",
+      "sha256": "53226281905e37d401c1b7932cef35bc0306747c371cd779137ccbffef5034f6",
       "kind": "sop",
       "example": false
     },
@@ -744,7 +744,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
-      "sha256": "58a079a4599e3615cbe3d9cd783387dd4f78b8e3c7579143c1c19409550fd00f",
+      "sha256": "ad76fd5d7841ded491b89e95c7de51da824d3f09969508171fb7f0288a45d0d3",
       "kind": "sop",
       "example": false
     },
@@ -768,13 +768,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1011-import-or-align-an-external-agent.md",
-      "sha256": "20df0303b7477cb6255fa4dcb17623f801eeec2eec3c5362440e792c4b60b635",
+      "sha256": "1162d92f779f4bc7c954c736f436825556591561f3cd5d8477d89f87a0e23398",
       "kind": "sop",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1012-convert-an-external-skill.md",
-      "sha256": "7702c39002fd5f86d0b8aa34bd4f426ec6797aeeace4f90f3ddb38cc50d87e25",
+      "sha256": "254d6b466b6389a039eead8635e6f282893a8a2da0d9334674dc0677d7c646f6",
       "kind": "sop",
       "example": false
     },
@@ -804,7 +804,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "c88c090575853cbfd3d1c071a10ff88e44b68889e86384d65e8c6bcb546d76a7",
+      "sha256": "b5dca15f96602d35ed8abcb79823f32978aed2511109f8473d1b540541fac0ad",
       "kind": "script",
       "example": false
     },
@@ -828,7 +828,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
-      "sha256": "8caba7f3e704a64035682b57b4bd91c22ead9007e83b4a8a45a072c2bc294cb8",
+      "sha256": "61fcc9fd24cd337875dbb6ff03a5f10e946898643292ddb45963925311592196",
       "kind": "script",
       "example": false
     },
@@ -840,13 +840,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-quality.py",
-      "sha256": "f0011dd5b5d1f6355c9627f3d0997771c82c0ff34bfd3376d863e8717088449b",
+      "sha256": "2dc2d483b029c4fd92a3e022f7ef3a1655f779043b555ea8c9661264cfc028cb",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "064252b6e044cf9d42e7dd3fce3e59118322f3b2f131267ce3439ec2690f531d",
+      "sha256": "7ad34d641645ae4b0005f39e9e5d4170da860ea36be2be83c4df4b49a458d7a8",
       "kind": "script",
       "example": false
     },
@@ -864,7 +864,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
-      "sha256": "74164eaa14dc2ce86f49dca7abe026ce66cf59dc461a35c597f7da92b995970a",
+      "sha256": "a52a051b3ca681a44cca60d0632b0253fee17a46094d7eb6ccf3cf3e915d03d3",
       "kind": "script",
       "example": false
     },
@@ -882,7 +882,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/link-dates-to-daily-notes.py",
-      "sha256": "89e9b3e3eb1ac2b9498a5ed4f04d2ba4cfe7ab1b309f25525c06de4f769d88e0",
+      "sha256": "5f37098ca8a55ed22e7c20196c524282d5e5babfc45fbf231d375c4f14fd3769",
       "kind": "script",
       "example": false
     },
@@ -894,7 +894,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "68394be66f33a5ed4256c5642ad7a758ca9ab589b3986beb74ae2fdfc5f92780",
+      "sha256": "790cf6f22b123e01184b02b6e1e3e3f416839c81a3e47a1dfae196696398c55b",
       "kind": "script",
       "example": false
     },
@@ -930,7 +930,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-task.py",
-      "sha256": "a2a44c792ad26e565fb70dfec8b0d5d7aa11ff1200b31b7729a3b5ef17f00bca",
+      "sha256": "0c7e21902010d2936db174c57acecc2d3decdb211785d8e9e4b94b5182a383be",
       "kind": "script",
       "example": false
     },
@@ -942,19 +942,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "869e9611f7b198807b0da26a2036b753f7fbec3c1d49de0e6afb9fae27c4cfb6",
+      "sha256": "852777ef19d1ee6c7a0541315ba45583614a73355f35c63a90622de4ffbd2136",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py",
-      "sha256": "677fdb92907af0eee1d656734a894cd27cae4763d60d0639d220d590478554ad",
+      "sha256": "f0919f09cb59d219bec5910122772f6e1398d617b81c3f540f71ca7006d52bf8",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
-      "sha256": "668b6eddadcad84060537841c511d3266688091abdd961663b5452e533e38725",
+      "sha256": "852e8bacc5f425cebe487fcee03baf03d51c56483ced3834d6ad1ca5220df5bc",
       "kind": "script",
       "example": false
     },
@@ -972,7 +972,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
-      "sha256": "724bdbaf8fc0de75f9213fc8a8261a7a91873d7cdb8b2cfa1511efd5c93ab451",
+      "sha256": "f0b0a07772ede11933d0afc8dd3439ab981dea6c91d804b220206481032129d7",
       "kind": "script",
       "example": false
     },
@@ -996,7 +996,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/write-guard.py",
-      "sha256": "16da8f9386fc4145b87018feac01ca9fc54c1e2a9afe2d36df0430163316f5ea",
+      "sha256": "ce80ef36f4d5e63f248d965a9c3a98a79f49bb9a21225e0e75a971abd866f2b2",
       "kind": "script",
       "example": false
     },
@@ -1134,7 +1134,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1006-install-an-ai-team-expansion.md",
-      "sha256": "7e955157c5ff4f72450ec281d7a2a42d9fbed8acd829f1466811689e736f75e9",
+      "sha256": "e931b83f3c3588735ab979e1a65685581f5c1ec29437b005d68dbe273f81b21d",
       "kind": "workstream",
       "example": false
     },
@@ -1518,7 +1518,7 @@
   "history": [
     {
       "version": "1.23.0",
-      "date": "2026-09-14",
+      "date": "2026-09-15",
       "removed": [
         {
           "path": ".claude/commands/checkpoint.md",

@@ -264,12 +264,19 @@ def resolver(files):
     return resolve
 
 
-def note_type(rel, front):
+def note_type(rel, front, known=None):
     """The type of a note: what it declares, else what its room implies.
     A blank daily note declares nothing by design (GL-1007), and a capture
-    dropped in the inbox by hand may declare nothing either."""
+    dropped in the inbox by hand may declare nothing either.
+
+    A declared type that is NOT a GL-1002 type is not a type, so the room
+    wins over it. Before 2026-09-14 a declared value won unconditionally, and
+    a scratchpad carrying `type: daily` left the unprocessed queue with
+    `processed: false` still on it while the report said zero of everything
+    (pilot A finding F8). The value is not swallowed: the caller reports it
+    as an enum violation naming what the allowed values are."""
     t = str(front.get("type", "")).strip()
-    if t:
+    if t and (known is None or t in known):
         return t
     first = rel.parts[0] if rel.parts else ""
     if first == "00 Daily Scratchpad":
@@ -302,6 +309,9 @@ def run(root):
     declared = new_base.gl002_fields(root)
     required = new_base.gl002_required(root)
     enums = new_base.gl002_enums(root)
+    # The type column of the same table. A value outside it is not a type,
+    # and nothing downstream may act on it as if it were.
+    known_types = set(declared) | {"scratchpad", "capture"}
 
     files, notes = collect(root)
     resolve = resolver(files)
@@ -331,8 +341,17 @@ def run(root):
     for rel in sorted(in_scan):
         n = notes[rel]
         front = n["front"]
-        t = note_type(rel, front)
+        t = note_type(rel, front, known_types)
         posix = rel.as_posix()
+
+        # --- the type itself is an enum ------------------------------------
+        declared_type = str(front.get("type", "")).strip()
+        if declared_type and declared_type not in known_types:
+            values["enum_violations"] += 1
+            add("enum_violations", posix,
+                "`type` is `%s`, which is not one of the types GL-1002 declares."
+                % declared_type,
+                "Set `type` to one of %s." % ", ".join(sorted(known_types)))
         archived = "/archive/" in "/" + posix
 
         # --- the link rule -------------------------------------------------
@@ -500,7 +519,8 @@ def run(root):
             if p.name in SKIP_NAMES or hidden(rel) or "archive" in rel.parts:
                 continue
             if typ is not None:
-                if note_type(rel, notes.get(rel, {}).get("front", {})) != typ:
+                if note_type(rel, notes.get(rel, {}).get("front", {}),
+                             known_types) != typ:
                     continue
             n += 1
         return n

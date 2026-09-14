@@ -15,7 +15,7 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
-## 1.23.0 (2026-09-14)
+## 1.23.0 (2026-09-15)
 
 The harness layer starts here. The rules a machine can check stop being prose
 and become guards, and every host binding is generated from the vault's own
@@ -26,6 +26,13 @@ Minor bump, additive: one generator, a canonical home for skills, six new
 scripts, hook configs and agent shims for three more hosts, one new SOP and
 two rewritten ones, five new frontmatter fields, and one slash command that
 became a skill of the same name.
+
+Three pilots ran this version as a member would, on Claude Code 2.1.270 and
+Codex CLI 0.154.0: capture a note, checkpoint and resume, and hire a
+specialist. Everything under Fixed is something one of them watched go wrong
+on a real fixture, most of it on the host with the weaker guard surface, and
+every fix carries a red case in `run-red-tests.py` that was watched go red
+before it landed.
 
 ### Added
 
@@ -161,6 +168,162 @@ became a skill of the same name.
   `scaffold-init.py plan` and stop rather than run anything. `README.md` step
   2 names the same two verbs, so the entry path and the front page agree that
   the model announces the command and the member runs it.
+- **`scaffold-init.py check` counts the two kinds it looks at separately.** It
+  printed one tally, "29 generated file(s) still match the hash in their
+  header", and three of those twenty-nine were host links, which carry no
+  header and have no content to hash. The line now reads 26 generated files
+  matched and 3 host links in place, `doctor --json` writes the same two
+  numbers out of the same function, and `apply` names the kind it wrote each
+  link as. Two numbers in a product that mean the same thing and disagree read
+  to a member as the tool being broken.
+- **The protected-path guard is registered on the shell tool kind as well as
+  on the file-writing tools.** Reading a shell write shape was already in the
+  guard and nothing routed a shell command to it, so every rule it enforces
+  was one heredoc away from being decoration. `hooks-rules.json` now lists
+  `shell` beside `file_write` on that rule, and the reader tracks `cd` inside
+  the command so a relative path is resolved against the directory in force at
+  that point rather than against the session root. An interpreter handed its
+  program inline or on stdin (`python3 -c`, `node -e`, a heredoc) is treated
+  as unresolvable rather than as non-writing: the call is allowed, one line on
+  stderr says the program body was not read, and any protected path spelled
+  out literally in that body is still refused. On the shell the unlock is per
+  call, an `ICOR_UNLOCK_WRITES=1` prefix on that one command, logged.
+- **`run-red-tests.py --fast`.** Three groups do heavy filesystem work and
+  dominate the runtime: the manifest guards, which each clone the repo for its
+  tag history, the release-residue gate, and the generator end-to-end cases,
+  which each build a fixture vault. `--fast` skips those three by name, on
+  stdout and in the summary, and changes nothing else: every other guard still
+  runs and a failure still exits 1. It exists because `doctor` runs this suite
+  on its way to a health report, and a health check nobody waits for is a
+  health check nobody runs. A fast run is never reported as a green for the
+  groups it skipped, and a case gated on a deliberately broken guard proves a
+  fast run still goes red. The release gate and the CI workflow call the file
+  with no arguments and get the whole suite.
+- **`scaffold-init.py doctor` reads Codex's own config and says whether this
+  folder's hooks are trusted**, in words, naming the absolute path it looked
+  for. It reports `yes`, `NOT TRUSTED` or unknown, never no on an unreadable
+  file, because telling somebody their guards are off because a file could not
+  be opened sends them to fix something that may not be broken. It carries
+  Codex's sandbox note in the same block: `workspace-write` refuses writes
+  into `.codex/` and `.agents/`, so `apply` has to be run by the member from
+  their own terminal and not by a model inside a Codex session.
+
+### Fixed
+
+- **`write-guard.py` could not see the path Codex was about to write, so the
+  protected-path rule was inert on that host.** Codex's only file-writing tool
+  is `apply_patch`, and its payload carries no `file_path`: the paths are
+  headers inside the patch body. The guard read two keys and skipped the rule
+  in silence, while `hook: PreToolUse Completed` and `doctor` both reported it
+  as installed. In the red run the protected daily note and root `AGENTS.md`
+  were actually modified. The guard now reads every path out of an
+  `apply_patch` body (`Add`, `Update`, `Delete File:` and `Move to:`) and out
+  of the shell write shapes (`cat >`, `tee`, `sed -i`, a bare redirect, `mv`
+  and `cp` into a path), and resolves a relative path against the working
+  directory in force at that point in the command rather than against its own.
+  Both shapes were re-run on the fixed build and both are refused verbatim,
+  with the file byte-identical afterwards.
+- **The contract unlock could not be used on the write it exists for.**
+  `ICOR_UNLOCK_WRITES=1` is an environment variable, so a model told to
+  "re-run the command with it set" writes the contract from a shell, which is
+  exactly where a hook registered on the file tools cannot look. Both pilot
+  CLIs did that. The hire path now uses a marker instead: `new-agent.py`
+  writes `06 AI Team/Agents/<Name>/.hiring`, `write-guard.py` stands down on
+  THAT contract and no other while the marker is younger than 24 hours, and a
+  green `check-hire.py <Name>` deletes it. The marker is itself a protected
+  path, because a marker planted by any tool would open that contract for a
+  day. A marker left behind past 24 hours is a WARN on the new check 23. The
+  environment variable remains the second unlock, for an approved edit to
+  something that already exists.
+- **A Codex session could not tell a member its guards were off.** The `doctor`
+  trust line and the warning block in `.codex/config.toml` are both read by
+  the member and neither by the model, so across four hooks-off runs a
+  scripted Codex session reported a clean pass with nothing behind it. The
+  session start ritual already knew: it had to mint its own session id
+  precisely because no hook payload arrived. That fact now prints as one line
+  naming that the ritual ran by hand, that on Codex it means the project hooks
+  are untrusted and every guard is off for this session, and what to run.
+- **`scaffold-init.py apply` said INCOMPLETE and exited 0.** A host sandbox
+  refused a path, the message said so in prose, and the process still returned
+  success, so a model reading the exit code rather than the paragraph reported
+  a clean activation with no shims, no skills and no guards behind it. It now
+  exits non-zero whenever a path was refused. A script that says INCOMPLETE
+  and exits 0 is a green that is not green.
+- **`scaffold-init.py apply` crashed instead of explaining when a host sandbox
+  refused a write.** Codex's `workspace-write` sandbox refuses `.codex/` and
+  `.agents/` even inside the workspace, so the harness came out incomplete
+  with nothing said. Refused paths are now named, the run says the harness is
+  incomplete, and it prints the command to run from the member's own terminal.
+- **`stamp-processed.py` refused the note shape the Scaffold ships.** The
+  daily note is blank by design and the script exited 1 with "note has no
+  frontmatter block", so the last step of `SOP-1001` was unreachable on a real
+  member's note. On Codex that dead end is what sent the model past the script
+  and onto the protected path with `apply_patch`. It now creates the block,
+  carrying only what GL-1002 requires for the type, and never touches the body.
+- **A second stamp no longer leaves two `processed` keys.** A note carrying
+  `processed: false` got a second key appended; YAML takes the last one, so it
+  worked by luck and read as a corrupt block in the Properties panel. The
+  stamp is now replaced, not appended.
+- **`SOP-1001` step 1 named a path `validate-scaffold.py` refuses.** It said
+  `00 Daily Scratchpad/YYYY-MM-DD.md`; GL-1004, `.obsidian/daily-notes.json`
+  and the validator all say `YYYY/MM/`. Following the SOP walked its reader
+  into a red gate. Every scratchpad path named in Team Knowledge is now
+  checked against that rule.
+- **`/checkpoint` on Claude Code died in 177 ms with 0 turns.** The generated
+  skill's prerun used `$CLAUDE_PROJECT_DIR` unbraced. Claude Code SUBSTITUTES
+  `${CLAUDE_PROJECT_DIR}` into a skill's markdown; it does not export it, so
+  the unbraced form reached the shell, expanded to empty, and Claude Code
+  aborted the invocation before the model read step 1. The variable resolves
+  in hooks, which is what made the unbraced form look correct. Both skills are
+  regenerated; the same command now reaches the model in 12 turns.
+- **`run-red-tests.py` died with a traceback in every member vault, and
+  `doctor` reported `tested: RED` with a stack trace under it as the member's
+  first health check.** The suite read `build-release-zip.sh` unconditionally,
+  and the release strips that file on purpose. The release-gate cases now SKIP
+  with the reason when the build scripts are absent, and a gate reads the
+  residue list out of `build-release-zip.sh` so a fourth stripped file is
+  covered on the day it is added.
+- **`checkpoint.py`'s date-links line could never say a number.**
+  `link-dates-to-daily-notes.py --check --json` printed its JSON object and
+  then a human `OK` line on the same stdout, so `json.loads` raised on every
+  CLEAN vault and the report said "the linker did not answer" permanently.
+  Under `--json` the prose line now goes to stderr, and `checkpoint.py` takes
+  the first JSON object out of stdout either way.
+- **A scratchpad declaring a type that is not a type left the queue in
+  silence.** `type: daily` is not in GL-1002; `check-quality.py` trusted the
+  declared value over the room, so the note dropped out of the unprocessed
+  queue with `processed: false` still on it and the report read zero enum
+  violations, zero invented fields and zero unprocessed scratchpads. A
+  declared type outside the guideline is now a named finding listing the
+  allowed values, and the room wins over it.
+- **The secret guard named the wrong vendor.** An Anthropic key was reported
+  as an OpenAI key, because the OpenAI shape matches `sk-ant-...` too. A block
+  with the wrong label sends whoever reads it to rotate the wrong credential.
+- **`new-task.py` could not write `due`, a field GL-1002 declares on a task.**
+  Both pilot CLIs generated the file and then hand-edited the file they had
+  just generated, on one host through a shell heredoc no guard then saw.
+  `--due` and `--related` are now flags, and a due date that is not ISO is
+  refused.
+- **A completion receipt could name an output guaranteed to rot.** One pilot
+  session listed `.icor-for-life/scripts/session.json` among its outputs; the
+  next SessionStart rewrote it, so that receipt could never verify again.
+  `--write-receipt` now refuses any output under the machine layer.
+- **Nothing pointed a resuming session at the receipt.** Both CLIs rebuilt
+  "what did the last session do" out of the session log's prose while the
+  machine-readable answer sat unread. The session start ritual now prints one
+  line naming the newest receipt, its session and its unresolved count.
+- **`check-hire.py` check 5 accepted a drawn placeholder as an avatar.** Both
+  pilot models produced one to turn the check green, one of them 1254x1254, so
+  "is it a square PNG" was never the question. A file that is tiny, one flat
+  colour, or named or flagged as a placeholder now reports WARN naming what is
+  still owed, and a WARN is not a pass.
+- **The generated `.codex/config.toml` now says what a Codex member cannot
+  learn anywhere else**: project hooks run only after they are trusted in an
+  interactive session (`/hooks`), `codex exec` never asks and therefore runs
+  no guards at all in a fresh vault, the trust record is keyed by the vault's
+  absolute path so moving the folder drops it silently, and
+  `scaffold-init.py apply` has to be run by the member from their own
+  terminal.
 
 ### Removed
 
@@ -184,11 +347,14 @@ became a skill of the same name.
   `scaffold-init.py apply` once after copying the vault and the links appear;
   the Claude Code skills under `.claude/skills/` are real files and are
   already there.
-- **A hook is not an enforcement boundary.** `write-guard.py` refuses the
-  file-writing tools it is registered for. It does not stop a shell command, a
-  script, another process or a person, and the unlock is one environment
-  variable away by design. It proves that the rule fires on the path it
-  guards, and nothing wider.
+- **A hook is not an enforcement boundary.** `write-guard.py` sees the
+  file-writing tools, `apply_patch`, and the shell write shapes its reader
+  lists. It does not see a program that builds its path from a variable, a
+  script already on disk, an interpreter handed its program on stdin (that
+  call is allowed with a line saying the body was not read), another process,
+  a person, or any host without hooks. The unlock is one environment variable
+  or one command prefix away by design. It raises the cost of an accident and
+  teaches the right path in the refusal; it is not a permission system.
 - **Gemini CLI gets no hooks**, because it has none. Its agents are generated;
   its guards are not, and a Gemini session runs unguarded.
 - **`project_doc_max_bytes` in a project-local `.codex/config.toml` is

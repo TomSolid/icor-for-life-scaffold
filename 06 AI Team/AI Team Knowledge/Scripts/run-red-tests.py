@@ -4,9 +4,33 @@ and confirm it actually says no (GL-1005 rule 4).
 
 Exit 0 = every guard went red when it should. Exit 1 = a guard let a bad
 input pass, which is worse than having no guard.
+
+    run-red-tests.py            every case
+    run-red-tests.py --fast     every case except the three slow groups
+
+--fast
+------
+Three groups do heavy filesystem work and dominate the runtime: the manifest
+guards (each clones this repo for its tag history), the release-residue gate
+(it reads the build script and runs the gate body), and the generator
+end-to-end cases (each builds a fixture vault and runs scaffold-init.py
+against it, several times). Everything else is a guard fed a payload, which
+is milliseconds.
+
+`--fast` skips those three, by name, on stdout and in the summary, and it
+changes NOTHING else: every guard case still runs and a failure still exits 1.
+It exists because `scaffold-init.py doctor` runs this suite on its way to a
+health report, and a health check nobody waits for is a health check nobody
+runs. The release gate and the CI workflow call this file with no arguments
+and get the whole thing.
+
+A fast run is not a green for the skipped groups. The summary says so, and it
+says which groups were skipped rather than only how many.
 """
-import json, subprocess, sys, tempfile, shutil
+import json, os, re, subprocess, sys, tempfile, shutil
 from pathlib import Path
+
+_re5date = re.compile(r"(?m)^\s*date links\s*:\s*\d+ mention")
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -15,6 +39,33 @@ fails = []
 
 checks = 0  # counted as they run; a hardcoded total is a green that cannot go stale
 skips = []  # (guard, reason): guards that could not run HERE; printed and counted, never green
+
+# An unknown argument is refused rather than ignored. `--fsat` silently running
+# the whole suite is a typo that costs four minutes; `--fast` silently running
+# the whole suite is worse, because the caller believes the flag worked.
+_argv = [a for a in sys.argv[1:] if a not in ("--fast",)]
+if _argv:
+    print("run-red-tests.py: unknown argument(s): %s. The only flag is --fast."
+          % " ".join(_argv), file=sys.stderr)
+    sys.exit(2)
+FAST = "--fast" in sys.argv[1:]
+fast_skipped = []   # group names skipped by --fast; never counted as green
+
+
+def fast_skip(group, why):
+    """Record and print one group --fast did not run. Returns True so the
+    caller reads as `if FAST and fast_skip(...): pass else: <the cases>`."""
+    fast_skipped.append(group)
+    print("FAST-SKIP %s: %s" % (group, why))
+    return True
+
+
+# `--fast` must not make a broken guard look fine, so there has to be a way to
+# break one on purpose and watch a fast run go red. This env var replaces the
+# write guard with a stub that refuses nothing, which is the canonical broken
+# guard, and the case that sets it lives at the bottom of this file. The child
+# run sees the var, skips that case, and does not spawn a third run.
+SELF_SABOTAGE = os.environ.get("ICOR_RED_TESTS_SELF_SABOTAGE") == "1"
 
 # The manifest guards clone ROOT for its tag history, which assumes the
 # scaffold repo. A member's vault is a plain folder (no .git), or their own
@@ -51,6 +102,18 @@ def expect_fail(name, argv, cwd=None):
     if r.returncode == 0:
         fails.append(f"{name}: accepted bad input (guard is green when it must be red)")
     return r
+
+def expect_ok(name, argv, cwd=None, env=None):
+    """The clean-control half: a guard that refuses ordinary work proves as
+    little as one that refuses nothing."""
+    global checks
+    checks += 1
+    r = subprocess.run([PY] + argv, capture_output=True, text=True, cwd=cwd, env=env)
+    if r.returncode != 0:
+        fails.append("%s: clean control was refused (exit %d): %s"
+                     % (name, r.returncode, (r.stderr or r.stdout or "").strip()[:200]))
+    return r
+
 
 def expect_refusal(name, argv, cwd=None):
     """expect_fail, plus: the red must be a FAIL line, not a traceback. A
@@ -293,7 +356,11 @@ with tempfile.TemporaryDirectory() as td:
                        "build-scaffold-manifest/no-residue-list",
                        "build-scaffold-manifest/agent-malformed-id",
                        "build-scaffold-manifest/agent-id-changed")
-    if GIT_SKIP is not None:
+    if FAST and fast_skip("build-scaffold-manifest/*",
+                          "%d case(s); each clones this repo for its tag history"
+                          % len(MANIFEST_GUARDS)):
+        pass
+    elif GIT_SKIP is not None:
         for name in MANIFEST_GUARDS:
             skip(name, GIT_SKIP)
     else:
@@ -387,16 +454,99 @@ with tempfile.TemporaryDirectory() as td:
         checks += 1
         if r.returncode != 0 and "agents" not in (r.stderr or ""):
             fails.append("build-scaffold-manifest/agent-id-changed: went red, but not for the agents list")
-    # 3. stamp-processed must reject a note without frontmatter
-    plain = tmp / "plain.md"; plain.write_text("no frontmatter here\n")
-    expect_fail("stamp-processed/no-frontmatter",
-                [str(HERE / "stamp-processed.py"), str(plain), "--summary", "x", "--into", "[[y]]"])
-    # 4. stamp-processed must reject a double stamp
+    # 3. stamp-processed must CREATE the frontmatter block on a note that has
+    #    none. The daily note ships blank on purpose (00 Daily Scratchpad/
+    #    README.md: "frontmatter appears only when the team stamps it"), and
+    #    until 2026-09-14 the stamping script refused exactly that shape, so
+    #    the last step of SOP-1001 was unreachable on a real member's note.
+    #    Pilot A finding F3: on Codex that dead end is what sent the model
+    #    past the script and straight at the protected path with apply_patch.
+    def _stamp(note, *extra):
+        return subprocess.run(
+            [PY, str(HERE / "stamp-processed.py"), str(note),
+             "--summary", "x", "--into", "[[y]]"] + list(extra),
+            capture_output=True, text=True)
+
+    def _front(note):
+        t = note.read_text(encoding="utf-8")
+        if not t.startswith("---\n"):
+            return None, t
+        e = t.find("\n---\n", 4)
+        return (None, t) if e == -1 else (t[4:e], t[e + 5:])
+
+    blankdir = tmp / "stamp-vault" / "00 Daily Scratchpad" / "2026" / "09"
+    blankdir.mkdir(parents=True)
+    blank = blankdir / "2026-09-13.md"
+    BLANK_BODY = "bought milk\nrang Dana about the pilot\n"
+    blank.write_text(BLANK_BODY, encoding="utf-8")
+    checks += 1
+    r = _stamp(blank)
+    if r.returncode != 0:
+        fails.append("stamp-processed/blank-note-gets-a-block: refused a note with no "
+                     "frontmatter (%s); the daily note ships blank by design"
+                     % (r.stdout + r.stderr).strip()[:160])
+    fm, body = _front(blank)
+    checks += 1
+    if fm is None:
+        fails.append("stamp-processed/blank-note-gets-a-block: no frontmatter block "
+                     "was created")
+    else:
+        for want in ("type: scratchpad", "date: 2026-09-13", "processed: true",
+                     "processed_summary:", "processed_into:"):
+            checks += 1
+            if want not in fm:
+                fails.append("stamp-processed/blank-note-gets-a-block: the created "
+                             "block carries no `%s` (GL-1002 per-type table)" % want)
+    # and the words are the whole point of the protected path: a stamp that
+    # rewrites the body is the thing hard rule 1 forbids.
+    checks += 1
+    if body != BLANK_BODY:
+        fails.append("stamp-processed/blank-note-body-untouched: the body changed "
+                     "from %r to %r" % (BLANK_BODY, body))
+
+    # 3b. the SECOND stamp must not leave two `processed` keys. YAML takes the
+    #     last one, so a duplicate works by luck and reads as a corrupt block
+    #     in the Properties panel (pilot A finding F4).
+    half = tmp / "half-stamped.md"
+    half.write_text("---\ntype: scratchpad\ndate: 2026-09-14\nprocessed: false\n"
+                    "---\nthe user's words\n", encoding="utf-8")
+    checks += 1
+    r = _stamp(half)
+    if r.returncode != 0:
+        fails.append("stamp-processed/processed-false-is-replaced: refused a note "
+                     "that carries `processed: false` (%s)"
+                     % (r.stdout + r.stderr).strip()[:160])
+    fm2, body2 = _front(half)
+    checks += 1
+    n_keys = len([l for l in (fm2 or "").splitlines()
+                  if l.split(":", 1)[0].strip() == "processed"])
+    if n_keys != 1:
+        fails.append("stamp-processed/processed-false-is-replaced: %d `processed` "
+                     "keys in the block, expected exactly 1" % n_keys)
+    checks += 1
+    if "processed: true" not in (fm2 or ""):
+        fails.append("stamp-processed/processed-false-is-replaced: the surviving key "
+                     "is not `processed: true`")
+    checks += 1
+    if body2 != "the user's words\n":
+        fails.append("stamp-processed/processed-false-is-replaced: the body changed")
+
+    # 4. stamp-processed must reject a double stamp, and change nothing when
+    #    it does. A refusal that has already written is not a refusal.
     once = tmp / "once.md"; once.write_text("---\ntype: capture\n---\nbody\n")
-    subprocess.run([PY, str(HERE / "stamp-processed.py"), str(once),
-                    "--summary", "x", "--into", "[[y]]"], capture_output=True)
+    _stamp(once)
+    before = once.read_text(encoding="utf-8")
     expect_fail("stamp-processed/double-stamp",
                 [str(HERE / "stamp-processed.py"), str(once), "--summary", "x", "--into", "[[y]]"])
+    checks += 1
+    if once.read_text(encoding="utf-8") != before:
+        fails.append("stamp-processed/double-stamp: refused and wrote anyway")
+    # 4b. an UNTERMINATED block is still a refusal: a note that opens a
+    #     frontmatter fence and never closes it is damaged, and guessing where
+    #     it ends would rewrite the user's words.
+    torn = tmp / "torn.md"; torn.write_text("---\ntype: scratchpad\nnever closed\n")
+    expect_fail("stamp-processed/unterminated-frontmatter",
+                [str(HERE / "stamp-processed.py"), str(torn), "--summary", "x", "--into", "[[y]]"])
     # 5. stamp-processed must reject a non-wikilink --into
     n2 = tmp / "n2.md"; n2.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/bad-wikilink",
@@ -405,6 +555,162 @@ with tempfile.TemporaryDirectory() as td:
     n3 = tmp / "n3.md"; n3.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/archive-outside-inbox",
                 [str(HERE / "stamp-processed.py"), str(n3), "--summary", "x", "--into", "[[y]]", "--archive"])
+    # 6a. THE DATE-LINKS LINE MUST BE ABLE TO SAY A NUMBER (pilot A finding
+    #     F7, pilot B F3). `link-dates-to-daily-notes.py --check --json`
+    #     printed its JSON object AND a human OK line on the same stdout, so
+    #     checkpoint.py's json.loads raised on every clean vault, the count was
+    #     reported as None, and the report said "did not answer" forever. The
+    #     honest wording is what made a permanent failure look like a state.
+    jv = tmp / "json-vault"
+    (jv / "04 Inner World" / "Journal" / "2026" / "09").mkdir(parents=True)
+    (jv / "00 Daily Scratchpad" / "2026" / "09").mkdir(parents=True)
+    (jv / "06 AI Team" / "AI Team Knowledge" / "Tasks" / "open").mkdir(parents=True)
+    (jv / "06 AI Team" / "AI Team Knowledge" / "Session Logs" / "2026" / "09").mkdir(parents=True)
+    (jv / "03 WiP").mkdir()
+    (jv / ".obsidian").mkdir()
+    (jv / "AGENTS.md").write_text("# fixture\n", encoding="utf-8")
+    (jv / ".obsidian" / "daily-notes.json").write_text(
+        '{"folder": "00 Daily Scratchpad", "format": "YYYY/MM/YYYY-MM-DD"}\n',
+        encoding="utf-8")
+    (jv / "04 Inner World" / "Journal" / "2026" / "09" / "2026-09-14_a.md").write_text(
+        "---\ntype: journal\ndate: 2026-09-14\njournal_type: note\n---\n"
+        "no date is mentioned in this body at all\n", encoding="utf-8")
+    checks += 1
+    rj = subprocess.run([PY, str(HERE / "link-dates-to-daily-notes.py"), str(jv),
+                         "--check", "--json"], capture_output=True, text=True)
+    _doc = None
+    try:
+        _doc = json.loads(rj.stdout)
+    except ValueError as _e:
+        fails.append("link-dates-to-daily-notes/json-stdout-is-json: --json stdout "
+                     "does not parse (%s), so every caller reads None forever" % _e)
+    checks += 1
+    if _doc is not None and "mentions" not in _doc:
+        fails.append("link-dates-to-daily-notes/json-stdout-is-json: no `mentions` key")
+    # and the report a member actually reads must carry the number
+    checks += 1
+    rc = subprocess.run([PY, str(HERE / "checkpoint.py"), str(jv)],
+                        capture_output=True, text=True)
+    if "did not answer" in rc.stdout or "date links       : unknown" in rc.stdout:
+        fails.append("checkpoint/date-links-can-go-green: the report still says the "
+                     "linker did not answer on a fixture whose links are correct")
+    checks += 1
+    if not _re5date.search(rc.stdout):
+        fails.append("checkpoint/date-links-can-go-green: no `date links : <n>` line "
+                     "in the report:\n%s" % rc.stdout[:300])
+
+    # 6b. Every scratchpad path a procedure NAMES must be a path the validator
+    #     accepts. SOP-1001 step 1 said `00 Daily Scratchpad/YYYY-MM-DD.md`;
+    #     GL-1004 and .obsidian/daily-notes.json both say YYYY/MM/, and
+    #     validate-scaffold.py fails a loose note at the room root. Silas
+    #     seeded the pilot fixture by FOLLOWING the SOP and the validator
+    #     refused him (pilot A finding F5). A procedure that walks its reader
+    #     into a red gate is the defect, so the text is what this checks.
+    import re as _re5
+    # a DAILY NOTE named straight at the room root: one path segment carrying
+    # a date or the date placeholder. The room's own README.md is not one.
+    _loose = _re5.compile(
+        r"00 Daily Scratchpad/(?!YYYY/MM/)[^\s`)/\]]*"
+        r"(?:YYYY-MM-DD|\d{4}-\d{2}-\d{2})[^\s`)/\]]*\.md")
+    for _doc in sorted((ROOT / "06 AI Team" / "AI Team Knowledge").rglob("*.md")):
+        if "_archive" in _doc.parts or "Session Logs" in _doc.parts:
+            continue
+        checks += 1
+        _hits = _loose.findall(_doc.read_text(encoding="utf-8", errors="ignore"))
+        if _hits:
+            fails.append("docs/scratchpad-path-is-date-nested: %s names %s, which "
+                         "validate-scaffold.py refuses (GL-1004: 00 Daily "
+                         "Scratchpad/YYYY/MM/)"
+                         % (_doc.relative_to(ROOT).as_posix(), _hits[0]))
+
+    # 6c. new-task.py must be able to write every field GL-1002 declares for
+    #     a task (pilot B finding F5). It could not write `due`, so both pilot
+    #     CLIs generated the file and then hand-edited the file they had just
+    #     generated, on Codex through a shell heredoc that no write guard sees.
+    nt = HERE / "new-task.py"
+    _gl = (ROOT / "06 AI Team/AI Team Knowledge/Guidelines"
+           / "GL-1002-frontmatter-conventions.md").read_text(encoding="utf-8")
+    _row = [l for l in _gl.splitlines() if l.startswith("| task |")]
+    checks += 1
+    if not _row:
+        fails.append("new-task/writes-every-declared-field: GL-1002 has no `task` "
+                     "row, so the fields this script owes cannot be read")
+    else:
+        _declared = set(re.findall(r"[a-z_]+", _row[0].split("|")[3]))
+        _flags = subprocess.run([PY, str(nt), "new", "--help"],
+                                capture_output=True, text=True).stdout
+        for _field in sorted(_declared & {"due", "related"}):
+            checks += 1
+            # anchored: `--due` is a substring of `--dueX`, and a substring
+            # test is a check that a rename cannot fail
+            if not re.search(r"--%s\b" % _field, _flags):
+                fails.append("new-task/writes-every-declared-field: GL-1002 lists "
+                             "`%s` on a task and `new-task.py new` has no --%s, so "
+                             "the next step is a hand-edit of a generated file"
+                             % (_field, _field))
+    checks += 1
+    _bad = subprocess.run([PY, str(nt), "new", "--slug", "red-test-due-shape",
+                           "--title", "x", "--assignee", "mack",
+                           "--due", "20-09-2026"], capture_output=True, text=True)
+    if _bad.returncode == 0:
+        fails.append("new-task/due-must-be-iso: accepted `20-09-2026` as a due date")
+        for _q in (ROOT / "06 AI Team/AI Team Knowledge/Tasks/open").glob("*red-test-due-shape*"):
+            _q.unlink()
+
+    # 6d. A RECEIPT MUST NOT NAME AN OUTPUT THAT REWRITES ITSELF (pilot B
+    #     finding F8). Codex's first pilot session listed session.json and
+    #     quality.json as outputs; both are rewritten by the next SessionStart
+    #     hook, so that receipt could never verify again from session 2 on.
+    #     The receipt model is "these bytes, unchanged", and the machine layer
+    #     is the one place in the vault where that promise cannot hold.
+    cpv = tmp / "receipt-outputs-vault"
+    (cpv / "06 AI Team/AI Team Knowledge/Session Logs/2026/09").mkdir(parents=True)
+    (cpv / "06 AI Team/AI Team Knowledge/Tasks/open").mkdir(parents=True)
+    (cpv / ".icor-for-life" / "scripts").mkdir(parents=True)
+    (cpv / "03 WiP").mkdir()
+    (cpv / "AGENTS.md").write_text("# fixture\n", encoding="utf-8")
+    _log = cpv / "06 AI Team/AI Team Knowledge/Session Logs/2026/09/2026-09-14-01-00_larry_x.md"
+    _log.write_text("---\ntype: session-log\n---\n\n# x\n", encoding="utf-8")
+    (cpv / ".icor-for-life" / "scripts" / "session.json").write_text(
+        json.dumps({"schema": 1, "session_id": "red-test-session",
+                  "started": "2026-09-14T01:00:00Z", "id_source": "fixture"}),
+        encoding="utf-8")
+    (cpv / ".icor-for-life" / "scripts" / "quality.json").write_text(
+        '{"health": "ok"}\n', encoding="utf-8")
+    _cp = [PY, str(HERE / "checkpoint.py"), str(cpv), "--write-receipt",
+           "--output", "06 AI Team/AI Team Knowledge/Session Logs/2026/09/2026-09-14-01-00_larry_x.md"]
+    expect_fail("checkpoint/receipt-refuses-a-self-writing-output",
+                _cp[1:] + ["--output", ".icor-for-life/scripts/session.json"])
+    checks += 1
+    if list((cpv / ".icor-for-life" / "scripts" / "receipts").glob("*.json")) \
+            if (cpv / ".icor-for-life" / "scripts" / "receipts").is_dir() else []:
+        fails.append("checkpoint/receipt-refuses-a-self-writing-output: it refused "
+                     "and wrote the receipt anyway")
+    # the control: the same call naming only the session log must succeed, or
+    # the red above is just "receipts are broken"
+    expect_ok("checkpoint/receipt-names-the-work-control", _cp[1:])
+
+    # 6e. THE START RITUAL MUST POINT AT THE RECEIPT (pilot B finding F6).
+    #     The receipt carries the machine-readable answer to "what did the
+    #     last session do" and nothing told a resuming session it existed, so
+    #     both CLIs rebuilt the answer out of the session log's prose.
+    checks += 1
+    # `input=""` is not decoration. Without it stdin is INHERITED, and
+    # session-start.py reads stdin when no host sent a session id, so this
+    # case waits for an EOF that never comes whenever the suite is run from a
+    # pipe that stays open. It hung a whole run for ten minutes with no output
+    # at all, which reads exactly like a slow suite and is not one.
+    _ss = subprocess.run([PY, str(HERE / "session-start.py")],
+                         capture_output=True, text=True, input="",
+                         env=dict(os.environ, CLAUDE_PROJECT_DIR=str(cpv)))
+    if "last receipt:" not in _ss.stdout:
+        fails.append("session-start/names-the-last-receipt: the start ritual says "
+                     "nothing about the newest receipt, so the resume surface is "
+                     "prose again:\n%s" % _ss.stdout[:400])
+    elif "red-test-session" not in _ss.stdout:
+        fails.append("session-start/names-the-last-receipt: it printed a receipt "
+                     "line that does not name the session the receipt belongs to")
+
     # 7. new-journal-entry must reject a bad date
     expect_fail("new-journal-entry/bad-date",
                 [str(HERE / "new-journal-entry.py"), "--date", "27.08.2026",
@@ -825,6 +1131,49 @@ with tempfile.TemporaryDirectory() as td:
                          f"got {rep['schema']}")
     except Exception as e:
         fails.append(f"check-quality: report unreadable ({e}): {r.stderr.strip()[:200]}")
+    # 47a. A DECLARED TYPE THAT IS NOT A GL-1002 TYPE MUST BE A NAMED
+    #      FINDING (pilot A finding F8). Silas seeded the pilot scratchpad
+    #      with `type: daily`, which is not in the guideline. `note_type()`
+    #      trusts a declared type over the room, so the note left the
+    #      unprocessed queue with `processed: false` still on it, and the
+    #      report said `Enum violations 0`, `Invented fields 0`,
+    #      `Unprocessed scratchpads 0`. Three zeros, all of them wrong, and
+    #      nothing anywhere said the type was not a type.
+    (bad_q / "00 Daily Scratchpad" / "2026" / "09").mkdir(parents=True, exist_ok=True)
+    (bad_q / "00 Daily Scratchpad" / "2026" / "09" / "2026-09-14.md").write_text(
+        "---\ntype: daily\ndate: 2026-09-14\nprocessed: false\n---\n"
+        "bought milk\n", encoding="utf-8")
+    checks += 1
+    r = subprocess.run([PY, str(cq), str(bad_q), "--json"], capture_output=True, text=True)
+    try:
+        rep2 = _json.loads(r.stdout)
+        by2 = {m["id"]: m for m in rep2["metrics"]}
+        checks += 1
+        if by2["enum_violations"]["value"] < 1:
+            fails.append("check-quality/type-out-of-enum: `type: daily` is not a "
+                         "GL-1002 type and enum_violations reads %d"
+                         % by2["enum_violations"]["value"])
+        checks += 1
+        hit = [f for f in rep2["findings"]
+               if f["path"].startswith("00 Daily Scratchpad/")
+               and "daily" in f["message"]]
+        if not hit:
+            fails.append("check-quality/type-out-of-enum: no finding names the "
+                         "scratchpad whose declared type is not a type")
+        elif "scratchpad" not in hit[0]["message"] + hit[0]["action"]:
+            fails.append("check-quality/type-out-of-enum: the finding does not name "
+                         "the allowed values, so the reader cannot act on it: %r"
+                         % hit[0]["message"])
+        checks += 1
+        if by2["unprocessed_scratchpads"]["value"] < 1:
+            fails.append("check-quality/type-out-of-enum: the note carries "
+                         "`processed: false` in the scratchpad room and the queue "
+                         "reads %d; a wrong type must not empty the queue"
+                         % by2["unprocessed_scratchpads"]["value"])
+    except Exception as e:
+        fails.append("check-quality/type-out-of-enum: report unreadable (%s): %s"
+                     % (e, r.stderr.strip()[:200]))
+
     # 47b. the control: the shipped scaffold itself must read `ok`, or every
     #      red above is just a script that always says broken.
     checks += 1
@@ -915,19 +1264,30 @@ with tempfile.TemporaryDirectory() as td:
     import json as _j, os as _o, re as _r
 
     WG = HERE / "write-guard.py"
+    if SELF_SABOTAGE:
+        # A guard that refuses nothing. Every `wg(..., 2)` case below must now
+        # go red, which is the whole point of the run that sets this.
+        WG = tmp / "sabotaged-write-guard.py"
+        WG.write_text("import sys\nsys.stdin.read()\nraise SystemExit(0)\n")
 
-    def wg(name, tool_input, expect, tool="Write", unlock=False, raw=None):
+    def wg(name, tool_input, expect, tool="Write", unlock=False, raw=None,
+           root=None):
         """Run write-guard.py the way a host does: JSON on stdin.
-        expect 2 = must block, 0 = must let it through."""
+        expect 2 = must block, 0 = must let it through.
+
+        `root` is for the cases that need a file ON DISK beside the path they
+        are about (the hiring marker). Everything else runs against this tree,
+        which the guard never writes to."""
         global checks
         checks += 1
+        base = str(root or ROOT)
         env = dict(_o.environ)
-        env["CLAUDE_PROJECT_DIR"] = str(ROOT)
+        env["CLAUDE_PROJECT_DIR"] = base
         env.pop("ICOR_UNLOCK_WRITES", None)
         if unlock:
             env["ICOR_UNLOCK_WRITES"] = "1"
         payload = raw if raw is not None else _j.dumps({
-            "session_id": "red-test", "cwd": str(ROOT),
+            "session_id": "red-test", "cwd": base,
             "hook_event_name": "PreToolUse", "tool_name": tool,
             "tool_input": tool_input})
         r = subprocess.run([PY, str(WG)], input=payload, capture_output=True,
@@ -1022,6 +1382,268 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("write-guard/fails-closed-on-bad-payload: blocked without saying "
                      "the write was NOT checked; an unchecked write must say so")
 
+    # 67p-67t. THE HIRING MARKER replaces the env-var unlock on the one write
+    #     it exists for (pilot C finding F1). `ICOR_UNLOCK_WRITES=1` cannot be
+    #     set on a single Edit call, so the guard's own remedy line routed both
+    #     CLIs into `cat > AGENT.md` in Bash, where a hook registered on the
+    #     file tools never looks. A guard whose documented remedy is "go around
+    #     me" is a guard that has taught the model how to bypass it.
+    #
+    #     `new-agent.py` drops `06 AI Team/Agents/<Name>/.hiring`; the guard
+    #     honours it for 24 hours and for that agent only; `check-hire.py`
+    #     deletes it on a green run. Five cases: the marker opens the door,
+    #     its absence closes it, a stale one closes it, one agent's marker
+    #     does not open another's, and it does not open the entry files.
+    #
+    #     In its own fixture vault, never in this tree: a case that writes a
+    #     marker into the real Agents/ folder is a case that opens a real door
+    #     for as long as it runs.
+    _hv = tmp / "hiring-vault"
+    for _who in ("Alpha", "Beta"):
+        (_hv / "06 AI Team" / "Agents" / _who).mkdir(parents=True)
+        (_hv / "06 AI Team" / "Agents" / _who / "AGENT.md").write_text(
+            "---\ntype: agent\n---\n\n# %s\n" % _who, encoding="utf-8")
+    (_hv / "AGENTS.md").write_text("# fixture\n", encoding="utf-8")
+    _H = str(_hv)
+    _mk = _hv / "06 AI Team" / "Agents" / "Alpha" / ".hiring"
+    _alpha = _H + "/06 AI Team/Agents/Alpha/AGENT.md"
+    _beta = _H + "/06 AI Team/Agents/Beta/AGENT.md"
+    # with no marker at all the contract is protected, which is the baseline
+    # every green below is measured against
+    wg("hiring-marker-absent-denies",
+       {"file_path": _alpha, "old_string": "x", "new_string": "y"}, 2,
+       tool="Edit", root=_H)
+    _mk.write_text(_j.dumps({"started": _dt.datetime.now(_dt.timezone.utc)
+                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                             "agent": "Alpha", "session_id": None}) + "\n",
+                   encoding="utf-8")
+    wg("hiring-marker-opens-the-contract",
+       {"file_path": _alpha, "old_string": "x", "new_string": "y"}, 0,
+       tool="Edit", root=_H)
+    wg("hiring-marker-is-per-agent",
+       {"file_path": _beta, "old_string": "x", "new_string": "y"}, 2,
+       tool="Edit", root=_H)
+    wg("hiring-marker-does-not-open-agents-md",
+       {"file_path": _H + "/AGENTS.md", "content": "x\n"}, 2, root=_H)
+    _mk.write_text(_j.dumps({"started": (_dt.datetime.now(_dt.timezone.utc)
+                                         - _dt.timedelta(hours=25))
+                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                             "agent": "Alpha", "session_id": None}) + "\n",
+                   encoding="utf-8")
+    wg("hiring-marker-stale-denies",
+       {"file_path": _alpha, "old_string": "x", "new_string": "y"}, 2,
+       tool="Edit", root=_H)
+
+    # 67a-67m. THE PAYLOAD READER (pilot A finding F1, 2026-09-14).
+    #     Every case above hands the guard a `file_path`, which is the one
+    #     shape Claude Code uses. Codex has no such key: its only
+    #     file-writing tool is `apply_patch` and the paths live INSIDE the
+    #     patch body as headers. Silas captured the real payload in a
+    #     throwaway fixture by replacing the guard with a dumper, and the
+    #     first case below is those bytes verbatim. Against the shipped
+    #     guard it exited 0 in silence while the protected note was
+    #     destroyed, so the protected-path rule read as enforced on Codex
+    #     and was not there at all.
+    #
+    #     WHAT THESE PROVE: that the reader finds the path in each shape.
+    #     WHAT THEY DO NOT PROVE: that a host ever hands the guard a shell
+    #     payload. hooks-rules.json registers this guard on the file_write
+    #     kind only, so the shell cases below exercise a capability that no
+    #     host routes to it yet; registering it on the shell kind is a
+    #     separate decision with its own security gate.
+    CAPTURED_CODEX = ('{"hook_event_name":"PreToolUse","tool_name":"apply_patch",'
+                      '"cwd":' + _j.dumps(A) + ','
+                      '"tool_input":{"command":"*** Begin Patch\\n'
+                      '*** Update File: 00 Daily Scratchpad/2026-09-14.md\\n'
+                      '@@\\n----\\n type: daily\\n*** End Patch"}}')
+    wg("codex-apply-patch-captured-payload", None, 2, raw=CAPTURED_CODEX)
+    wg("codex-apply-patch-add-file",
+       {"command": "*** Begin Patch\n*** Add File: AGENTS.md\n+x\n*** End Patch"},
+       2, tool="apply_patch")
+    wg("codex-apply-patch-delete-file",
+       {"command": "*** Begin Patch\n*** Delete File: 06 AI Team/Agents/Penn/AGENT.md\n"
+                   "*** End Patch"}, 2, tool="apply_patch")
+    wg("codex-apply-patch-move-to",
+       {"command": "*** Begin Patch\n*** Update File: 04 Inner World/Notes/a.md\n"
+                   "*** Move to: 00 Daily Scratchpad/2026-09-14.md\n*** End Patch"},
+       2, tool="apply_patch")
+    wg("codex-apply-patch-unlock-control",
+       {"command": "*** Begin Patch\n*** Update File: AGENTS.md\n@@\n-x\n+y\n"
+                   "*** End Patch"}, 0, tool="apply_patch", unlock=True)
+    # the control: a patch that touches an ordinary note must pass, or the
+    # five reds above are just "apply_patch is banned", which is a different
+    # rule and a useless one.
+    wg("codex-apply-patch-ordinary-control",
+       {"command": "*** Begin Patch\n*** Update File: 04 Inner World/Notes/a-note.md\n"
+                   "@@\n-x\n+y\n*** End Patch"}, 0, tool="apply_patch")
+    # the shell write shapes, each one a way to reach a protected path
+    # without ever naming a file_path key
+    for nm, cmd in (
+            ("shell-redirect", 'echo x > "00 Daily Scratchpad/2026-09-14.md"'),
+            ("shell-append-redirect", 'echo x >> "00 Daily Scratchpad/2026-09-14.md"'),
+            ("shell-cat-heredoc", "cat > AGENTS.md <<'EOF'\nx\nEOF"),
+            ("shell-tee", 'echo x | tee -a "00 Daily Scratchpad/2026-09-14.md"'),
+            ("shell-sed-i", "sed -i '' -e '1d' \"00 Daily Scratchpad/2026-09-14.md\""),
+            ("shell-mv-into", 'mv /tmp/x.md "00 Daily Scratchpad/2026-09-14.md"'),
+            ("shell-cp-into", 'cp /tmp/x.md "06 AI Team/Agents/Penn/AGENT.md"')):
+        wg(nm, {"command": cmd}, 2, tool="Bash")
+    # and the two controls that keep the shell reader from being a ban on
+    # shell: naming a protected path as a READ argument is not a write, and
+    # the sanctioned stamp is a shell call that names the scratchpad by design.
+    wg("shell-read-only-control",
+       {"command": 'grep -n type "00 Daily Scratchpad/2026-09-14.md" > /tmp/out.txt'},
+       0, tool="Bash")
+    wg("shell-stamp-processed-control",
+       {"command": 'python3 "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py" '
+                   '"00 Daily Scratchpad/2026/09/2026-09-14.md" --summary "x" '
+                   '--into "[[A]]"'}, 0, tool="Bash")
+    # 67u+. THE SHELL READER IS REGISTERED (Vex ruling, 2026-09-14 evening,
+    #     vex-security-gate.md addendum). hooks-rules.json puts
+    #     protected-paths and secret-shaped-value on the shell kind, so the
+    #     seven reds above are now enforced and not just readable. What the
+    #     ruling added, each with its control: `cd` tracked inside the
+    #     command, a `;` glued to a word, a heredoc body that is data, a
+    #     command it cannot tokenise (ALLOWED with a notice, never denied),
+    #     git left to no-git-guard, the per-call prefix unlock, the .hiring
+    #     marker as a protected path, and the secret rule scoped to writes
+    #     INTO the vault and not into .env.
+    wg("shell-cat-into-wip-allowed",
+       {"command": "cat > \"04 Inner World/Notes/a-note.md\" <<'EOF'\nx\nEOF"},
+       0, tool="Bash")
+    wg("shell-blockquote-in-heredoc-control",
+       {"command": "cat > \"04 Inner World/Notes/a-note.md\" <<'EOF'\n"
+                   "> AGENTS.md is canonical\nEOF"}, 0, tool="Bash")
+    wg("shell-glued-semicolon-read-control",
+       {"command": "cp a.md /tmp/; cat AGENTS.md"}, 0, tool="Bash")
+    wg("shell-cd-elsewhere-control",
+       {"command": "cd /tmp && cat > AGENTS.md"}, 0, tool="Bash")
+    wg("shell-cd-unresolvable-is-unknown-control",
+       {"command": 'cd "$SOMEWHERE" && cat > AGENTS.md'}, 0, tool="Bash")
+    wg("shell-subshell-cd-does-not-leak",
+       {"command": "( cd /tmp && ls ) ; cat > AGENTS.md"}, 2, tool="Bash")
+    wg("shell-touch-hiring-marker",
+       {"command": 'touch "06 AI Team/Agents/Penn/.hiring"'}, 2, tool="Bash")
+    wg("write-tool-cannot-plant-hiring-marker",
+       {"file_path": A + "/06 AI Team/Agents/Penn/.hiring", "content": "{}\n"}, 2)
+    wg("apply-patch-cannot-plant-hiring-marker",
+       {"command": "*** Begin Patch\n*** Add File: 06 AI Team/Agents/Penn/.hiring\n"
+                   "+{}\n*** End Patch"}, 2, tool="apply_patch")
+    wg("shell-secret-into-vault-note",
+       {"command": "cat > \"04 Inner World/Notes/wiring.md\" <<'EOF'\nkey: "
+                   + fake_anthropic + "\nEOF"}, 2, tool="Bash")
+    wg("shell-secret-into-env-file-control",
+       {"command": 'echo "ANTHROPIC_API_KEY=' + fake_anthropic + '" >> .env'},
+       0, tool="Bash")
+    wg("shell-secret-outside-vault-control",
+       {"command": "cat > /tmp/red-test.md <<'EOF'\nkey: " + fake_anthropic + "\nEOF"},
+       0, tool="Bash")
+    r = wg("shell-prefix-unlock",
+           {"command": "ICOR_UNLOCK_WRITES=1 sed -i '' 's/a/b/' AGENTS.md"}, 0, tool="Bash")
+    checks += 1
+    if "stood down" not in (r.stderr or ""):
+        fails.append("write-guard/shell-prefix-unlock: allowed, but silently; an "
+                     "unlocked write must leave a trace on stderr")
+    wg("shell-prefix-unlock-is-not-any-value",
+       {"command": "ICOR_UNLOCK_WRITES=0 sed -i '' 's/a/b/' AGENTS.md"}, 2, tool="Bash")
+    r = wg("shell-git-status-untouched", {"command": "git status"}, 0, tool="Bash")
+    checks += 1
+    if (r.stderr or "").strip():
+        fails.append("write-guard/shell-git-status-untouched: passed, but wrote to "
+                     "stderr: " + (r.stderr or "").strip()[:120])
+    r = wg("shell-unparseable-allowed-with-notice",
+           {"command": 'echo "unterminated > AGENTS.md'}, 0, tool="Bash")
+    checks += 1
+    if "NOT applied" not in (r.stderr or ""):
+        fails.append("write-guard/shell-unparseable-allowed-with-notice: allowed, but "
+                     "without saying the rule was NOT applied")
+
+    # 67v+. AN INTERPRETER HANDED ITS PROGRAM INLINE (Silas's Codex re-run
+    #     2026-09-14/15, R1 HIGH). The first command below is the one two
+    #     independent Codex runs wrote by themselves, verbatim, when told to
+    #     delete a line from the protected daily note. The guard ran, read it,
+    #     returned 0 and printed NOTHING, and the note lost its frontmatter
+    #     fence in both fixtures. Three cases: the path is in the program so
+    #     it is refused; a program naming no protected path is allowed but
+    #     SAYS the rule was not applied; and an ordinary `python3 script.py`
+    #     is left completely alone, or this rule is a ban on running python.
+    _captured = ("python3 - <<'PY'\n"
+                 "from pathlib import Path\n"
+                 "p = Path('00 Daily Scratchpad/2026/09/2026-09-14.md')\n"
+                 "before = p.read_bytes()\n"
+                 "first, sep, rest = before.partition(b'\\n')\n"
+                 "assert first == b'---'\n"
+                 "p.write_bytes(rest)\n"
+                 "PY")
+    r = wg("interpreter-stdin-program-names-a-protected-path",
+           {"command": _captured}, 2, tool="Bash")
+    checks += 1
+    if "NOT applied" not in (r.stderr or ""):
+        fails.append("write-guard/interpreter-stdin-program-names-a-protected-path: "
+                     "refused, but without saying the program body itself was not "
+                     "read, which is the limit this case exists to keep visible")
+    r = wg("interpreter-inline-program-allowed-with-notice",
+           {"command": 'python3 -c "print(1 + 1)"'}, 0, tool="Bash")
+    checks += 1
+    if "NOT applied" not in (r.stderr or ""):
+        fails.append("write-guard/interpreter-inline-program-allowed-with-notice: "
+                     "allowed in silence; a confident wrong answer where an unsure "
+                     "one would have spoken is the failure R1 is about")
+    r = wg("interpreter-running-a-file-is-untouched",
+           {"command": "python3 helper.py --flag"}, 0, tool="Bash")
+    checks += 1
+    if (r.stderr or "").strip():
+        fails.append("write-guard/interpreter-running-a-file-is-untouched: a plain "
+                     "`python3 script.py` produced output: "
+                     + (r.stderr or "").strip()[:140])
+    wg("interpreter-inline-program-unlocks-on-the-prefix",
+       {"command": "ICOR_UNLOCK_WRITES=1 python3 -c \"open('AGENTS.md','w')\""},
+       0, tool="Bash")
+    # Vex, 2026-09-15 morning (gate addendum): the literal sweep reads the
+    # PROGRAM text from the cwd in force at that segment, a `>` is a write
+    # only into a path, a shell program is read exactly, and a protected
+    # file's standalone bare name in a writing program is that file in the
+    # program's cwd (which also makes the prefix case above a real control:
+    # without the prefix that command is now refused). Five of these went red
+    # on the pre-patch guard before they went green on this one.
+    wg("interpreter-bare-protected-name-from-the-vault-root",
+       {"command": "python3 -c \"open('AGENTS.md','w').write('x')\""}, 2, tool="Bash")
+    wg("interpreter-bare-protected-name-elsewhere-control",
+       {"command": "python3 -c \"open('AGENTS.md','w').write('x')\""}, 0, tool="Bash",
+       raw=_j.dumps({"session_id": "red-test", "cwd": "/tmp/vex-elsewhere",
+                     "hook_event_name": "PreToolUse", "tool_name": "Bash",
+                     "tool_input": {"command":
+                                    "python3 -c \"open('AGENTS.md','w').write('x')\""}}))
+    wg("interpreter-bare-name-joined-onto-a-folder-control",
+       {"command": "python3 -c \"import os; open(os.path.join('/tmp/fx', "
+                   "'AGENTS.md'),'w').write('x')\""}, 0, tool="Bash")
+    wg("interpreter-literal-follows-the-cd",
+       {"command": "cd /tmp/vex-fx && python3 - <<'PY'\n"
+                   "open('06 AI Team/Agents/Nolan/AGENT.md','w').write('x')\nPY"}, 0, tool="Bash")
+    wg("interpreter-read-only-program-beside-a-shell-redirect-control",
+       {"command": "python3 -c \"print(open('06 AI Team/Agents/Nolan/AGENT.md').read())\" > /tmp/vex-out.txt"},
+       0, tool="Bash")
+    wg("inline-shell-program-is-read-exactly",
+       {"command": "bash -c 'echo x > \"06 AI Team/Agents/Nolan/AGENT.md\"'"}, 2, tool="Bash")
+    wg("inline-shell-program-read-only-control",
+       {"command": "bash -c 'grep x \"06 AI Team/Agents/Nolan/AGENT.md\" > /tmp/vex-out.txt'"}, 0, tool="Bash")
+    wg("protected-path-in-cat-heredoc-prose-beside-an-interpreter-control",
+       {"command": "python3 -c \"print(1)\" && cat > \"03 WiP/x.md\" <<'EOF'\n"
+                   "see 06 AI Team/Agents/Nolan/AGENT.md and cp it\nEOF"}, 0, tool="Bash")
+
+    # 67n. the secret guard must name the vendor it actually matched
+    #     (pilot A finding F9). An Anthropic key was reported as an OpenAI
+    #     key because the OpenAI shape `sk-...` matches `sk-ant-...` and sat
+    #     first in the table. A block with the wrong label sends whoever
+    #     reads it to rotate the wrong credential.
+    r = wg("secret-label-names-the-right-vendor",
+           {"file_path": A + "/04 Inner World/Notes/wiring.md",
+            "content": "key: " + fake_anthropic + "\n"}, 2)
+    checks += 1
+    if "Anthropic" not in (r.stderr or "") or "OpenAI" in (r.stderr or ""):
+        fails.append("write-guard/secret-label-names-the-right-vendor: an "
+                     "Anthropic key was reported as %r"
+                     % (r.stderr or "").strip()[:160])
+
     # 68-69. session-start.sh on a machine with no python3. The wrapper
     #     exists only for this case: it must say so in one line and exit 0,
     #     because a missing interpreter must never stop a session starting.
@@ -1061,6 +1683,34 @@ with tempfile.TemporaryDirectory() as td:
         if not (ss / ".icor-for-life/scripts/session.json").is_file():
             fails.append("session-start/clean-control: session.json was not written, "
                          "so checkpoint.py has nothing to bind a receipt to")
+        # and a run that GOT a host id must not cry wolf
+        if "GUARDS:" in r.stdout:
+            fails.append("session-start/guards-off-line-control: the host sent a "
+                         "session id and the ritual still announced that the guards "
+                         "are off; a warning that fires on a good run is a warning "
+                         "nobody reads")
+
+    # 69b. THE GUARDS-ARE-OFF LINE (Silas's Codex re-run 2026-09-14/15, R2).
+    #     Across four hooks-OFF Codex runs no model opened `doctor` or
+    #     .codex/config.toml, so nothing inside the session said the guards
+    #     were off and a scripted run reported a clean pass with no guard
+    #     behind it. This script already knew, because it had to mint its own
+    #     id. Run it with NO payload, which is exactly the hooks-off shape.
+    checks += 1
+    ss2 = tmp / "session-start-noid"
+    shutil.copytree(ROOT, ss2, ignore=shutil.ignore_patterns(".git"))
+    env = dict(_o.environ)
+    env["CLAUDE_PROJECT_DIR"] = str(ss2)
+    env.pop("ICOR_SESSION_ID", None)
+    r = subprocess.run([PY, str(ss2 / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+                       capture_output=True, text=True, env=env, input="")
+    if "GUARDS:" not in r.stdout:
+        fails.append("session-start/guards-off-line: it minted its own session id, "
+                     "which only happens when no hook payload arrived, and said "
+                     "nothing about the guards being off")
+    elif "doctor" not in r.stdout:
+        fails.append("session-start/guards-off-line: it warned, but did not name "
+                     "where the trust state can be read")
 
     # 70-75. the completion receipt (Codex audit finding 7). The defect this
     #     replaces: --assert-logged passed on ANY log dated today, so a
@@ -1072,15 +1722,26 @@ with tempfile.TemporaryDirectory() as td:
     mach.mkdir(parents=True, exist_ok=True)
     for stale in (mach / "receipts").glob("*.json") if (mach / "receipts").is_dir() else []:
         stale.unlink()
-    logdir = rv / "06 AI Team/AI Team Knowledge/Session Logs/2026/09"
+    # TODAY, not a literal date. This fixture was pinned to 2026-09-14 and the
+    # `--assert-logged-today` control went red the moment the clock rolled past
+    # midnight, on a run that had changed nothing about checkpoint.py. A test
+    # whose colour depends on the day it is run reports the calendar, not the
+    # code, and the first thing anyone does with a red like that is start
+    # looking for a defect that is not there.
+    import datetime as _dtc
+    _today = _dtc.date.today()
+    _dstr = _today.isoformat()
+    logdir = rv / ("06 AI Team/AI Team Knowledge/Session Logs/%04d/%02d"
+                   % (_today.year, _today.month))
     logdir.mkdir(parents=True, exist_ok=True)
-    logfile = logdir / "2026-09-14-red-test-log.md"
+    logfile = logdir / ("%s-red-test-log.md" % _dstr)
     logfile.write_text("# log\n", encoding="utf-8")
-    logrel = "06 AI Team/AI Team Knowledge/Session Logs/2026/09/2026-09-14-red-test-log.md"
+    logrel = ("06 AI Team/AI Team Knowledge/Session Logs/%04d/%02d/%s-red-test-log.md"
+              % (_today.year, _today.month, _dstr))
 
     def sess(sid):
         (mach / "session.json").write_text(_j.dumps(
-            {"schema": 1, "session_id": sid, "started": "2026-09-14T09:00:00Z",
+            {"schema": 1, "session_id": sid, "started": _dstr + "T09:00:00Z",
              "id_source": "red test"}), encoding="utf-8")
 
     def cp(name, args, expect):
@@ -1132,13 +1793,24 @@ with tempfile.TemporaryDirectory() as td:
     # 76-78. the release gate. build-release-zip.sh needs a git mirror, the
     #     gh CLI and the network, so the gate body lives in its own file and
     #     that file is what gets red-tested, with a stub runner.
+    _skip_release = FAST and fast_skip(
+        "release-gate/* and suite/survives-its-own-release",
+        "3 case(s); they read the build script and run the gate body twice")
     RG = HERE / "release-gate-red-tests.sh"
+    if _skip_release:
+        RG = None
+    elif not RG.is_file():
+        skip("release-gate/runner",
+             "release-gate-red-tests.sh is not here; the release residue gate "
+             "strips the build scripts from the download, so this group runs in "
+             "the scaffold repo and not in a member's vault")
+        RG = None
     stub_fail = tmp / "stub-fail.py"
     stub_fail.write_text("import sys\nprint('FAIL a guard accepted bad input')\nsys.exit(1)\n")
     stub_ok = tmp / "stub-ok.py"
     stub_ok.write_text("print('OK 0/0 guards went red on bad input')\n")
-    for name, stub, expect in (("red-runner-blocks", stub_fail, 1),
-                               ("clean-control", stub_ok, 0)):
+    for name, stub, expect in ((("red-runner-blocks", stub_fail, 1),
+                                ("clean-control", stub_ok, 0)) if RG else ()):
         checks += 1
         env = dict(_o.environ)
         env["ICOR_RED_RUNNER"] = str(stub)
@@ -1155,14 +1827,31 @@ with tempfile.TemporaryDirectory() as td:
     # The first version of this check searched for the filename anywhere in
     # the script and went green with the call replaced by `true`, because the
     # name still sat in a comment and in RESIDUE_PATHS. Watched, and fixed.
-    checks += 1
-    brz = (HERE / "build-release-zip.sh").read_text(encoding="utf-8")
-    call = _r.search(r'if\s+!\s+sh\s+"[^"]*release-gate-red-tests\.sh"\s+"\$STAGE"\s*;\s*then'
-                     r'[^\n]*\n\s*echo[^\n]*BLOCKED red-tests[^\n]*fail=1', brz)
-    if not call:
-        fails.append("release-gate/wired-into-build: build-release-zip.sh does not "
-                     "call the red-test gate on the staged tree and set fail=1 on "
-                     "its refusal, so a release can be cut on an unproven tree")
+    #
+    # This one is SKIPPED where the script is absent, and that is the normal
+    # case in a member's vault: build-release-zip.sh maps our internals and
+    # the release residue gate strips it from the download on purpose. Until
+    # 2026-09-14 the read was unconditional at module level, so the suite died
+    # with a FileNotFoundError traceback and `scaffold-init.py doctor` reported
+    # `tested: RED` with a stack trace under it on every fresh install (pilot A
+    # finding F6, pilot B F4). A skip with a reason is what the other
+    # repo-dependent guards here already do.
+    if _skip_release:
+        pass
+    elif not (HERE / "build-release-zip.sh").is_file():
+        skip("release-gate/wired-into-build",
+             "build-release-zip.sh is not here. The release gate strips it from "
+             "the download on purpose (it maps the build internals), so this "
+             "check runs in the scaffold repo and not in a member's vault")
+    else:
+        checks += 1
+        brz = (HERE / "build-release-zip.sh").read_text(encoding="utf-8")
+        call = _r.search(r'if\s+!\s+sh\s+"[^"]*release-gate-red-tests\.sh"\s+"\$STAGE"\s*;\s*then'
+                         r'[^\n]*\n\s*echo[^\n]*BLOCKED red-tests[^\n]*fail=1', brz)
+        if not call:
+            fails.append("release-gate/wired-into-build: build-release-zip.sh does not "
+                         "call the red-test gate on the staged tree and set fail=1 on "
+                         "its refusal, so a release can be cut on an unproven tree")
 
     # 79-83. check-bases reads .base files with the standard library only
     #     (tsk-2026-09-11-005). It imported PyYAML until 2026-09-14, and on a
@@ -1205,6 +1894,54 @@ with tempfile.TemporaryDirectory() as td:
 
 
 
+# ===========================================================================
+# 84. THE SUITE MUST SURVIVE ITS OWN RELEASE (pilot A finding F6, pilot B F4).
+#
+# `build-release-zip.sh` and `release-gate-red-tests.sh` are stripped from the
+# member download on purpose: they map our build internals. This file ships.
+# Until 2026-09-14 it read build-release-zip.sh unconditionally at module
+# level, so in every member vault the suite died with a FileNotFoundError and
+# `scaffold-init.py doctor` printed `tested: RED` with a stack trace under it
+# as the member's FIRST health check.
+#
+# The gate: every residue path this suite touches must be touched behind an
+# `.is_file()` guard. The residue list is read from build-release-zip.sh, so a
+# fourth stripped file added there is covered here on the same day and not on
+# the day somebody remembers. Where that script is absent (a member's vault)
+# this gate skips, with the reason, like the release-gate cases it is about.
+#
+# WHAT THIS DOES NOT PROVE: that the suite reaches its summary in a real
+# member vault. That is an end-to-end claim and it is made by running this
+# file inside an unzipped release, which the release procedure does.
+_BRZ = HERE / "build-release-zip.sh"
+if FAST:
+    pass                       # counted once, with the release-gate group above
+elif not _BRZ.is_file():
+    skip("suite/survives-its-own-release",
+         "build-release-zip.sh is not here, so the residue list cannot be read; "
+         "this gate runs in the scaffold repo and not in a member's vault")
+else:
+    _me = Path(__file__).read_text(encoding="utf-8")
+    _residue = re.findall(r'^\s*"([^"]+)"\s*$',
+                          _BRZ.read_text(encoding="utf-8").split("RESIDUE_PATHS=(")[1]
+                          .split(")")[0], re.M)
+    for _rp in _residue:
+        _name = _rp.rsplit("/", 1)[-1]
+        if _name not in _me:
+            continue
+        checks += 1
+        for _m in re.finditer(r'\(HERE / "%s"\)\s*\.\s*read_text' % re.escape(_name), _me):
+            _before = _me[:_m.start()]
+            _guard = re.search(r'\(HERE / "%s"\)\s*\.\s*is_file\(\)' % re.escape(_name),
+                               _before)
+            if not _guard:
+                fails.append("suite/survives-its-own-release: this file reads %s "
+                             "without first asking whether it is there, and the "
+                             "release strips that file, so the suite dies with a "
+                             "traceback in every member vault" % _name)
+                break
+
+
 def _si_count():
     global checks
     checks += 1
@@ -1220,6 +1957,69 @@ def _si_green():
 
 def _si_skip(r):
     skip("scaffold-init", r)
+
+
+# ===========================================================================
+# 85. A SKILL PRERUN MUST SURVIVE HAVING NO SUCH ENVIRONMENT VARIABLE
+#     (pilot B finding F2). Claude Code SUBSTITUTES `${CLAUDE_PROJECT_DIR}`
+#     into a skill's markdown before the shell runs; it does not export it.
+#     The generator emitted the unbraced `$CLAUDE_PROJECT_DIR`, which is not
+#     substituted, expands to empty in the shell, and turns the command into
+#     `python3 "/06 AI Team/..."`. Claude Code aborts the whole invocation on
+#     a failed prerun, so `/checkpoint` came back in 177 ms with 0 turns and
+#     the model never read the skill. The variable resolves in HOOKS, which is
+#     what made the unbraced form look correct for a whole release.
+#
+#     Two cases: the rendered line must use the substitution form, and the
+#     command must run clean once the host has substituted it, with the
+#     variable absent from the environment (which is the real condition).
+if not (HERE / "scaffold-init.py").is_file():
+    skip("skill-prerun", "scaffold-init.py is not in Scripts/")
+else:
+    _sk = ROOT / ".claude" / "skills"
+    _pre = []
+    if _sk.is_dir():
+        for _f in sorted(_sk.rglob("SKILL.md")):
+            for _line in _f.read_text(encoding="utf-8").splitlines():
+                if _line.startswith("!`") and _line.endswith("`"):
+                    _pre.append((_f, _line[2:-1]))
+    if not _pre:
+        skip("skill-prerun", "no rendered skill in .claude/skills/ carries a "
+                             "`!` prerun line, so there is nothing to run")
+    for _f, _cmd in _pre:
+        _rel = _f.relative_to(ROOT).as_posix()
+        checks += 1
+        if re.search(r"\$CLAUDE_PROJECT_DIR(?!\})", _cmd.replace("${CLAUDE_PROJECT_DIR}", "")):
+            fails.append("skill-prerun/uses-the-substitution-form: %s carries a bare "
+                         "$CLAUDE_PROJECT_DIR, which Claude Code does not substitute "
+                         "and the shell expands to empty; the invocation then aborts "
+                         "before the model reads step 1" % _rel)
+        checks += 1
+        if "${CLAUDE_PROJECT_DIR}" not in _cmd and "06 AI Team/" in _cmd:
+            fails.append("skill-prerun/uses-the-substitution-form: %s names a "
+                         "vault-relative path with no ${CLAUDE_PROJECT_DIR} anchor, "
+                         "so it resolves against wherever the session shell is" % _rel)
+        # and it must actually run, with the variable NOT in the environment,
+        # once the host has done its substitution.
+        #
+        # Not for a prerun that invokes THIS file: /red-tests runs the suite,
+        # and running it from inside itself is an unbounded recursion, not a
+        # test. The rendered-line checks above still cover that skill.
+        if Path(__file__).name in _cmd:
+            skip("skill-prerun/runs-without-the-variable (%s)" % _rel,
+                 "this skill's prerun is this suite; running it from inside "
+                 "itself would recurse without end")
+            continue
+        checks += 1
+        import os as _os2
+        _env = {k: v for k, v in _os2.environ.items() if k != "CLAUDE_PROJECT_DIR"}
+        _r = subprocess.run(["/bin/sh", "-c",
+                             _cmd.replace("${CLAUDE_PROJECT_DIR}", str(ROOT))],
+                            capture_output=True, text=True, env=_env, cwd="/")
+        if _r.returncode != 0:
+            fails.append("skill-prerun/runs-without-the-variable: %s exits %d from a "
+                         "foreign cwd with CLAUDE_PROJECT_DIR unset: %s"
+                         % (_rel, _r.returncode, (_r.stderr or _r.stdout).strip()[:200]))
 
 
 # ===========================================================================
@@ -1280,13 +2080,23 @@ def _si_fixture(base, n_skills=1, summary="Does the fixture thing.",
     return v
 
 
-def _si(v, verb):
+def _si(v, verb, *extra, **kw):
+    """`env` overrides land on top of this process's environment, which is how
+    the Codex trust cases point the generator at a fixture config instead of
+    the real ~/.codex/config.toml. Without the copy, a machine that HAS trusted
+    its hooks would make the "no" case pass for the wrong reason."""
+    env = dict(_o.environ)
+    env.update(kw.get("env") or {})
     return subprocess.run(
         [PY, str(Path(v) / "06 AI Team" / "AI Team Knowledge" / "Scripts" / "scaffold-init.py"),
-         verb], capture_output=True, text=True, cwd=str(v))
+         verb] + list(extra), capture_output=True, text=True, cwd=str(v), env=env)
 
 
-if not SI.is_file():
+if FAST and fast_skip("scaffold-init/*",
+                      "the generator end-to-end cases; each builds a fixture "
+                      "vault and runs apply, check and doctor against it"):
+    pass
+elif not SI.is_file():
     _si_skip("scaffold-init.py is not in this Scripts folder")
 else:
     with tempfile.TemporaryDirectory() as _sitd:
@@ -1549,6 +2359,239 @@ else:
             else:
                 _si_green()
 
+        # --- 10. `doctor --json` writes the harness.json the plugin reads ---
+        # The contract: schema 1, one entry per host, every published key
+        # present. The Scaffold Check plugin renders its Harness block from
+        # this file, so a key that quietly stops being written is a block that
+        # quietly goes blank in a member's vault, with nothing anywhere saying
+        # why. The gate below is that contract; the red cases are copies of the
+        # generator that break it, watched refuse.
+        #
+        # The host ids are written out here on purpose rather than imported
+        # from the generator. A second copy is the point: a host dropped from
+        # HOSTS would otherwise take the test's expectations down with it and
+        # the suite would stay green over a host that vanished.
+        _HARNESS_HOSTS = ("claude-code", "codex", "gemini", "cursor")
+        _HARNESS_KEYS = ("id", "detected", "installed", "trusted",
+                         "trusted_note", "tested", "unsupported")
+        # `sandbox` is published only where one exists, so "when present" in
+        # the plugin is a real test. Codex is the host that has one.
+        _HARNESS_SANDBOX_HOSTS = ("codex",)
+
+        def _harness_broken(doc):
+            """Every way this harness.json fails the contract. [] is a pass."""
+            if not isinstance(doc, dict):
+                return ["not an object"]
+            bad = []
+            if doc.get("schema") != 1:
+                bad.append("schema is %r, not 1" % (doc.get("schema"),))
+            hosts = doc.get("hosts")
+            if not isinstance(hosts, list):
+                return bad + ["hosts is not a list"]
+            ids = [h.get("id") for h in hosts if isinstance(h, dict)]
+            for want in _HARNESS_HOSTS:
+                if want not in ids:
+                    bad.append("no entry for host %s" % want)
+            for h in hosts:
+                if not isinstance(h, dict):
+                    bad.append("a host entry is not an object")
+                    continue
+                for k in _HARNESS_KEYS:
+                    if k not in h:
+                        bad.append("host %s carries no %s" % (h.get("id"), k))
+                if h.get("id") in _HARNESS_SANDBOX_HOSTS:
+                    if h.get("sandbox") is not True:
+                        bad.append("host %s carries no sandbox flag" % h.get("id"))
+                    if not h.get("sandbox_note"):
+                        bad.append("host %s carries no sandbox_note" % h.get("id"))
+            return bad
+
+        # `--no-tests` on every run below: doctor otherwise runs
+        # run-red-tests.py, which is this file, once per case.
+        _HJ = Path(".icor-for-life") / "scripts" / "harness.json"
+
+        # the control, first: without it every refusal below is satisfied by a
+        # generator that writes nothing at all
+        _si_count()
+        _vh = _si_fixture(_t / "harness")
+        r = _si(_vh, "doctor", "--json", "--no-tests")
+        if r.returncode != 0 or not (_vh / _HJ).is_file():
+            _si_fail("scaffold-init/harness-json-control: doctor --json exited %d "
+                     "and left the file %s\n%s"
+                     % (r.returncode, "written" if (_vh / _HJ).is_file() else "missing",
+                        (r.stdout + r.stderr)[:300]))
+        else:
+            _why = _harness_broken(json.loads((_vh / _HJ).read_text(encoding="utf-8")))
+            if _why:
+                _si_fail("scaffold-init/harness-json-control: the real generator "
+                         "wrote a harness.json the contract refuses: %s" % "; ".join(_why))
+            else:
+                _si_green()
+
+        # --- 10b. does Codex trust THIS folder's hooks? ---
+        # Codex keeps the answer in its own config, keyed by the ABSOLUTE path
+        # of the hooks file, so the reported state has to change with the path
+        # and with the file. The failure this guards is the worst shape a guard
+        # can have: `codex exec` never asks and silently runs no untrusted
+        # hook, so a member with untrusted hooks has every guard off and a
+        # terminal that looks exactly like one where they are on. A doctor that
+        # said "unknown" forever, or worse said "no" because it could not open
+        # a file, would be a second guard with the same disease.
+        #
+        # CODEX_HOME is pointed at a fixture on every case, including the ones
+        # that expect "no": on a machine that HAS trusted its hooks, reading
+        # the real config would make those pass for the wrong reason.
+
+        def _trust_case(label, want, body):
+            """body: None writes no config, a str writes one, False makes the
+            path a directory, which is a file that exists and cannot be read."""
+            _si_count()
+            _vt = _si_fixture(_t / ("trust-" + label))
+            home = _t / ("trust-home-" + label)
+            (home / ".codex").mkdir(parents=True, exist_ok=True)
+            cfg = home / ".codex" / "config.toml"
+            if body is False:
+                cfg.mkdir()
+            elif body is not None:
+                cfg.write_text(body, encoding="utf-8")
+            r = _si(_vt, "doctor", "--json", "--no-tests", env={"CODEX_HOME": str(home)})
+            f = _vt / _HJ
+            if not f.is_file():
+                _si_fail("scaffold-init/codex-trust[%s]: doctor wrote no harness.json "
+                         "(exit %d)\n%s" % (label, r.returncode, (r.stdout + r.stderr)[:300]))
+                return
+            doc = json.loads(f.read_text(encoding="utf-8"))
+            row = next((h for h in doc.get("hosts", []) if h.get("id") == "codex"), None)
+            if row is None:
+                _si_fail("scaffold-init/codex-trust[%s]: no codex host in harness.json" % label)
+                return
+            got = row.get("trusted")
+            if got != want:
+                _si_fail("scaffold-init/codex-trust[%s]: trusted is %r, expected %r"
+                         % (label, got, want))
+                return
+            if not row.get("sandbox"):
+                _si_fail("scaffold-init/codex-trust[%s]: the codex row carries no "
+                         "sandbox flag, so the plugin has nothing to show" % label)
+                return
+            if want == "no" and "NOT TRUSTED" not in (row.get("trusted_note") or ""):
+                _si_fail("scaffold-init/codex-trust[%s]: reported no, but the note "
+                         "does not say so in words a member reads" % label)
+                return
+            _si_green()
+
+        _trust_case(
+            "proved", "yes",
+            '[hooks.state."%s/.codex/hooks.json:PreToolUse:0:0"]\n'
+            'trusted_hash = "3f9a2c"\n' % (_t / "trust-proved").resolve())
+        _trust_case(
+            "another-path", "no",
+            '[hooks.state."/somewhere/else/.codex/hooks.json:PreToolUse:0:0"]\n'
+            'trusted_hash = "3f9a2c"\n')
+        _trust_case("unreadable", "unknown", False)
+        # and an entry for the right path that was never reviewed: a table with
+        # no trusted_hash is not a trust, and reading it as one would be the
+        # easiest way to write this check wrong.
+        _trust_case(
+            "no-hash", "no",
+            '[hooks.state."%s/.codex/hooks.json:PreToolUse:0:0"]\n'
+            'last_seen = "2026-09-14"\n' % (_t / "trust-no-hash").resolve())
+
+        # the reds: a generator broken one way each time
+        for _label, _find, _replace in (
+                ("no-schema", '        "schema": HARNESS_SCHEMA,\n', ""),
+                ("a-host-missing",
+                 'HOSTS = ("claude-code", "codex", "gemini", "cursor")',
+                 'HOSTS = ("claude-code", "codex", "gemini")')):
+            _si_count()
+            _vb = _si_fixture(_t / ("harness-" + _label))
+            _gen = _vb / "06 AI Team" / "AI Team Knowledge" / "Scripts" / "scaffold-init.py"
+            _text = _gen.read_text(encoding="utf-8")
+            if _find not in _text:
+                _si_fail("scaffold-init/harness-json[%s]: the line this case breaks "
+                         "is not in the generator any more, so the case proved "
+                         "nothing and has to be rewritten" % _label)
+                continue
+            _gen.write_text(_text.replace(_find, _replace, 1), encoding="utf-8")
+            _si(_vb, "doctor", "--json", "--no-tests")
+            if not (_vb / _HJ).is_file():
+                # A generator that crashes instead of writing is also a refusal,
+                # but not the one under test: the contract check never ran.
+                _si_fail("scaffold-init/harness-json[%s]: the broken generator wrote "
+                         "no file, so the contract check never saw anything" % _label)
+            elif not _harness_broken(json.loads((_vb / _HJ).read_text(encoding="utf-8"))):
+                _si_fail("scaffold-init/harness-json[%s]: the contract accepted a "
+                         "harness.json the generator broke on purpose" % _label)
+            else:
+                _si_green()
+
+        # --- 10d (control). a clean apply still exits 0 -------------------
+        # R3 makes apply exit 1 when a path was refused. Without this control
+        # the only thing proved would be that apply can be made to fail.
+        _si_count()
+        _vz = _si_fixture(_t / "apply-clean-exit")
+        _rz = _si(_vz, "apply")
+        if _rz.returncode != 0:
+            _si_fail("scaffold-init/apply-clean-control: an apply that was refused "
+                     "nothing exited %d\n%s" % (_rz.returncode,
+                                                (_rz.stdout + _rz.stderr)[-300:]))
+        else:
+            _si_green()
+
+        # --- 11. a host sandbox that refuses the write must say so in words
+        # (pilot C finding F4). Codex's workspace-write sandbox refuses .codex/
+        # and .agents/ even inside the workspace, so `apply` cannot finish from
+        # inside a Codex session and the new agent silently gets no shim.
+        # A read-only folder is the same refusal (EACCES/EPERM) and is the only
+        # way to produce it here without a Codex session.
+        import os as _os3
+        _si_count()
+        _sv = _si_fixture(_t / "sandbox")
+        _si(_sv, "apply")                       # first apply writes everything
+        _tgt = Path(_sv) / ".codex"
+        if not _tgt.is_dir() or _os3.geteuid() == 0:
+            _si_skip("no .codex/ was generated, or this runs as root, so a "
+                     "refused write cannot be produced here")
+        else:
+            # force one file to be regenerated, then close the folder
+            _one = next(iter(sorted(_tgt.rglob("*.toml"))), None)
+            if _one is None:
+                _si_skip("the fixture generated no .codex file to re-write")
+            else:
+                _one.write_text("hand broken\n", encoding="utf-8")
+                _mode = _os3.stat(_one.parent).st_mode
+                _os3.chmod(_one, 0o444)
+                _os3.chmod(_one.parent, 0o555)
+                try:
+                    r = _si(_sv, "apply")
+                    if "PERMISSION DENIED" not in (r.stdout + r.stderr):
+                        _si_fail("scaffold-init/sandbox-refusal: apply did not name the "
+                                 "refused path in words:\n%s"
+                                 % (r.stdout + r.stderr)[-400:])
+                    elif "Traceback" in (r.stderr or ""):
+                        _si_fail("scaffold-init/sandbox-refusal: apply crashed instead "
+                                 "of naming the refusal")
+                    elif "from your OWN terminal" not in (r.stdout + r.stderr):
+                        _si_fail("scaffold-init/sandbox-refusal: it named the refusal "
+                                 "but not the command the member should run")
+                    else:
+                        _si_green()
+                    # AND THE EXIT CODE (Silas's Codex re-run, R3). It said
+                    # INCOMPLETE in prose and returned 0, so a caller reading
+                    # the code reported a clean activation with no shims, no
+                    # skills and no guards behind it.
+                    _si_count()
+                    if r.returncode == 0:
+                        _si_fail("scaffold-init/apply-exits-nonzero-when-refused: "
+                                 "apply printed INCOMPLETE and exited 0, which is a "
+                                 "green that is not green")
+                    else:
+                        _si_green()
+                finally:
+                    _os3.chmod(_one.parent, _mode)
+                    _os3.chmod(_one, 0o644)
+
+
 # --- end of the scaffold-init cases ---
 
 
@@ -1603,6 +2646,79 @@ else:
         _expect_ok("check-hire/waiver-in-contract-field",
                    [str(_CH), "Testy", "--root", str(_wv)])
 
+        # A PLACEHOLDER AVATAR MUST NOT READ AS OK (pilot C finding F6). Both
+        # pilot models drew a flat square to turn check 5 green, one of them
+        # 1254x1254, so "square PNG" was never the question. WARN, not FAIL:
+        # a hire is not blocked on a picture, but the roster must say the
+        # picture is not there yet. FAIL would make the check unusable and
+        # somebody would switch it off.
+        def _ch_rows(vault_dir):
+            r = subprocess.run([PY, str(_CH), "Testy", "--root", str(vault_dir), "--json"],
+                               capture_output=True, text=True)
+            try:
+                return {row["n"]: row for row in
+                        _json.loads(r.stdout)["agents"][0]["checks"]}
+            except Exception as e:
+                fails.append("check-hire/avatar-placeholder: report unreadable (%s)" % e)
+                return {}
+
+        for _nm, _mk, _why in (
+                ("one-pixel", lambda v: _ch.write_png(
+                    v / "06 AI Team/AI Team Knowledge/Avatars/testy.png", 1, 1), "1x1"),
+                ("flat-fill", lambda v: _ch.write_png(
+                    v / "06 AI Team/AI Team Knowledge/Avatars/testy.png", 512, 512),
+                 "one flat colour at a plausible size"),
+                ("named-placeholder", lambda v: (
+                    v / "06 AI Team/AI Team Knowledge/Avatars" / "testy.placeholder"
+                ).write_text("Pixel owes the real one\n", encoding="utf-8"),
+                 "a .placeholder sidecar")):
+            _pv = _ch.build_fixture(tmp / ("hire-avatar-" + _nm), public=True,
+                                    scripts_dir=HERE)
+            _mk(_pv)
+            checks += 1
+            _rows = _ch_rows(_pv)
+            if _rows and _rows.get(5, {}).get("status") == "OK":
+                fails.append("check-hire/avatar-placeholder-%s: check 5 reads OK on "
+                             "%s; a drawn stand-in turns the check green without "
+                             "the thing being true" % (_nm, _why))
+            elif _rows and "placeholder" not in _rows.get(5, {}).get("message", ""):
+                fails.append("check-hire/avatar-placeholder-%s: check 5 is not OK but "
+                             "does not say placeholder, so nobody knows Pixel is "
+                             "still owed one: %r" % (_nm, _rows.get(5, {}).get("message")))
+
+        # THE HIRING MARKER, the other end of the write guard's door.
+        # A green run must delete it, and one left behind past its 24 hours is
+        # residue that reads like an open door and is not one.
+        _mv = _ch.build_fixture(tmp / "hire-marker-green", public=True, scripts_dir=HERE)
+        _mkf = _mv / _ch.AGENTS_REL / "Testy" / ".hiring"
+        _mkf.write_text(_j.dumps({"started": _dt.datetime.now(_dt.timezone.utc)
+                                  .strftime("%Y-%m-%dT%H:%M:%SZ"), "agent": "Testy"}),
+                        encoding="utf-8")
+        _expect_ok("check-hire/marker-green-run", [str(_CH), "Testy", "--root", str(_mv)])
+        checks += 1
+        if _mkf.exists():
+            fails.append("check-hire/marker-cleared-on-green: the hiring marker "
+                         "survived a green run, so that contract stays writable by "
+                         "every later session")
+        _sv = _ch.build_fixture(tmp / "hire-marker-stale", public=True, scripts_dir=HERE)
+        _skf = _sv / _ch.AGENTS_REL / "Testy" / ".hiring"
+        _skf.write_text(_j.dumps({"started": (_dt.datetime.now(_dt.timezone.utc)
+                                              - _dt.timedelta(hours=40))
+                                  .strftime("%Y-%m-%dT%H:%M:%SZ"), "agent": "Testy"}),
+                        encoding="utf-8")
+        checks += 1
+        _r = subprocess.run([PY, str(_CH), "Testy", "--root", str(_sv), "--json"],
+                            capture_output=True, text=True)
+        try:
+            _rows = {row["n"]: row for row in
+                     _json.loads(_r.stdout)["agents"][0]["checks"]}
+            if _rows.get(23, {}).get("status") != "WARN":
+                fails.append("check-hire/marker-stale-is-a-finding: a 40-hour-old "
+                             "hiring marker reads %r, not WARN"
+                             % _rows.get(23, {}).get("status"))
+        except Exception as e:
+            fails.append("check-hire/marker-stale-is-a-finding: report unreadable (%s)" % e)
+
         _broken = _ch.build_fixture(tmp / "hire-broken", public=True, scripts_dir=HERE)
         (_broken / ".claude" / "agents" / "testy.md").unlink()
         expect_refusal("check-hire/missing-shim", [str(_CH), "Testy", "--root", str(_broken)])
@@ -1651,21 +2767,47 @@ else:
         _argv = [str(_na), "Newby", "--slug", "newby", "--role", "Fixture helper",
                  "--root", str(_na_root)]
 
-        checks += 1
+        # THE HIRE DROPS THE MARKER, AND DOES NOT ASK FOR AN ENV VAR
+        # (pilot C finding F1). Until 2026-09-14 this script refused to run
+        # without ICOR_UNLOCK_WRITES=1, and this case asserted that refusal.
+        # The refusal was the defect: an environment variable cannot be set on
+        # one tool call, so the only way to obey it is to write the contract
+        # from a shell, which is exactly where the write guard cannot look.
+        # Both pilot CLIs did that. The marker is what replaced it.
         _env = dict(_os.environ)
         _env.pop("ICOR_UNLOCK_WRITES", None)
-        _r = subprocess.run([PY] + _argv, capture_output=True, text=True, env=_env)
-        if _r.returncode == 0:
-            fails.append("new-agent/no-unlock: wrote a contract with no deliberate unlock set")
-        elif "ICOR_UNLOCK_WRITES=1" not in (_r.stderr or ""):
-            fails.append("new-agent/no-unlock: refused without naming the unlock, so the reader "
-                         "cannot act on it")
-
         _expect_ok("new-agent/dry-run-control", _argv + ["--dry-run"], env=_env)
+        checks += 1
+        _r = subprocess.run([PY] + _argv, capture_output=True, text=True, env=_env)
+        if _r.returncode != 0:
+            fails.append("new-agent/marker-instead-of-an-env-var: refused to scaffold "
+                         "with no ICOR_UNLOCK_WRITES set (%s); the hire path is the "
+                         "marker now, and an env var it cannot set is what sent both "
+                         "pilot CLIs into a shell"
+                         % (_r.stderr or _r.stdout).strip()[:160])
+        _mkr = _na_root / "06 AI Team/Agents/Newby/.hiring"
+        checks += 1
+        if not _mkr.is_file():
+            fails.append("new-agent/marker-instead-of-an-env-var: no .hiring marker "
+                         "beside the contract, so the write guard has no way to tell "
+                         "this contract write from any other")
+        else:
+            checks += 1
+            try:
+                _mdoc = _json.loads(_mkr.read_text(encoding="utf-8"))
+            except ValueError as _e:
+                _mdoc = {}
+                fails.append("new-agent/marker-instead-of-an-env-var: the marker is "
+                             "not JSON (%s), so nothing can read its age" % _e)
+            for _k in ("started", "agent"):
+                checks += 1
+                if not _mdoc.get(_k):
+                    fails.append("new-agent/marker-instead-of-an-env-var: the marker "
+                                 "carries no `%s`, and a marker with no start time is "
+                                 "a door that never closes" % _k)
 
         _env2 = dict(_os.environ)
         _env2["ICOR_UNLOCK_WRITES"] = "1"
-        subprocess.run([PY] + _argv, capture_output=True, text=True, env=_env2)
         checks += 1
         _r2 = subprocess.run([PY] + _argv, capture_output=True, text=True, env=_env2)
         if _r2.returncode == 0:
@@ -1676,10 +2818,65 @@ else:
 
 
 
+# ===========================================================================
+# 85. --fast MUST STILL FAIL ON A BROKEN GUARD.
+#
+# A flag that makes a suite quicker is a flag that can make it quieter, and
+# the way that happens is never deliberate: a group gets skipped, an exception
+# gets swallowed, an exit code gets lost on the way out. So this runs the whole
+# file again with --fast and with the write guard replaced by a stub that
+# refuses nothing, which is the canonical broken guard, and asserts the fast
+# run goes red and names a write-guard case.
+#
+# The child sees ICOR_RED_TESTS_SELF_SABOTAGE and skips THIS case, so there is
+# no third run. It costs one fast run, which is the cost --fast exists to make
+# small.
+#
+# WHAT THIS DOES NOT PROVE: that --fast runs the same cases as a full run. It
+# proves the fail path survives the flag. The groups --fast skips are named on
+# stdout and in the summary, which is the only honest claim available.
+if SELF_SABOTAGE or FAST:
+    # The meta-case belongs to the FULL run. Running it inside --fast would
+    # make every fast run pay for a second fast run, which is the one cost
+    # --fast exists to remove, and the claim it proves ("--fast still fails")
+    # is a property of this file rather than of today's tree.
+    pass
+else:
+    checks += 1
+    _env = dict(os.environ)
+    _env["ICOR_RED_TESTS_SELF_SABOTAGE"] = "1"
+    _child = subprocess.run([PY, str(Path(__file__).resolve()), "--fast"],
+                            capture_output=True, text=True, env=_env)
+    if _child.returncode == 0:
+        fails.append("fast/still-fails-on-a-broken-guard: --fast exited 0 with the "
+                     "write guard replaced by a stub that refuses nothing, so the "
+                     "flag can hide a dead guard")
+    elif "write-guard/" not in (_child.stderr or ""):
+        fails.append("fast/still-fails-on-a-broken-guard: --fast went red, but no "
+                     "write-guard case is named, so it went red for some other "
+                     "reason and this case proves nothing: %s"
+                     % (_child.stderr or _child.stdout or "")[:200])
+    # and the control: the flag must be accepted at all, and an unknown flag
+    # must be refused rather than ignored.
+    checks += 1
+    _typo = subprocess.run([PY, str(Path(__file__).resolve()), "--fsat"],
+                           capture_output=True, text=True)
+    if _typo.returncode != 2:
+        fails.append("fast/unknown-flag-is-refused: --fsat exited %d; a mistyped "
+                     "flag that silently runs the whole suite tells the caller the "
+                     "flag worked" % _typo.returncode)
+
+
 if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)
+    if FAST:
+        print("This was a --fast run: %s were NOT run." % ", ".join(fast_skipped),
+              file=sys.stderr)
     sys.exit(1)
 controls = "the capture clean control" if skips else "the manifest and capture clean controls"
 tail = f", {len(skips)} skipped ({skips[0][1]})" if skips else ""
 print(f"OK {checks}/{checks} guards went red on bad input{tail} (plus {controls} stayed green)")
+if FAST:
+    print("FAST RUN. Not a green for: " + ", ".join(fast_skipped)
+          + ". Run this file with no arguments before citing it as a full pass.")
