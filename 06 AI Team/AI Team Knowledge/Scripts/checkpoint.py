@@ -112,9 +112,31 @@ def newest_under(folder: Path):
     return best
 
 # --- 1. the last session log, and today's ---------------------------------
+# A session log is named for the moment it covers (GL-1004:
+# YYYY-MM-DD-HH-MM_agent_slug.md), and that is the timestamp this scan needs.
+# Filesystem mtime is a different fact: a sync tool, a restore from Time
+# Machine, a checkout, or the member simply reopening the log to read it all
+# move mtime forward. Comparing against mtime therefore put the cutoff in the
+# future and the report said `tasks touched : 0` on a session that had
+# shipped six of them (Brian Carroll, T16-12). The name is read first and
+# mtime is the fallback, for a log a member renamed or wrote by hand.
+LOG_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})-(\d{2})-(\d{2})_")
+
+
+def log_time(p: Path) -> datetime.datetime:
+    m = LOG_NAME.match(p.name)
+    if m:
+        try:
+            return datetime.datetime.fromisoformat(
+                "%sT%s:%s" % (m.group(1), m.group(2), m.group(3)))
+        except ValueError:
+            pass
+    return mtime(p)
+
+
 logs = sorted(LOGS.glob("*/*/*.md")) if LOGS.exists() else []
-last_log = logs[-1] if logs else None
-last_log_time = mtime(last_log) if last_log else datetime.datetime.min
+last_log = max(logs, key=log_time) if logs else None
+last_log_time = log_time(last_log) if last_log else datetime.datetime.min
 todays = [p for p in logs if p.name.startswith(today.isoformat())]
 
 # --- 2. tasks touched since the last log ----------------------------------
