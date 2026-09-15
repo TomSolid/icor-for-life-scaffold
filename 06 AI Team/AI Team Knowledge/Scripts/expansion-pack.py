@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Additive, non-executing expansion file management; see GL-1012 and WS-1006."""
+"""Expansion file management: copy reviewed pack files into the vault; run none of them.
+
+See GL-1012 and WS-1006.
+
+WHAT "EXECUTES NOTHING" MEANS HERE. It means THIS TOOL runs nothing from a
+pack: no installer, no hook, no lifecycle command, not even to unpack. It has
+never meant that an installed file is inert. Whatever normally reads a folder
+goes on reading it afterwards, so a file placed somewhere the interpreter or
+the dynamic loader looks is executable by definition. That is why schema 1
+refuses `Scripts/` targets outright, refuses `__pycache__` and every
+importable or loadable file type vault-wide, and keeps its install receipt
+outside the pack (Vex ruling, batch b2, 2026-09-15).
+"""
 import argparse
 import hashlib
 import json
@@ -9,7 +21,28 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 CORE = {'Larry', 'Nolan', 'Pax', 'Penn', 'Mack', 'Silas', 'Iris', 'Charta', 'Flint'}
-KINDS = {'SOPs', 'Workstreams', 'Guidelines', 'Templates', 'Scripts'}
+
+# F1 (CRITICAL). `Scripts` is NOT in this set and must not be added. A pack
+# file under Scripts/ is imported by every script the session-start hook runs:
+# a `Scripts/json.py` shadowed the standard library for expansion-pack.py
+# itself and locked `remove` out of its own vault. There is no allow-list
+# version of this that is safe, because the danger is the folder, not the file.
+KINDS = {'SOPs', 'Workstreams', 'Guidelines', 'Templates'}
+
+# F2 (HIGH). Suffixes the interpreter or the dynamic loader picks up without
+# anybody opening them. `.pth` is the worst of them: a single line in one runs
+# at interpreter start. Checked on the FINAL segment only, case-folded,
+# everywhere `safe()` is used, which is every path this tool touches.
+LOADABLE_SUFFIXES = ('.pyc', '.pyo', '.pyd', '.so', '.dylib', '.pth',
+                     '.plist', '.pyw', '.egg-link')
+
+# F5 (HIGH). The receipt is the VAULT's record, not the pack's. One inside the
+# pack is written by whoever shipped the pack, and a forged one made `remove`
+# delete files the pack never installed.
+RECEIPT_DIR = '.icor-for-life/expansions'
+PACK_ID = re.compile(r'[a-z][a-z0-9-]{0,79}')
+NAMESPACE_NOTE = ('a pack namespace keeps an installed file distinguishable '
+                  'from the scaffold\'s own numbered knowledge')
 
 
 def digest(path):
@@ -22,6 +55,18 @@ def safe(base, value):
     parts = value.split('/')
     if any(x in ('', '.', '..') or x.startswith('.') for x in parts):
         raise ValueError('Hidden, absolute or traversal path rejected: ' + value)
+    for x in parts:
+        if x.casefold() == '__pycache__':
+            raise ValueError('Compiled-module cache rejected: a pack may not write '
+                             'into a __pycache__ folder, whose contents Python loads '
+                             'without checking anyone reviewed them: ' + value)
+    tail = parts[-1].casefold()
+    for suffix in LOADABLE_SUFFIXES:
+        if tail.endswith(suffix):
+            raise ValueError('Importable or loadable file type rejected (%s): schema 1 '
+                             'copies text a person can read, never a file the '
+                             'interpreter or the dynamic loader picks up: %s'
+                             % (suffix, value))
     p = base
     for part in parts:
         p = p / part
@@ -32,22 +77,86 @@ def safe(base, value):
     return p
 
 
-def target(root, value):
+def agent_case_clash(root, name):
+    """The real `Agents/` entry that differs from `name` only by case, if any.
+
+    F3. Case-folding against the nine core names caught `larry` and missed
+    every agent hired since, so this reads the directory instead of a list.
+    """
+    try:
+        entries = list((root / '06 AI Team' / 'Agents').iterdir())
+    except OSError:
+        return None
+    for e in entries:
+        if e.name != name and e.name.casefold() == name.casefold():
+            return e.name
+    return None
+
+
+def target(root, value, pack_id=None):
     p = safe(root, value)
     parts = Path(value).parts
-    allowed = (len(parts) >= 4 and parts[:2] == ('06 AI Team', 'Agents')
-               and parts[2].casefold() not in {x.casefold() for x in CORE})
-    allowed |= (len(parts) >= 4 and parts[:2] == ('06 AI Team', 'AI Team Knowledge')
-                and parts[2] in KINDS)
+    if len(parts) >= 3 and parts[:2] == ('06 AI Team', 'AI Team Knowledge') \
+            and parts[2] == 'Scripts':
+        raise ValueError('Scripts targets are not supported in schema 1: a pack cannot '
+                         'install anything under Scripts/, reviewed or not, because '
+                         'every script the session start runs imports from that folder: '
+                         + value)
+    in_agents = len(parts) >= 4 and parts[:2] == ('06 AI Team', 'Agents')
+    in_knowledge = (len(parts) >= 4 and parts[:2] == ('06 AI Team', 'AI Team Knowledge')
+                    and parts[2] in KINDS)
+    allowed = in_knowledge or (in_agents
+                               and parts[2].casefold() not in {x.casefold() for x in CORE})
     if not allowed or p.name.casefold() in {'agent-index.md', 'index.md'}:
         raise ValueError('Protected or unsupported target: ' + value)
+    if in_agents:
+        clash = agent_case_clash(root, parts[2])
+        if clash:
+            raise ValueError('Agent folder "%s" differs only by case from the existing '
+                             '"%s"; install into that folder or pick another name: %s'
+                             % (parts[2], clash, value))
+    if in_knowledge and pack_id is not None:
+        if not (p.name.startswith(pack_id + '-') or p.name[:3].upper() == 'EP-'):
+            raise ValueError('Missing pack namespace on an installed %s file: name it '
+                             '"%s-%s" or "EP-%s" (%s): %s'
+                             % (parts[2], pack_id, p.name, p.name, NAMESPACE_NOTE, value))
     return p
 
 
-def pack_path(root, identifier):
-    if not identifier or not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', identifier):
+def check_id(identifier):
+    if not identifier or not PACK_ID.fullmatch(identifier):
         raise ValueError('Pack id must be lowercase letters, digits and hyphens')
-    return safe(root, '06 AI Team/Expansions/' + identifier)
+    return identifier
+
+
+def pack_path(root, identifier):
+    return safe(root, '06 AI Team/Expansions/' + check_id(identifier))
+
+
+def receipt_path(root, identifier):
+    """Where the install receipt lives: `.icor-for-life/expansions/<id>.json`.
+
+    Not built with safe(), which refuses dotted segments by design. The id is
+    already constrained to lowercase letters, digits and hyphens, so there is
+    no traversal to make.
+    """
+    return root.joinpath(*RECEIPT_DIR.split('/')) / (check_id(identifier) + '.json')
+
+
+def stray_receipts(pack):
+    """Receipt-shaped files sitting INSIDE a pack. Never read, always reported.
+
+    Either a pack from before the receipt moved, or a forgery. Both are
+    ambiguous enough that install refuses rather than guessing (F5c).
+    """
+    found = []
+    try:
+        if (pack / 'installation.json').is_file():
+            found.append('installation.json')
+        found += sorted(p.name for p in pack.glob('removed-*.json') if p.is_file())
+    except OSError:
+        pass
+    return found
 
 
 def inspect(root, identifier):
@@ -63,13 +172,13 @@ def inspect(root, identifier):
         raise ValueError('Pack README.md is required')
     files = m.get('files')
     if not isinstance(files, list) or not 1 <= len(files) <= 500:
-        raise ValueError('Expected 1–500 file mappings')
+        raise ValueError('Expected 1-500 file mappings')
     seen = set()
     for f in files:
         if not isinstance(f, dict) or not re.fullmatch(r'[a-f0-9]{64}', f.get('sha256', '')):
             raise ValueError('Each file needs a SHA-256 hash')
         src = safe(pack, 'payload/' + f['source'])
-        dst = target(root, f['target'])
+        dst = target(root, f['target'], identifier)
         key = f['target'].casefold()
         if key in seen:
             raise ValueError('Duplicate target: ' + f['target'])
@@ -93,34 +202,63 @@ def run(args):
                 if p.is_symlink():
                     result.append({'id': p.name, 'status': 'rejected-symlink'})
                 elif p.is_dir():
-                    result.append({'id': p.name, 'status': 'installed-files' if (p / 'installation.json').is_file() else 'needs-inspection'})
+                    try:
+                        installed = receipt_path(root, p.name).is_file()
+                    except ValueError:
+                        installed = False   # not a legal pack id, so not installed
+                    row = {'id': p.name,
+                           'status': 'installed-files' if installed else 'needs-inspection'}
+                    stray = stray_receipts(p)
+                    if stray:
+                        row['ignored_in_pack_receipts'] = stray
+                    result.append(row)
                 elif p.suffix.lower() == '.zip':
                     result.append({'id': p.name, 'status': 'needs-safe-extraction'})
         return result
-    pack = pack_path(root, args.id)
-    receipt = safe(pack, 'installation.json')
+    check_id(args.id)
+    receipt = receipt_path(root, args.id)
     if args.command == 'remove':
         if not args.approved:
             raise ValueError('Removal requires the approved plan and --approved')
+        if receipt.is_symlink() or not receipt.is_file():
+            raise ValueError('No install receipt at %s/%s.json, so this tool did not '
+                             'install this pack and will not delete anything. A receipt '
+                             'inside the pack folder is never read.'
+                             % (RECEIPT_DIR, args.id))
         r = json.loads(receipt.read_text())
         if r.get('schema') != 1 or r.get('id') != args.id:
             raise ValueError('Invalid ownership receipt')
         paths = []
         for f in r['files']:
-            p = target(root, f['target'])
+            p = target(root, f['target'], args.id)
             if not p.is_file() or digest(p) != f['sha256']:
                 raise ValueError('Owned file changed or missing; nothing removed: ' + f['target'])
             paths.append(p)
         for p in paths:
             p.unlink()
-        receipt.rename(safe(pack, 'removed-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'))
-        return {'id': args.id, 'removed_files': len(paths), 'registration': 'must be reviewed separately'}
+        receipt.rename(receipt.with_name(
+            'removed-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f') + '.json'))
+        return {'id': args.id, 'removed_files': len(paths),
+                'registration': 'must be reviewed separately'}
     pack, m = inspect(root, args.id)
-    conflicts = [f['target'] for f in m['files'] if target(root, f['target']).exists()]
+    conflicts = [f['target'] for f in m['files'] if target(root, f['target'], args.id).exists()]
     if args.command == 'inspect':
-        return {'manifest': m, 'conflicts': conflicts, 'receipt_exists': receipt.exists(), 'executes_payload': False}
+        return {'manifest': m, 'conflicts': conflicts,
+                'receipt': '%s/%s.json' % (RECEIPT_DIR, args.id),
+                'receipt_exists': receipt.exists(),
+                'in_pack_receipts_ignored': stray_receipts(pack),
+                'executes_payload': False,
+                'executes_payload_means': 'this tool runs nothing from the pack. It does '
+                                          'NOT mean an installed file cannot run later, '
+                                          'through whatever normally reads that folder.'}
     if not args.approved:
         raise ValueError('Installation requires the approved plan and --approved')
+    stray = stray_receipts(pack)
+    if stray:
+        raise ValueError('Pack folder carries %s. The receipt belongs in %s/, and a '
+                         'receipt shipped inside a pack is either stale or forged; '
+                         'review it, move it aside, then install.'
+                         % (', '.join(stray), RECEIPT_DIR))
     if receipt.exists() or conflicts:
         raise ValueError('Existing installation or targets; use a reviewed migration, never overwrite')
     # Read and hash all bytes before writing; exclusive creation also catches races.
@@ -129,7 +267,7 @@ def run(args):
         b = safe(pack, 'payload/' + f['source']).read_bytes()
         if hashlib.sha256(b).hexdigest() != f['sha256']:
             raise ValueError('Payload changed after inspection')
-        payload.append((target(root, f['target']), b))
+        payload.append((target(root, f['target'], args.id), b))
     created = []
     try:
         for p, b in payload:
@@ -140,6 +278,9 @@ def run(args):
         r = {'schema': 1, 'id': m['id'], 'version': m['version'],
              'installed_at': datetime.now(timezone.utc).isoformat(),
              'files': [{'target': f['target'], 'sha256': f['sha256']} for f in m['files']]}
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        # 'x', never 'w': an existing receipt is somebody else's ownership record
+        # and must never be overwritten without a person seeing it.
         with receipt.open('x') as out:
             json.dump(r, out, indent=2)
     except Exception:
@@ -147,7 +288,9 @@ def run(args):
             if p.is_file() and not p.is_symlink() and digest(p) == h:
                 p.unlink()
         raise
-    return {'id': m['id'], 'installed_files': len(created), 'activation': 'pending registration and bounded example'}
+    return {'id': m['id'], 'installed_files': len(created),
+            'receipt': '%s/%s.json' % (RECEIPT_DIR, m['id']),
+            'activation': 'pending registration and bounded example'}
 
 
 def main():
