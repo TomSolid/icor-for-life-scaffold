@@ -30,12 +30,53 @@ says which groups were skipped rather than only how many.
 import hashlib, json, os, re, subprocess, sys, tempfile, shutil
 from pathlib import Path
 
+# Every child this suite spawns runs with bytecode writing OFF. It is set here,
+# on this process's own environment, so that it reaches the children that
+# inherit it and the ones that copy it into an `env=` dict alike.
+#
+# `scaffold-init.py` loads `noteio.py` by path (importlib, not by name), so
+# stock CPython writes `__pycache__/noteio.cpython-3NN.pyc` beside whatever
+# copy of the script it ran, and under `_si()` that copy lives inside the
+# fixture vault. The 1.24.0 CI run died there: the second-apply snapshot walked
+# the fixture and tried to decode that .pyc as UTF-8, byte 0xcb at position 0.
+# The cure is to stop the write. Filtering `__pycache__` back out of the
+# snapshot would only hide it, and would hide a real difference between the two
+# applies standing next to it.
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+# And this process too. The environment variable is read by an interpreter at
+# STARTUP, so setting it above reaches every child and reaches nothing here;
+# `sys.dont_write_bytecode` is the same switch for a process already running.
+# This file needs it: it importlib-loads `check-hire.py` out of Scripts/ for the
+# hire fixtures, and without this line the suite drops
+# `Scripts/__pycache__/check-hire.cpython-3NN.pyc` into whatever tree it was run
+# out of, which in CI is the repo itself.
+sys.dont_write_bytecode = True
+
 _re5date = re.compile(r"(?m)^\s*date links\s*:\s*\d+ mention")
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 PY = sys.executable
 fails = []
+
+# A defect that puts bytecode INSIDE a tree is invisible under an interpreter
+# that redirects bytecode somewhere else, and macOS ships exactly that:
+# /usr/bin/python3 carries sys.pycache_prefix = ~/Library/Caches/com.apple.python,
+# so no .pyc ever lands in any tree and nothing here can trip over one. Twice
+# now (1.23.0, then 1.24.0) a release went green on that interpreter and
+# crashed in CI on stock CPython. The interpreter is printed on every run, and
+# when it hides this class the run says so at the start AND in its own summary,
+# so a pass from this Mac never reads as a pass it cannot earn.
+PYCACHE_NOTE = None
+print("NOTE interpreter: %s, sys.pycache_prefix=%r" % (sys.executable, sys.pycache_prefix))
+if sys.pycache_prefix is not None:
+    PYCACHE_NOTE = (
+        "bytecode-in-tree defects cannot surface under this interpreter. It redirects "
+        "every .pyc to %s, so no fixture tree here can receive one, and a case that "
+        "would crash on stock CPython passes. Run this suite under a stock interpreter "
+        "before citing it as a pass for that class." % sys.pycache_prefix)
+    print("NOTE interpreter/bytecode-in-tree-is-invisible: " + PYCACHE_NOTE)
 
 checks = 0  # counted as they run; a hardcoded total is a green that cannot go stale
 skips = []  # (guard, reason): guards that could not run HERE; printed and counted, never green
@@ -2590,6 +2631,11 @@ def _si(v, verb, *extra, **kw):
     its hooks would make the "no" case pass for the wrong reason."""
     env = dict(_o.environ)
     env.update(kw.get("env") or {})
+    # Belt and braces over the process-wide setting at the top of this file: a
+    # caller-supplied `env` must not be able to drop it. This spawner is the one
+    # that runs a script OUT OF the fixture tree, so it is the one whose child
+    # would write bytecode into the tree the snapshot below then walks.
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
     return subprocess.run(
         [PY, str(Path(v) / "06 AI Team" / "AI Team Knowledge" / "Scripts" / "scaffold-init.py"),
          verb] + list(extra), capture_output=True, text=True, cwd=str(v), env=env)
@@ -2619,14 +2665,30 @@ else:
         else:
             _si_green()
         _si_count()
-        before = sorted((p.relative_to(v).as_posix(), p.read_text(encoding="utf-8"))
+        # Bytes, not decoded text. A fixture vault holds whatever the generator
+        # and its children put there, and not all of it is UTF-8; a snapshot
+        # that can only read UTF-8 raises UnicodeDecodeError on the first byte
+        # it did not expect instead of reporting a difference, which is how
+        # 1.24.0's CI run ended. Byte identity is also the stricter comparison:
+        # it catches an encoding change that decodes to the same characters.
+        before = sorted((p.relative_to(v).as_posix(), p.read_bytes())
                         for p in v.rglob("*") if p.is_file() and not p.is_symlink())
         _si(v, "apply")
-        after = sorted((p.relative_to(v).as_posix(), p.read_text(encoding="utf-8"))
+        after = sorted((p.relative_to(v).as_posix(), p.read_bytes())
                        for p in v.rglob("*") if p.is_file() and not p.is_symlink())
         if before != after:
+            # By path, not by position. `zip` over two sorted lists of different
+            # length pairs index against index, so a file the second apply ADDED
+            # shifts nothing when it sorts last and the count comes out 0: the
+            # refusal then reads "the second apply changed 0 file(s)", which is a
+            # verdict contradicting itself. Added, removed and rewritten are all
+            # differences, and the message names them.
+            _b, _a = dict(before), dict(after)
+            _diff = sorted((set(_b) ^ set(_a))
+                           | {k for k in set(_b) & set(_a) if _b[k] != _a[k]})
             _si_fail("scaffold-init/second-apply-is-a-no-op: the second apply changed "
-                     "%d file(s)" % len([1 for a, b in zip(before, after) if a != b]))
+                     "%d file(s): %s" % (len(_diff), ", ".join(_diff[:5])
+                                         + (", ..." if len(_diff) > 5 else "")))
         else:
             _si_green()
 
@@ -3415,6 +3477,8 @@ if fails:
 controls = "the capture clean control" if skips else "the manifest and capture clean controls"
 tail = f", {len(skips)} skipped ({skips[0][1]})" if skips else ""
 print(f"OK {checks}/{checks} guards went red on bad input{tail} (plus {controls} stayed green)")
+if PYCACHE_NOTE:
+    print("NOTE interpreter/bytecode-in-tree-is-invisible: " + PYCACHE_NOTE)
 if FAST:
     print("FAST RUN. Not a green for: " + ", ".join(fast_skipped)
           + ". Run this file with no arguments before citing it as a full pass.")

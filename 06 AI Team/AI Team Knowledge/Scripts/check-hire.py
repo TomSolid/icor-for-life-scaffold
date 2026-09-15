@@ -68,6 +68,7 @@ planted defect stay green.
 """
 import argparse
 import json
+import os
 import re
 import shutil
 import struct
@@ -77,6 +78,17 @@ import tempfile
 import zlib
 from datetime import datetime, timezone
 from pathlib import Path
+
+# `--self-test` copies helper scripts INTO a fixture vault and then runs them
+# out of it, so a child that imports a sibling by path would have stock CPython
+# write `__pycache__/*.pyc` into the fixture. Nothing here decodes a fixture
+# tree today, but the same shape crashed run-red-tests.py in 1.24.0's CI, so the
+# write is stopped at the source rather than worked around downstream.
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+# Spawned-child environment: never write bytecode into a tree we did not build
+# for bytecode. Used by every spawner below that runs a script out of `root`.
+CHILD_ENV = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parents[2]
@@ -369,7 +381,7 @@ class Vault(object):
             else:
                 r = subprocess.run([sys.executable, str(script), "--check",
                                     "--root", str(self.root)],
-                                   capture_output=True, text=True)
+                                   capture_output=True, text=True, env=CHILD_ENV)
                 self._mint = (r.returncode, (r.stdout or "") + (r.stderr or ""))
         return self._mint
 
@@ -380,7 +392,7 @@ class Vault(object):
                 self._shim_mcp = (None, "check-agent-shim-mcp.py is not in Scripts/")
             else:
                 r = subprocess.run([sys.executable, str(script), str(self.root / SHIM_REL)],
-                                   capture_output=True, text=True)
+                                   capture_output=True, text=True, env=CHILD_ENV)
                 self._shim_mcp = (r.returncode, (r.stdout or "") + (r.stderr or ""))
         return self._shim_mcp
 
@@ -821,7 +833,7 @@ def check_agent(vault, name):
         bad = []
         for sd in skill_dirs:
             r = subprocess.run([sys.executable, str(doctor), str(sd), "--root", str(root)],
-                               capture_output=True, text=True)
+                               capture_output=True, text=True, env=CHILD_ENV)
             if r.returncode != 0:
                 first = [ln for ln in (r.stderr or "").splitlines() if ln.startswith("FAIL")]
                 bad.append(first[0] if first else "%s failed skill-doctor.py" % sd.name)

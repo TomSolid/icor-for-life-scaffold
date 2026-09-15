@@ -20,11 +20,19 @@ a green that proves nothing (GL-1005 rule 4).
 """
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+# Every child spawned from here runs with bytecode writing OFF. The scripts this
+# file drives import siblings by path, and stock CPython drops the .pyc beside
+# whatever copy it loaded; under a fixture root that is a file inside the
+# fixture, which then shows up in a tree walk as bytes nobody wrote on purpose.
+# Same cure as run-red-tests.py, for the same reason (1.24.0 CI).
+os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
 
 SCRIPT = Path(__file__).with_name('expansion-pack.py')
 BREAK_ME = '--break-me' in sys.argv[1:]
@@ -52,7 +60,8 @@ class ExpansionTests(unittest.TestCase):
         args = [sys.executable, str(SCRIPT), command, 'sample-pack', '--root', str(self.root)]
         if approved:
             args.append('--approved')
-        return subprocess.run(args, capture_output=True, text=True)
+        return subprocess.run(args, capture_output=True, text=True,
+                              env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
 
     def receipt(self, identifier='sample-pack'):
         return self.root / RECEIPTS / (identifier + '.json')
@@ -229,7 +238,8 @@ class ExpansionTests(unittest.TestCase):
                         'sha256': hashlib.sha256(self.data).hexdigest()}]}))
         listed = subprocess.run(
             [sys.executable, str(SCRIPT), 'list', '--root', str(self.root)],
-            capture_output=True, text=True)
+            capture_output=True, text=True,
+            env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
         self.assertEqual(listed.returncode, 0, listed.stderr)
         rows = json.loads(listed.stdout)
         row = [x for x in rows if x['id'] == 'sample-pack'][0]
