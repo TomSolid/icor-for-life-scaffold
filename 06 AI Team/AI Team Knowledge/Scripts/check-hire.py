@@ -1010,17 +1010,31 @@ def check_agent(vault, name):
     if not vault.public:
         res.skip(22, "pack", "pack mode is a Scaffold check; this folder is the private vault")
     else:
-        packs = root / "06 AI Team/Expansions"
+        # A receipt lives at `.icor-for-life/expansions/<pack-id>.json`, and
+        # NOWHERE else. Outside the pack, because a receipt inside the pack
+        # folder is a file the pack itself ships and can therefore forge, which
+        # let `remove` delete files the pack never installed (Vex F5, batch b2,
+        # 2026-09-15). This check read the in-pack path only, so it answered
+        # "not installed by an Expansion pack" for every pack-installed agent
+        # and quietly passed them all.
+        #
+        # There is no fallback to the old in-pack path, on Vex's ruling: no
+        # pack has ever been published, so no legacy install exists anywhere,
+        # and a second reader of a pack-shipped file is the very thing F5
+        # forbids.
+        receipts = []
+        canonical = root / ".icor-for-life" / "expansions"
+        if canonical.is_dir():
+            receipts += sorted(canonical.glob("*.json"))
         installed_by_pack = False
-        if packs.is_dir():
-            for receipt in packs.glob("*/installation.json"):
-                try:
-                    r = json.loads(read(receipt))
-                except ValueError:
-                    continue
-                for f in r.get("files", []):
-                    if str(f.get("target", "")).startswith("%s/%s/" % (AGENTS_REL, name)):
-                        installed_by_pack = True
+        for receipt in receipts:
+            try:
+                r = json.loads(read(receipt))
+            except ValueError:
+                continue
+            for f in r.get("files", []):
+                if str(f.get("target", "")).startswith("%s/%s/" % (AGENTS_REL, name)):
+                    installed_by_pack = True
         if not installed_by_pack:
             res.ok(22, "pack", "not installed by an Expansion pack")
         elif shim_text:
@@ -1232,7 +1246,13 @@ def build_fixture(dest, public=False, scripts_dir=None):
                                  "severity": "block", "owner": "testy"}]}, indent=2))
     (dest / SCRIPTS_REL / "fixture-guard.py").write_text("# --self-test\n")
     (dest / SCRIPTS_REL / "run-red-tests.py").write_text("# fixture-guard red case\n")
-    for helper in ("mint-agent-ids.py", "check-agent-shim-mcp.py", "skill-doctor.py"):
+    # The helpers a check SHELLS OUT TO, plus the siblings those helpers load
+    # by path from their own folder. noteio.py is one of those siblings: a
+    # fixture that copies mint-agent-ids.py without it gives that helper a
+    # Scripts/ folder it refuses to run in, the check gets no answer, and the
+    # planted defect looks like a check that cannot go red (2026-09-15).
+    for helper in ("mint-agent-ids.py", "check-agent-shim-mcp.py",
+                   "skill-doctor.py", "noteio.py"):
         src = (Path(scripts_dir) if scripts_dir else HERE) / helper
         if src.is_file():
             shutil.copy2(str(src), str(dest / SCRIPTS_REL / helper))
@@ -1404,9 +1424,12 @@ def _plant_21b(v):
 
 
 def _plant_22(v):
-    d = v / "06 AI Team/Expansions/fixture-pack"
+    """A pack receipt in the one place a receipt lives,
+    `.icor-for-life/expansions/<pack-id>.json`, with the shim missing. Until
+    2026-09-15 check 22 read the in-pack path instead and passed this."""
+    d = v / ".icor-for-life" / "expansions"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "installation.json").write_text(json.dumps(
+    (d / "fixture-pack.json").write_text(json.dumps(
         {"schema": 1, "id": "fixture-pack",
          "files": [{"target": AGENTS_REL + "/Testy/AGENT.md", "sha256": "x"}]}))
     (v / SHIM_REL / "testy.md").unlink()
@@ -1438,7 +1461,7 @@ PLANTS = [
     (21, "brief", "the brief deleted and a waiver in NEITHER place", _plant_21, "both"),
     (21, "brief", "the brief deleted and `brief_waived: \"TBD\"`, which waives nothing",
      _plant_21b, "both"),
-    (22, "pack", "a pack fixture with an agent folder and no shim", _plant_22, "public"),
+    (22, "pack", "a .icor-for-life/expansions receipt with an agent folder and no shim", _plant_22, "public"),
 ]
 
 
