@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.25.0",
-  "built": "2026-09-15T16:15:27Z",
-  "commit": "8a6dcab",
+  "version": "1.25.1",
+  "built": "2026-09-15T17:29:40Z",
+  "commit": "35eabc9",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -109,6 +109,12 @@
     {
       "path": ".claude/settings.json",
       "sha256": "ba48d72e88a2b478a11d8ce33287208ab36f954e89e203ee420ce8c4aa762c1a",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/skills/answer-the-six-life-questions/SKILL.md",
+      "sha256": "1fead659ee1f14bb0fb5d52898e3b40960f10489f08206e905d13ea77f7fe38b",
       "kind": "claude",
       "example": false
     },
@@ -1085,6 +1091,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Skills/answer-the-six-life-questions/SKILL.md",
+      "sha256": "07e7b30e229c74899dd0dbaa422744db5f413c0a425dc15b63b6ac21d46c41aa",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Skills/checkpoint/SKILL.md",
       "sha256": "9b5055e893938fdf85edfe82006fd0efe7bf8943b04b64d872852d8e80db254f",
       "kind": "doc",
@@ -1618,6 +1630,16 @@
     }
   ],
   "history": [
+    {
+      "version": "1.25.1",
+      "date": "2026-09-15",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".claude/skills/answer-the-six-life-questions/SKILL.md",
+        "06 AI Team/AI Team Knowledge/Skills/answer-the-six-life-questions/SKILL.md"
+      ]
+    },
     {
       "version": "1.25.0",
       "date": "2026-09-15",

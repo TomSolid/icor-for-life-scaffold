@@ -15,6 +15,36 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.25.1 (2026-09-15)
+
+Patch bump, one missing file: 1.25.0 shipped SOP-1017 and the scripts behind
+it, but not the skill that opens it. Nothing in the vault is removed, moved or
+renamed, and every part of 1.25.0 is in here unchanged.
+
+### Fixed
+
+- **`answer-the-six-life-questions` is now a generated skill, the way the other
+  three already were.** SOP-1017 declares `skill_name:
+  answer-the-six-life-questions` along with its triggers and its prerun, and a
+  declared skill name is the whole input the generator needs. The generator was
+  simply not re-run before 1.25.0 was tagged, so the release carried the
+  procedure and the deterministic half without the door that reaches them: the
+  six questions could be answered only by someone who already knew to open the
+  SOP by hand, which is the one thing SOP-1017 exists to stop. Running
+  `scaffold-init.py apply` created exactly three entries and changed nothing
+  else: `06 AI Team/AI Team Knowledge/Skills/answer-the-six-life-questions/SKILL.md`,
+  the canonical host-neutral copy, `.claude/skills/answer-the-six-life-questions/SKILL.md`,
+  the Claude copy carrying that host's frontmatter and the inlined
+  `life-snapshot.py --write --brief` prerun, and the per-device link under
+  `.agents/skills/`, which is gitignored by construction and ships with no
+  release. Both written files are byte-identical in shape to the three skills
+  that shipped in 1.25.0, including the same host-versus-canonical divergence,
+  so this is the file that was missing and not a new design.
+- The gap was in the release, not in the generator. `scaffold-init.py plan`
+  named the three creates on the first run, with no update, no removal and the
+  eight hand-written shims correctly kept, which is the generator reporting a
+  release that had been cut one step early.
+
 ## 1.25.0 (2026-09-15)
 
 Six questions a member asks all the time, answered from one file a script
