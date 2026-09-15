@@ -27,7 +27,7 @@ and get the whole thing.
 A fast run is not a green for the skipped groups. The summary says so, and it
 says which groups were skipped rather than only how many.
 """
-import json, os, re, subprocess, sys, tempfile, shutil
+import hashlib, json, os, re, subprocess, sys, tempfile, shutil
 from pathlib import Path
 
 _re5date = re.compile(r"(?m)^\s*date links\s*:\s*\d+ mention")
@@ -95,12 +95,47 @@ def skip(name, reason):
     skips.append((name, reason))
     print(f"SKIP {name}: {reason}")
 
-def expect_fail(name, argv, cwd=None):
+def fingerprint(paths):
+    """{path: sha256 or None} for every file under each path given.
+
+    A missing file is recorded as None so a deletion reads as a change
+    rather than as an absence nobody looked at.
+    """
+    out = {}
+    for base in paths:
+        base = Path(base)
+        targets = ([f for f in sorted(base.rglob("*")) if f.is_file()]
+                   if base.is_dir() else [base])
+        for f in targets:
+            out[str(f)] = (hashlib.sha256(f.read_bytes()).hexdigest()
+                           if f.is_file() else None)
+    return out
+
+
+def expect_fail(name, argv, cwd=None, unchanged=None):
+    """The guard must exit non-zero AND, when `unchanged` names files, it
+    must not have touched a byte of them.
+
+    The exit code alone cannot see a guard that writes first and refuses
+    afterwards: stamp-processed.py --archive did exactly that, stamping the
+    member's note and then refusing the move, so the note was left stamped
+    and blocked (Brian Carroll, T16-1). Hashing the inputs before and after
+    is the only thing that catches that shape.
+    """
     global checks
     checks += 1
+    watch = [Path(p) for p in (unchanged or [])]
+    before = fingerprint(watch)
     r = subprocess.run([PY] + argv, capture_output=True, text=True, cwd=cwd)
     if r.returncode == 0:
         fails.append(f"{name}: accepted bad input (guard is green when it must be red)")
+    after = fingerprint(watch)
+    for key in sorted(set(before) | set(after)):
+        if before.get(key) != after.get(key):
+            fails.append("%s: refused, but %s changed on disk; a guard that "
+                         "writes before it refuses leaves the member's file in "
+                         "the very state the refusal claims to have avoided"
+                         % (name, key))
     return r
 
 def expect_ok(name, argv, cwd=None, env=None):
@@ -115,10 +150,10 @@ def expect_ok(name, argv, cwd=None, env=None):
     return r
 
 
-def expect_refusal(name, argv, cwd=None):
+def expect_refusal(name, argv, cwd=None, unchanged=None):
     """expect_fail, plus: the red must be a FAIL line, not a traceback. A
     crash exits 1 too, and a crash teaches the operator nothing."""
-    r = expect_fail(name, argv, cwd)
+    r = expect_fail(name, argv, cwd, unchanged=unchanged)
     if "Traceback" in (r.stderr or ""):
         fails.append(f"{name}: crashed with a traceback instead of refusing")
     return r
@@ -137,6 +172,60 @@ def bring_obsidian_config(v):
         if (ROOT / ".obsidian" / cfg).is_file():
             shutil.copy2(ROOT / ".obsidian" / cfg, v / ".obsidian" / cfg)
     return v
+
+
+# ---------------------------------------------------------------------------
+# Purpose-built fixture vaults (Brian Carroll T16-15, Andrew Gillley T13-4)
+# ---------------------------------------------------------------------------
+# Until 2026-09-15 the content fixtures were a straight copy of ROOT, and the
+# clean control for check-quality MEASURED ROOT. In the scaffold repo that is
+# the shipped example set and everything reads ok. In a member's vault it is
+# the member's life: one note with a field they invented, five blank daily
+# notes, the example notes they deleted, and a lived-in copy produced 9 FAIL
+# and exit 1 on a suite whose whole job is to be trustworthy when it fires.
+#
+# The machinery still comes from ROOT, because the machinery IS what is under
+# test: 06 AI Team/, .obsidian/, the root entry files, 05 Assets/. What does
+# NOT come along is the member's own writing. The four content rooms are
+# rebuilt empty from validate-scaffold.py's own REQUIRED list, and every note
+# a case needs is then seeded here, from Templates/, so the counts a case
+# asserts are counts this file put there.
+import ast as _ast
+
+_VS_SRC = (HERE / "validate-scaffold.py").read_text(encoding="utf-8")
+_m = re.search(r"^REQUIRED = (\[.*?\])\n", _VS_SRC, re.S | re.M)
+REQUIRED_FOLDERS = _ast.literal_eval(_m.group(1)) if _m else []
+CONTENT_ROOMS = ("04 Inner World", "00 Daily Scratchpad", "01 Inbox", "03 WiP")
+
+
+def fixture_vault(tmp, name):
+    """A scaffold with the member's own notes left behind."""
+    v = tmp / name
+    shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+    for room in CONTENT_ROOMS:
+        shutil.rmtree(v / room, ignore_errors=True)
+    for rel in REQUIRED_FOLDERS:
+        (v / rel).mkdir(parents=True, exist_ok=True)
+    return v
+
+
+def seed(v, kind, title, room, **fields):
+    """One note, rendered from the vault's own Templates/<kind>.md. GL-1002's
+    field list lives in the template and nowhere else, so a fixture written by
+    hand here would be a second copy of it that drifts."""
+    import datetime as _d
+    tpl = v / "06 AI Team/AI Team Knowledge/Templates" / (kind + ".md")
+    text = (tpl.read_text(encoding="utf-8")
+            .replace("{{title}}", title)
+            .replace("{{date}}", _d.date.today().isoformat())
+            .replace("{{time}}", "09:00"))
+    for k, val in fields.items():
+        text = re.sub(r"(?m)^%s:[^\n#]*" % re.escape(k), "%s: %s" % (k, val),
+                      text, count=1)
+    path = v / room / (title + ".md")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
 
 
 with tempfile.TemporaryDirectory() as td:
@@ -227,6 +316,35 @@ with tempfile.TemporaryDirectory() as td:
             fails.append("checkpoint/done-task-visible: a done task older than the last log is listed, so the scan ignores the log's time")
     except Exception as e:
         fails.append(f"checkpoint/done-task-visible: report unreadable ({e})")
+    # 1e. THE CUTOFF IS THE LOG'S NAME, NOT ITS MTIME (Brian Carroll,
+    #     T16-12). A sync tool, a Time Machine restore, a checkout or the
+    #     member simply reopening the log all move its mtime forward, which
+    #     put the cutoff in the future and reported `tasks touched : 0` on a
+    #     session that had shipped work. The fixture is exactly that shape: a
+    #     log NAMED 2026-09-06-10-00 whose mtime is right now, and a task
+    #     touched an hour ago, which must still be in the report.
+    touched_log = lg / "2026-09-06-11-00_larry_synced.md"
+    touched_log.write_text("---\ntype: session-log\n---\n")
+    _os.utime(touched_log, (_time.time(), _time.time()))
+    hour_ago = _time.time() - 3600
+    shipped = tk / "in-progress/2026-09-07-003-mid-session-probe.md"
+    shipped.parent.mkdir(parents=True, exist_ok=True)
+    shipped.write_text("---\ntype: task\nstatus: in-progress\n---\n")
+    _os.utime(shipped, (hour_ago, hour_ago))
+    r = subprocess.run([PY, str(HERE / "checkpoint.py"), str(nolog), "--json"],
+                       capture_output=True, text=True)
+    checks += 1
+    try:
+        rep = _json.loads(r.stdout)
+        if shipped.name not in {e["file"] for e in rep["tasks_touched_since_last_log"]}:
+            fails.append("checkpoint/log-time-from-the-name: a task touched an "
+                         "hour ago is missing from the report because the last "
+                         "log's mtime is now; the cutoff must come from the "
+                         "log's filename")
+    except Exception as e:
+        fails.append("checkpoint/log-time-from-the-name: report unreadable (%s)" % e)
+    _os.utime(touched_log, (day_ago, day_ago))
+
     # 2b. validate-scaffold must reject an agent folder without its bio
     bad2 = tmp / "bad-scaffold-2"
     shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))
@@ -537,7 +655,8 @@ with tempfile.TemporaryDirectory() as td:
     _stamp(once)
     before = once.read_text(encoding="utf-8")
     expect_fail("stamp-processed/double-stamp",
-                [str(HERE / "stamp-processed.py"), str(once), "--summary", "x", "--into", "[[y]]"])
+                [str(HERE / "stamp-processed.py"), str(once), "--summary", "x", "--into", "[[y]]"],
+                unchanged=[once])
     checks += 1
     if once.read_text(encoding="utf-8") != before:
         fails.append("stamp-processed/double-stamp: refused and wrote anyway")
@@ -546,15 +665,18 @@ with tempfile.TemporaryDirectory() as td:
     #     it ends would rewrite the user's words.
     torn = tmp / "torn.md"; torn.write_text("---\ntype: scratchpad\nnever closed\n")
     expect_fail("stamp-processed/unterminated-frontmatter",
-                [str(HERE / "stamp-processed.py"), str(torn), "--summary", "x", "--into", "[[y]]"])
+                [str(HERE / "stamp-processed.py"), str(torn), "--summary", "x", "--into", "[[y]]"],
+                unchanged=[torn])
     # 5. stamp-processed must reject a non-wikilink --into
     n2 = tmp / "n2.md"; n2.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/bad-wikilink",
-                [str(HERE / "stamp-processed.py"), str(n2), "--summary", "x", "--into", "not-a-link"])
+                [str(HERE / "stamp-processed.py"), str(n2), "--summary", "x", "--into", "not-a-link"],
+                unchanged=[n2])
     # 6. stamp-processed must refuse to archive outside 01 Inbox/Outer World
     n3 = tmp / "n3.md"; n3.write_text("---\ntype: capture\n---\nbody\n")
     expect_fail("stamp-processed/archive-outside-inbox",
-                [str(HERE / "stamp-processed.py"), str(n3), "--summary", "x", "--into", "[[y]]", "--archive"])
+                [str(HERE / "stamp-processed.py"), str(n3), "--summary", "x", "--into", "[[y]]", "--archive"],
+                unchanged=[n3])
     # 6a. THE DATE-LINKS LINE MUST BE ABLE TO SAY A NUMBER (pilot A finding
     #     F7, pilot B F3). `link-dates-to-daily-notes.py --check --json`
     #     printed its JSON object AND a human OK line on the same stdout, so
@@ -955,45 +1077,53 @@ with tempfile.TemporaryDirectory() as td:
     #     that used to be the traceback
     v31 = capture_vault("capture-31")
     expect_refusal("stamp-processed/binary-as-note",
-                   [str(sp), str(v31 / "01 Inbox/Scanner Inbox/scan.pdf")] + STAMP)
+                   [str(sp), str(v31 / "01 Inbox/Scanner Inbox/scan.pdf")] + STAMP,
+                   unchanged=[v31])
     (v31 / "bytes.md").write_bytes(BIN)
     expect_refusal("stamp-processed/binary-bytes-as-note",
-                   [str(sp), str(v31 / "bytes.md")] + STAMP)
+                   [str(sp), str(v31 / "bytes.md")] + STAMP,
+                   unchanged=[v31])
     # 32. --capture with a .md is refused (a markdown capture is its own note)
     v32 = capture_vault("capture-32")
     (v32 / "01 Inbox/Scanner Inbox/clip.md").write_text("---\ntype: capture\n---\nbody\n")
     expect_refusal("stamp-processed/capture-is-markdown",
                    [str(sp), str(v32 / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--capture", str(v32 / "01 Inbox/Scanner Inbox/clip.md")])
+                   + ["--capture", str(v32 / "01 Inbox/Scanner Inbox/clip.md")],
+                   unchanged=[v32])
     # 33. --capture with a binary outside 01 Inbox is refused
     v33 = capture_vault("capture-33")
     (tmp / "outside.pdf").write_bytes(BIN)
     expect_refusal("stamp-processed/capture-outside-inbox",
                    [str(sp), str(v33 / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--capture", str(tmp / "outside.pdf")])
+                   + ["--capture", str(tmp / "outside.pdf")],
+                   unchanged=[v33, tmp / "outside.pdf"])
     # 34. a wrapper note whose source_file does not resolve to one file on
     #     the shelf is refused: no source_file at all, and one that points
     #     at nothing
     v34 = capture_vault("capture-34", source_file=None)
     expect_refusal("stamp-processed/wrapper-without-source-file",
                    [str(sp), str(v34 / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--capture", str(v34 / "01 Inbox/Scanner Inbox/scan.pdf")])
+                   + ["--capture", str(v34 / "01 Inbox/Scanner Inbox/scan.pdf")],
+                   unchanged=[v34])
     v34b = capture_vault("capture-34b", source_file='"[[nowhere.pdf]]"')
     expect_refusal("stamp-processed/source-file-unresolved",
                    [str(sp), str(v34b / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--capture", str(v34b / "01 Inbox/Scanner Inbox/scan.pdf")])
+                   + ["--capture", str(v34b / "01 Inbox/Scanner Inbox/scan.pdf")],
+                   unchanged=[v34b])
     # 35. --archive and --capture together are refused
     v35 = capture_vault("capture-35")
     expect_refusal("stamp-processed/archive-and-capture",
                    [str(sp), str(v35 / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--archive", "--capture", str(v35 / "01 Inbox/Scanner Inbox/scan.pdf")])
+                   + ["--archive", "--capture", str(v35 / "01 Inbox/Scanner Inbox/scan.pdf")],
+                   unchanged=[v35])
     # 36. a forced sha256 mismatch is refused AND the inbox original still
     #     exists, unstamped. A guard that refuses correctly but deletes on
     #     the way out would pass every other test in this file.
     v36 = capture_vault("capture-36", shelf=b"not the same bytes")
     expect_refusal("stamp-processed/sha256-mismatch",
                    [str(sp), str(v36 / "04 Inner World/Notes/scan.md")] + STAMP
-                   + ["--capture", str(v36 / "01 Inbox/Scanner Inbox/scan.pdf")])
+                   + ["--capture", str(v36 / "01 Inbox/Scanner Inbox/scan.pdf")],
+                   unchanged=[v36])
     if not (v36 / "01 Inbox/Scanner Inbox/scan.pdf").is_file():
         fails.append("stamp-processed/sha256-mismatch: refused, yet the inbox original is GONE")
     if "processed: true" in (v36 / "04 Inner World/Notes/scan.md").read_text():
@@ -1019,8 +1149,12 @@ with tempfile.TemporaryDirectory() as td:
     #     title GL-1004 forbids, a note already there, a link to nothing, a
     #     `note` filed under nothing (GL-1007), a required field left empty.
     ne = HERE / "new-entity.py"
-    ent = tmp / "entity-vault"
-    shutil.copytree(ROOT, ent, ignore=shutil.ignore_patterns(".git"))
+    ent = fixture_vault(tmp, "entity-vault")
+    seed(ent, "topic", "Knowledge Management", "04 Inner World/My Life/Topics")
+    # Case 43b follows [[Alex]] to Alex Rivera, so the alias is part of the
+    # fixture rather than something the member's vault happens to have.
+    seed(ent, "person", "Alex Rivera", "04 Inner World/Contacts/People",
+         name="Alex Rivera", aliases="[Alex]")
     R = ["--root", str(ent)]
     KM = ["--link", "[[Knowledge Management]]", "--set", "note_type=outline"]
     expect_refusal("new-entity/unknown-type", [str(ne), "widget", "A Thing"] + R)
@@ -1097,8 +1231,12 @@ with tempfile.TemporaryDirectory() as td:
     #     vault, four metrics that must fire.
     cq = HERE / "check-quality.py"
     expect_refusal("check-quality/not-a-scaffold", [str(cq), str(tmp)])
-    bad_q = tmp / "quality-vault"
-    shutil.copytree(ROOT, bad_q, ignore=shutil.ignore_patterns(".git"))
+    bad_q = fixture_vault(tmp, "quality-vault")
+    seed(bad_q, "topic", "Knowledge Management", "04 Inner World/My Life/Topics")
+    # The duplicate the check must find needs BOTH halves in the fixture: the
+    # person note and the one whose `name` normalises to the same identity.
+    seed(bad_q, "person", "Alex Rivera", "04 Inner World/Contacts/People",
+         name="Alex Rivera")
     (bad_q / "04 Inner World/Notes/Loose Note.md").write_text(
         "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
         'topics: ["[[Knowledge Management]]"]\ncolour: blue\ntags: []\n---\n\n'
@@ -1174,16 +1312,147 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("check-quality/type-out-of-enum: report unreadable (%s): %s"
                      % (e, r.stderr.strip()[:200]))
 
-    # 47b. the control: the shipped scaffold itself must read `ok`, or every
-    #      red above is just a script that always says broken.
-    checks += 1
-    r = subprocess.run([PY, str(cq), str(ROOT), "--json"], capture_output=True, text=True)
+    # 47c. A BLANK DAILY NOTE IS NOT AN UNPROCESSED ONE (Brian Carroll,
+    #      T16-5). link-dates-to-daily-notes.py --fix creates the daily note
+    #      for every day a link points at, empty and on purpose, so a member
+    #      who linked forty dates woke up to forty "unprocessed scratchpads"
+    #      and an oldest-unprocessed age measured from a note nobody had
+    #      written in. Both halves: the blank one must NOT count, the one
+    #      with a line in it must.
+    (bad_q / "00 Daily Scratchpad/2026/09").mkdir(parents=True, exist_ok=True)
+    (bad_q / "00 Daily Scratchpad/2026/09/2026-09-01.md").write_text("", encoding="utf-8")
+    (bad_q / "00 Daily Scratchpad/2026/09/2026-09-02.md").write_text("   \n\n",
+                                                                    encoding="utf-8")
+    (bad_q / "00 Daily Scratchpad/2026/09/2026-09-03.md").write_text(
+        "bought milk\n", encoding="utf-8")
+
+    # 47d. CODE IS NOT PROSE (Brian Carroll, T16-7). A wikilink inside a
+    #      fence or an inline span is an EXAMPLE of a link, which is what
+    #      every guideline that teaches wikilinks is full of.
+    (bad_q / "04 Inner World/Notes/Teaches Links.md").write_text(
+        "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+        'topics: ["[[Knowledge Management]]"]\ntags: []\n---\n\n'
+        "# Teaches Links\n\nWrite it as `[[Inline Example]]`, like this:\n\n"
+        "```\n[[Fenced Example]]\n```\n", encoding="utf-8")
+
+    # 47e. THE RESOLVER (Brian Carroll, T16-6). Two notes answer to the stem
+    #      `Ledger`; Obsidian resolves to the shorter path, and so must this.
+    #      And a link written to an `aliases` entry resolves, because an
+    #      alias exists to be linked to.
+    (bad_q / "04 Inner World/Notes/Ledger.md").write_text(
+        "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+        'topics: ["[[Knowledge Management]]"]\naliases: ["The Big Ledger"]\n'
+        "tags: []\n---\n\n# Ledger\n", encoding="utf-8")
+    deep = bad_q / "04 Inner World/Notes/deep/deeper/Ledger.md"
+    deep.parent.mkdir(parents=True, exist_ok=True)
+    deep.write_text("---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+                    'topics: ["[[Knowledge Management]]"]\ntags: []\n---\n\n'
+                    "# Ledger\n", encoding="utf-8")
+    (bad_q / "04 Inner World/Notes/Points At Both.md").write_text(
+        "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+        'topics: ["[[Knowledge Management]]"]\ntags: []\n---\n\n'
+        "# Points At Both\n\nSee [[Ledger]] and [[The Big Ledger]].\n",
+        encoding="utf-8")
+
+    r = subprocess.run([PY, str(cq), str(bad_q), "--json"], capture_output=True, text=True)
     try:
-        if _json.loads(r.stdout)["health"] != "ok":
-            fails.append("check-quality/clean-control: the shipped scaffold does not "
-                         "read ok, so the metrics cannot be trusted when they fire")
+        rep3 = _json.loads(r.stdout)
+        by3 = {m["id"]: m for m in rep3["metrics"]}
+        blank_hits = [f for f in rep3["findings"]
+                      if f["metric"] == "unprocessed_scratchpads"
+                      and ("2026-09-01" in f["path"] or "2026-09-02" in f["path"])]
+        checks += 1
+        if blank_hits:
+            fails.append("check-quality/blank-daily-note: a blank daily note is "
+                         "reported as an unprocessed scratchpad: %s"
+                         % ", ".join(sorted(f["path"] for f in blank_hits)))
+        checks += 1
+        if not [f for f in rep3["findings"]
+                if f["metric"] == "unprocessed_scratchpads"
+                and "2026-09-03" in f["path"]]:
+            fails.append("check-quality/blank-daily-note: skipping the blank ones "
+                         "also silenced the scratchpad that HAS a line in it")
+        checks += 1
+        code_hits = [f for f in rep3["findings"]
+                     if f["metric"] == "dangling_links"
+                     and ("Inline Example" in f["message"]
+                          or "Fenced Example" in f["message"])]
+        if code_hits:
+            fails.append("check-quality/links-in-code: a wikilink inside a code "
+                         "fence or an inline span is counted as a link: %s"
+                         % "; ".join(f["message"] for f in code_hits))
+        checks += 1
+        alias_hits = [f for f in rep3["findings"]
+                      if f["metric"] == "dangling_links"
+                      and "The Big Ledger" in f["message"]]
+        if alias_hits:
+            fails.append("check-quality/alias-resolves: a link written to an "
+                         "`aliases` entry is reported as dangling")
+        checks += 1
+        orphan_hits = [f for f in rep3["findings"] if f["metric"] == "orphans"
+                       and f["path"] == "04 Inner World/Notes/Ledger.md"]
+        if orphan_hits:
+            fails.append("check-quality/shortest-path-wins: [[Ledger]] resolved to "
+                         "the deeper of the two, so the one nearer the top of the "
+                         "vault reads as an orphan; Obsidian takes the shortest path")
+        checks += 1
+        if by3["dangling_links"]["value"] < 1:
+            fails.append("check-quality/dangling-still-fires: the fixture still "
+                         "carries [[Nowhere At All]] and the metric reads 0; the "
+                         "code and alias fixes must not blind the check")
+    except Exception as e:
+        fails.append("check-quality/resolver-and-code: report unreadable (%s): %s"
+                     % (e, r.stderr.strip()[:200]))
+
+    # 47b. THE CLEAN CONTROL, ON A FIXTURE RATHER THAN ON THE MEMBER'S VAULT
+    #      (Brian Carroll T16-15, Andrew Gillley T13-4). It used to measure
+    #      ROOT and demand `ok`, which is a statement about the member's life,
+    #      not about this script: a lived-in vault with one invented field in
+    #      it turned the whole red suite red. The control is now a vault this
+    #      file built, with real notes in it and every count known, and the
+    #      live vault's health is printed as a NOTE and decides nothing.
+    good_q = fixture_vault(tmp, "quality-clean")
+    seed(good_q, "topic", "Knowledge Management", "04 Inner World/My Life/Topics")
+    (good_q / "04 Inner World/Notes/Clean Note.md").write_text(
+        "---\ntype: note\nnote_type: outline\ncreated: 2026-09-01\n"
+        'topics: ["[[Knowledge Management]]"]\ntags: []\n---\n\n'
+        "# Clean Note\n\nAbout [[Knowledge Management]].\n", encoding="utf-8")
+    # The Topic links back, because an unlinked note is an orphan and an
+    # orphan is `attention`. A clean control has to be clean by the rules the
+    # script actually applies, not by the ones the author remembers.
+    km = good_q / "04 Inner World/My Life/Topics/Knowledge Management.md"
+    km.write_text(km.read_text(encoding="utf-8").rstrip("\n")
+                  + "\n\nSee [[Clean Note]].\n", encoding="utf-8")
+    checks += 1
+    r = subprocess.run([PY, str(cq), str(good_q), "--json"], capture_output=True, text=True)
+    try:
+        clean = _json.loads(r.stdout)
+        if clean["health"] != "ok":
+            fails.append("check-quality/clean-control: a vault this file built "
+                         "from Templates/, with nothing wrong in it, does not read "
+                         "ok (%s); the metrics cannot be trusted when they fire: %s"
+                         % (clean["health"],
+                            "; ".join("%s=%s" % (m["id"], m["value"])
+                                      for m in clean["metrics"]
+                                      if m["severity"] != "ok")))
+        checks += 1
+        if sum(m["value"] for m in clean["metrics"]) != 0 or not clean.get("counts", clean):
+            pass
+        # The control must be measuring something. A vault with no notes in it
+        # reads ok for the same reason an empty folder does.
+        if len(list((good_q / "04 Inner World").rglob("*.md"))) < 2:
+            fails.append("check-quality/clean-control: the control vault holds "
+                         "fewer than two notes, so `ok` says nothing")
     except Exception as e:
         fails.append(f"check-quality/clean-control: report unreadable ({e})")
+
+    # The live vault, for the operator, as information. Never a pass or a
+    # fail: this suite tests the scripts, and a member's vault is not a script.
+    r = subprocess.run([PY, str(cq), str(ROOT), "--json"], capture_output=True, text=True)
+    try:
+        print("NOTE live vault health (%s): %s" % (ROOT.name, _json.loads(r.stdout)["health"]))
+    except Exception:
+        print("NOTE live vault health: could not be read (this decides nothing)")
 
     # 48-51. validate-scaffold checks 12 and 13: the by-hand path in GL-1007
     #     tells the member to run Templates: Insert template and to fill the
@@ -1254,6 +1523,133 @@ with tempfile.TemporaryDirectory() as td:
         '{"folder": "00 Daily Scratchpad", "format": "DD-MM-YYYY"}\n', encoding="utf-8")
     expect_refusal("link-dates-to-daily-notes/format-cannot-back-the-link",
                    [str(linker), str(bad_fmt), "--check"])
+
+    # =====================================================================
+    # 55a-55j. LINE ENDINGS ARE THE MEMBER'S (Ian Slattery, T15-A).
+    #     Python's text mode is universal-newlines on the way in, so the
+    #     ordinary read_text/write_text pair silently rewrote every line
+    #     ending of every note these scripts touched: a CRLF note came back
+    #     LF, a stray lone CR came back LF, and on Windows a freshly created
+    #     note came out CRLF. Nothing looked wrong on macOS until the member
+    #     opened the file in git or on Windows and read the whole file as
+    #     changed. Every fixture here is written with write_bytes and read
+    #     back with read_bytes, because a fixture written through text mode
+    #     would be testing this platform rather than the script.
+    # =====================================================================
+    eolv = tmp / "eol-vault"
+    (eolv / "01 Inbox" / "Outer World").mkdir(parents=True)
+    BODIES = {
+        "lf":    b"---\ntype: capture\n---\nline one\nline two\n",
+        "crlf":  b"---\r\ntype: capture\r\n---\r\nline one\r\nline two\r\n",
+        "stray": b"---\ntype: capture\n---\nline one\rstill line one\nline two\n",
+    }
+    for kind, raw in BODIES.items():
+        note = eolv / "01 Inbox" / "Outer World" / ("%s.md" % kind)
+        note.write_bytes(raw)
+        body_before = raw.split(b"---", 2)[2]
+        checks += 1
+        r = subprocess.run([PY, str(HERE / "stamp-processed.py"), str(note),
+                            "--summary", "carried", "--into", "[[y]]"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            fails.append("noteio/stamp-%s: refused an ordinary note (%s)"
+                         % (kind, (r.stderr or "").strip()[:120]))
+            continue
+        after = note.read_bytes()
+        checks += 1
+        if after.split(b"---", 2)[2] != body_before:
+            fails.append("noteio/stamp-%s: the body bytes changed; the member's "
+                         "line endings are not the script's to rewrite (%r -> %r)"
+                         % (kind, body_before, after.split(b"---", 2)[2]))
+        checks += 1
+        want_eol = b"\r\n" if kind == "crlf" else b"\n"
+        if b"processed: true" + want_eol not in after:
+            fails.append("noteio/stamp-%s: the stamp it ADDED does not use the "
+                         "note's own line ending" % kind)
+
+    # 55g-55j. A note this scaffold CREATES carries no CR at all, whatever
+    #     platform it was created on. LF is what the rest of the vault ships,
+    #     and a mixed vault is the state git reports as "everything changed".
+    made = []
+    r = subprocess.run([PY, str(HERE / "new-journal-entry.py"), "--root", str(ent),
+                        "--date", "2026-09-15", "--slug", "eol-probe",
+                        "--journal-type", "thought",
+                        "--original", "  indented line\n\nand a blank line above\n"],
+                       capture_output=True, text=True)
+    checks += 1
+    jp = ent / "04 Inner World/Journal/2026/09/2026-09-15_eol-probe.md"
+    if r.returncode != 0 or not jp.is_file():
+        fails.append("noteio/journal-created: new-journal-entry.py refused an "
+                     "ordinary entry: " + (r.stderr or "").strip()[:150])
+    else:
+        made.append(jp)
+        # T16-4: the member's words land exactly as they were passed. The
+        # Original Text section is the one section GL-1003 calls sacred, and
+        # it used to be written through .strip().
+        checks += 1
+        if "  indented line\n\nand a blank line above\n" not in jp.read_text(encoding="utf-8"):
+            fails.append("noteio/journal-original-verbatim: the entry does not "
+                         "carry --original exactly as it was passed; leading or "
+                         "trailing whitespace was eaten")
+    for path in made:
+        checks += 1
+        if b"\r" in path.read_bytes():
+            fails.append("noteio/created-note-has-no-cr: %s carries a carriage "
+                         "return; a note this scaffold creates ships LF"
+                         % path.name)
+
+    # =====================================================================
+    # 55k. THE KEYBOARD CONVENTION (Ian Slattery, T11-4). Every key in the
+    #      member-facing docs was written the Mac way and nothing anywhere
+    #      said what a Windows member should press, across four files and
+    #      about fifteen mentions. The convention Tom set: spell the Windows
+    #      key out on the FIRST mention in a document, short form after that,
+    #      plus one line in GL-1010's key table.
+    #
+    #      The scan is the scaffold's OWN documents, never the member's notes:
+    #      a member who writes `Cmd+K` in a note of their own is not a defect
+    #      in this repo, and a suite that goes red for their writing is the
+    #      mistake T16-15 was about. Outside the scaffold checkout it is a
+    #      skip, by name, with the reason.
+    KEY_DOCS = sorted(
+        [ROOT / "README.md"]
+        + [p for p in ROOT.glob("*/README.md")]
+        + [p for p in ROOT.glob("04 Inner World/*/README.md")]
+        + [p for p in (ROOT / "06 AI Team/AI Team Knowledge/Guidelines").glob("*.md")]
+        + [p for p in (ROOT / "06 AI Team/AI Team Knowledge/SOPs").glob("*.md")]
+        + [p for p in (ROOT / "06 AI Team/AI Team Knowledge/Workstreams").glob("*.md")])
+    KEY_DOCS = [p for p in KEY_DOCS if p.is_file()]
+    _FENCE = re.compile(r"(?ms)^[ \t]*(`{3,}|~{3,}).*?(?:^[ \t]*\1[^\n]*$|\Z)")
+    if GIT_SKIP:
+        skip("docs/windows-key-on-first-use",
+             "%s; this scan is about the scaffold's own documents, not the "
+             "member's notes" % GIT_SKIP)
+    else:
+        checks += 1
+        bare = []
+        for doc in KEY_DOCS:
+            text = doc.read_text(encoding="utf-8", errors="ignore")
+            # Code and diagram fences are not prose. A `Cmd+O` inside a mermaid
+            # node label is a picture of a key, and a label is no place to put
+            # a parenthetical.
+            prose = _FENCE.sub(lambda m: "".join(
+                c if c == "\n" else " " for c in m.group(0)), text)
+            hit = re.search(r"Cmd\s*\+", prose)
+            if not hit:
+                continue
+            # A window either side of the key, because the convention reads
+            # just as well stated before it ("The keys (`Cmd` is `Ctrl` on
+            # Windows): `Cmd+Alt+S` ...") as after it.
+            window = prose[max(0, hit.start() - 160):hit.start() + 160]
+            if "Ctrl" not in window:
+                bare.append("%s:%d" % (doc.relative_to(ROOT).as_posix(),
+                                       prose[:hit.start()].count("\n") + 1))
+        if bare:
+            fails.append("docs/windows-key-on-first-use: the first key named in "
+                         "these documents is Mac-only and nothing beside it says "
+                         "what a Windows member presses: %s. The convention is "
+                         "`Cmd+N (Ctrl+N on Windows)` on first use, short form "
+                         "after that (GL-1010, The keys)" % ", ".join(bare))
 
     # =====================================================================
     # 56+. The hook guards (2026-09-14). Every rule in
@@ -2168,9 +2564,22 @@ def _si_fixture(base, n_skills=1, summary="Does the fixture thing.",
             "  - 'do the fixture %d'\n---\n\nStep 1. Nothing.\n"
             % (i, i, i, summary, i), encoding="utf-8")
     shutil.copy2(str(SI), str(tkd / "Scripts" / "scaffold-init.py"))
-    _ch_src = SI.parent / "check-hire.py"
-    if _ch_src.is_file():
-        shutil.copy2(str(_ch_src), str(tkd / "Scripts" / "check-hire.py"))
+    # THE GENERATOR'S SIBLINGS COME WITH IT. scaffold-init.py reads
+    # check-hire.py's TOOL_ALLOWLIST rather than keeping a second copy, and it
+    # loads noteio.py by path from its own folder. A fixture that copies the
+    # generator and not its siblings is a fixture where the generator cannot
+    # start: on 2026-09-15 the missing noteio.py made every `apply` here die
+    # at import, the skills were never written, and the first case that opened
+    # a generated SKILL.md raised FileNotFoundError, taking the rest of this
+    # file with it. Anything new beside scaffold-init.py belongs in this list.
+    for _dep in ("check-hire.py", "noteio.py"):
+        _src = SI.parent / _dep
+        if _src.is_file():
+            shutil.copy2(str(_src), str(tkd / "Scripts" / _dep))
+        else:
+            fails.append("scaffold-init/fixture-deps: %s is not beside "
+                         "scaffold-init.py, so the fixture generator cannot run"
+                         % _dep)
     return v
 
 
