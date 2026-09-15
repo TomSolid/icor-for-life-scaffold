@@ -15,6 +15,215 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.24.0 (2026-09-15)
+
+The first release cut from member bug reports end to end. Four members ran
+1.23.1 in their own vaults and filed what broke; everything below is one of
+their items, named by the item id they filed it under, and every fix carries a
+case in `run-red-tests.py` or `test-expansion-pack.py` that was watched go red
+against the old code before it landed.
+
+Reported by community members Brian Carroll (T16), Andrew Gillley (T13),
+Ian Slattery (T11 and T15) and Darshan Achar (T17), 2026-09-15.
+
+Minor bump, additive: one new script, one new importable room, five refusals
+an Expansion pack now meets that it did not meet before, and a long list of
+script defects. Nothing is removed, moved or renamed, so no major and no
+patch. The expansion-pack refusals would be a breaking change for a published
+pack; no pack has ever been published, so there is nothing anywhere to break.
+
+### Fixed: the scripts
+
+- **T16-1** `Scripts/stamp-processed.py --archive` ran its checks AFTER it
+  wrote the stamp. A note outside `01 Inbox/Outer World/` was left marked
+  `processed: true` and not archived, and the second run refused it as already
+  stamped, with no way forward that did not mean editing the frontmatter by
+  hand. The checks now run before anything is written.
+- **T16-19** `processed_summary` and each `processed_into` item went through an
+  f-string between two bare double quotes, so a summary carrying a quote, a
+  colon or a backslash broke the note's YAML while the script printed OK. Both
+  go through `json.dumps` now: a JSON string is a valid YAML 1.2 double-quoted
+  scalar, escapes and all.
+- **T16-2, T13-6, T15-C** `Scripts/import-file.py` read `args.mtime_from`
+  against a namespace called `a`, so every import raised `NameError` and exited
+  1 AFTER the copy had landed: the file was imported, the manifest line was
+  never written, and the caller read the run as failed. Fixed. `02 Planner`
+  joins the importable rooms, because the Planner writes notes a member imports
+  alongside everything else; `07 Databases` stays out, because nothing there
+  has a markdown source.
+- **T16-3** `Scripts/run-red-tests.py` read a case's exit code and nothing
+  else, so a guard that writes first and refuses afterwards passed. It now
+  hashes the files a case names before and after the run and fails on a changed
+  byte. The `stamp-processed` cases pass their whole fixture vault to it, which
+  is how T16-1 was seen.
+- **T16-4** `Scripts/new-journal-entry.py` wrote `--original` through
+  `.strip()`, which ate a deliberate leading indent or a trailing blank line out
+  of the one section GL-1003 calls sacred. The member's words now land exactly
+  as they were passed; the strip survives only in the empty-input guard, where
+  it asks a question rather than changes the text.
+- **T16-5** `Scripts/check-quality.py` counted a blank daily note as an
+  unprocessed scratchpad. `link-dates-to-daily-notes.py --fix` creates an empty
+  daily note for every day a link points at, on purpose, so a member who linked
+  forty dates woke up to forty things to process and an oldest-unprocessed age
+  measured from a note nobody had written in. Nothing to process is nothing to
+  report, and it stays out of the oldest-unprocessed clock too. A scratchpad
+  that does have a line in it still fires.
+- **T16-6** The same script's wikilink resolver took the FIRST file the walk
+  handed it, so `[[Notes]]` resolved to whichever `Notes.md` `os.walk` reached
+  first and the answer changed when a folder was renamed beside it. It takes
+  the shortest path now, which is what Obsidian does, with the path string as
+  the tie breaker so the answer never depends on walk order. It also never read
+  `aliases`, so every link written to an alias, which is the entire purpose of
+  an alias, was reported as dangling. Aliases are indexed last and never
+  displace a real filename: a note is its name first.
+- **T16-7** And it counted a wikilink inside a code fence or an inline span as
+  a link, so every guideline that teaches wikilinks read as one of the notes
+  with the most dangling links in the vault. Code is blanked, not deleted,
+  before the link scans, so every finding still points at the right line. The
+  frontmatter stays in scope: a wikilink in a `topics:` list is a real link.
+- **T16-10, T15-B** `Scripts/new-entity.py --set` matched `^field:[ \t]*$` and
+  nothing else, so it could only fill a template line that was completely bare.
+  Seven of `Templates/note.md`'s own fields are not bare. A line now counts as
+  fillable while its value is empty, `[]` or `false`, whatever comment follows
+  it, and the refusal names the template line it is looking at. A field whose
+  template default is a list is written as a list, so `--set tags=pkm` no longer
+  lands a string where every reader expects a sequence. And the keys a template
+  marks as belonging to another `note_type` are pruned, so a note copied from
+  the union template no longer arrives with four meeting keys it will never use.
+- **T16-11** `Scripts/link-dates-to-daily-notes.py` had one scope, the whole
+  vault, so linking the dates in one processed scratchpad rewrote date mentions
+  across three rooms as a side effect. `--path` takes a file or a folder and is
+  repeatable. The collision scan still walks the whole vault, because a name
+  clash anywhere is what makes `[[YYYY-MM-DD]]` ambiguous. `SOP-1001` now passes
+  one `--path` per note the run created, never a bare `--fix`.
+- **T16-12** `Scripts/checkpoint.py` compared every task's mtime against the
+  last session log's FILESYSTEM mtime. A session log is named for the moment it
+  covers, and that is the fact this scan needs; its mtime moves forward on a
+  sync, a Time Machine restore, a checkout, or the member simply reopening the
+  log to read it, and the cutoff then sits in the future and the report says
+  `tasks touched : 0` on a session that shipped six of them. The timestamp is
+  parsed from the filename, with mtime as the fallback for a log written by
+  hand, and the last log is picked by that timestamp rather than by sort order.
+- **T16-13** `Scripts/new-task.py move --to open` was rejected by the argument
+  parser, which listed every state except the one a task comes back to when work
+  is parked. Accepted now, and moving a task to the state it is already in says
+  so instead of reporting a destination clash.
+- **T16-15, T13-4** `Scripts/run-red-tests.py` built its content fixtures by
+  copying the vault root and ran its clean control against that copy. In this
+  repo that is the shipped example set and everything reads ok; in a member's
+  vault it is the member's life, and a lived-in copy produced 9 FAIL and exit 1
+  on a suite whose only value is being trustworthy when it fires. The fixture
+  vault is now rebuilt empty from `validate-scaffold.py`'s own room list and
+  seeded from the vault's own `Templates/`, so every count a case asserts is a
+  count the suite put there. The live vault's health is printed as a NOTE that
+  decides nothing.
+- **T13-5** `Scripts/mint-agent-ids.py` and `Scripts/check-quality.py` passed
+  `re.split`'s `maxsplit` positionally, which is deprecated since Python 3.13
+  and printed a `DeprecationWarning` straight into the member's terminal. Passed
+  by name now.
+- **T15-A** A shared `Scripts/noteio.py` reads and writes member files as bytes,
+  so a CRLF note, a stray lone CR and a note created on Windows keep their exact
+  line endings through every script that edits them. Python's text mode is
+  universal-newlines on the way in and platform-endings on the way out, so the
+  ordinary read-edit-write shape quietly rewrote the endings of every note it
+  touched, and nothing looked wrong on macOS until the member opened the same
+  note on Windows, or in git, and read every line as changed. Adopted in
+  thirteen scripts. A folder that holds one of those scripts without
+  `noteio.py` beside it now refuses in one line naming the folder, instead of a
+  `FileNotFoundError` out of `importlib` that nobody sees.
+- Already shipped in 1.23.1, recorded here for the reporters: **T16-16**,
+  **T16-18** and the frontmatter half of **T16-9** were fixed by commit
+  `c21d17e`, and **T13-7**'s check was removed before that.
+
+### Added
+
+- `06 AI Team/AI Team Knowledge/Scripts/noteio.py` - one byte-safe reader and
+  writer for member files, loaded by path so the import needs nothing on
+  `sys.path`. `read_note(path)` returns the decoded text with nothing
+  translated plus the line ending the file uses most, which is what a caller
+  appends with when it ADDS a line; `write_note(path, text)` writes bytes, so
+  whatever endings are in the text are the endings on disk.
+
+### Security: expansion packs
+
+Five findings from Darshan Achar's report (T17), all reproduced on 1.23.1,
+all fixed here. Every one carries a case in `test-expansion-pack.py` that was
+watched go red against the old code.
+
+- **F1 (critical)** An Expansion pack can no longer install anything under
+  `06 AI Team/AI Team Knowledge/Scripts/`. `Scripts` is out of the allowed
+  target kinds with no allow-list, because the danger is the folder and not the
+  file: every script the session start runs imports from there, and a stray
+  `Scripts/json.py` shadowed the standard library for `expansion-pack.py`
+  itself and locked `remove` out of its own vault. As a second layer, the
+  session-start wrapper and every guard command rendered into a host's hook
+  config export `PYTHONSAFEPATH=1`, so the script's own folder is off the front
+  of `sys.path` for the scripts that run at every session start. The variable
+  and not the `-P` flag on purpose: Python before 3.11 ignores the variable and
+  hard-errors on the flag, and an old interpreter must degrade rather than stop
+  a guard from running at all.
+- **F2 (high)** A pack target or payload source is refused if any path segment
+  is `__pycache__`, case-folded, or the final segment ends in `.pyc`, `.pyo`,
+  `.pyd`, `.so`, `.dylib`, `.pth`, `.plist`, `.pyw` or `.egg-link`. The refusal
+  names the suffix.
+- **F3** An `06 AI Team/Agents/` target whose folder name differs only by case
+  from a folder already in the vault is refused, compared against the real
+  directory entries rather than against the nine core names, and the message
+  names the existing folder.
+- **F4** Every pack-installed SOP, Workstream, Guideline or Template must carry
+  a namespace prefix, the pack id followed by a hyphen or `EP-`, so a pack
+  cannot ship a file that reads as the scaffold's own numbered knowledge.
+- **F5 (high)** The install receipt moved out of the pack to
+  `.icor-for-life/expansions/<pack-id>.json`, written with exclusive creation so
+  an existing one is never overwritten in silence. `list` and `remove` read only
+  from there and ignore any in-pack `installation.json`; `install` refuses a
+  pack folder that already ships an `installation.json` or a `removed-*.json`;
+  `remove` renames the receipt to `removed-<timestamp>.json` beside it and still
+  verifies every listed file's sha256 first. `GL-1012` and `WS-1006` describe
+  the model, and `check-hire.py` check 22 reads the new location and nothing
+  else. It has no fallback to the old in-pack path, on Vex's ruling: no pack has
+  ever been published, so no legacy install exists anywhere, and a second reader
+  of a file the pack itself ships is the thing F5 exists to forbid.
+
+### Fixed: Windows
+
+Reported by Ian Slattery (T11), from running 1.23.1 on Windows.
+
+- **T11-1** `Scripts/open-in-obsidian.py` opens the `obsidian://` URI with
+  `os.startfile` on Windows. Its fallback looked for `open` or `xdg-open`, and
+  Windows has neither, so the script exited 3 and every stop of the `WS-1003`
+  guided tour failed there. The new branch is also what `--dry-run` prints.
+- **T11-2** It finds the Obsidian CLI as `Obsidian.com` and in the two Windows
+  install roots, not only as `obsidian` on PATH. On Windows the executable has
+  the other name and is not on PATH at all until the member turns the CLI on in
+  Settings, so the script reported "no Obsidian CLI" on every Windows machine
+  that had one. The recommendation names the Settings toggle.
+- **T11-3** The CLI requirement reads Obsidian installer 1.12.7 or newer
+  everywhere, in the docstring, in the recommendation and in `WS-1003`. The old
+  "Obsidian 1.12+" was wrong on every platform: the CLI arrived with that
+  INSTALLER version, and the installer version is not the app version the member
+  reads in Settings, so a member on a newer-looking app could be missing the CLI
+  with no way to find out why. `WS-1003` now says the two numbers are different
+  rather than leaving the reader to discover it.
+
+### Documentation
+
+- **T11-4** Member-facing documents spell the Windows key on first use,
+  `Cmd+N (Ctrl+N on Windows)`, short form afterwards, with the convention stated
+  once in `GL-1010`'s key table. Seven documents needed it, not the four in the
+  report: `GL-1007`, `SOP-1004` and `SOP-1005` carried a bare `Cmd+O` as well.
+  `run-red-tests.py` gains the sweep that found them, and it skips by name
+  outside this checkout, because a member who writes `Cmd+K` in a note of their
+  own is not a defect in this repo.
+- `GL-1012`, `WS-1006` and `06 AI Team/Expansions/README.md` describe the tool
+  that exists after F1 to F5 rather than the one that did before. `Scripts`
+  payloads are not supported in schema 1, full stop; the old "needs a source
+  review and explicit approval" paragraph is gone, because it described a gate
+  that cannot hold. The "additive, non-executing" framing is corrected wherever
+  it implied that a copied file is inert: `executes_payload: false` is kept and
+  now says what it means, which is that this tool runs nothing from the pack. It
+  has never meant that nothing installed can run.
+
 ## 1.23.1 (2026-09-15)
 
 Patch bump, one defect: the member zip was not reproducible on the CI runner,
