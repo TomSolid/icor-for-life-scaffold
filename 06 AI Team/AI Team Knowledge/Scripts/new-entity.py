@@ -55,7 +55,12 @@ _spec = importlib.util.spec_from_file_location("new_base", HERE / "new-base.py")
 new_base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(new_base)
 
-# Same loader shape for the shared byte-safe reader and writer.
+# Same loader shape for the shared byte-safe reader and writer. A missing
+# noteio.py is a half-upgraded Scripts/ folder and says so in one line.
+if not (HERE / "noteio.py").is_file():
+    raise SystemExit("FAIL noteio.py is missing from %s. Scripts/ is half "
+                     "upgraded; restore noteio.py beside this script and run "
+                     "this again." % HERE)
 _nio = importlib.util.spec_from_file_location("noteio", HERE / "noteio.py")
 noteio = importlib.util.module_from_spec(_nio)
 _nio.loader.exec_module(noteio)
