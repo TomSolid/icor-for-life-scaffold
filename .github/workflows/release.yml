@@ -194,6 +194,7 @@ jobs:
           dry="$(ls "$RUNNER_TEMP/dry/out"/ICOR-for-Life-Scaffold-*.zip)"
           sha="$(sha256sum "$dry" | cut -d' ' -f1)"
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "zip=$dry" >> "$GITHUB_OUTPUT"
           echo "dry run built $dry ($(stat -c %s "$dry") bytes, sha256 $sha)"
 
       - name: Build the member zip from the tag on GitHub, through every gate
@@ -241,6 +242,48 @@ jobs:
           echo "zip=$zip" >> "$GITHUB_OUTPUT"
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
           echo "built $zip ($(stat -c %s "$zip") bytes, sha256 $sha, version $inside, tag at $tagged)"
+
+      # DIAGNOSTIC. The reproducibility comparison in the step above went red
+      # twice on this runner while the same builder was byte-stable on the
+      # maintainer's Mac (runs 34908775429 and 34909448512, four distinct zip
+      # hashes, the two dry runs two bytes apart in SIZE). Reasoning about
+      # which byte moved without holding both files is what cost the hour, so
+      # both zips and both entry listings (per-entry CRC and size) are kept as
+      # run artefacts on EVERY run, red or green, and diffed here in the log.
+      - name: Keep both zips and their entry listings, and diff them
+        if: always()
+        env:
+          DRY_ZIP: ${{ steps.dryrun.outputs.zip }}
+        run: |
+          d="$RUNNER_TEMP/diag"
+          mkdir -p "$d"
+          listing() {  # $1 zip  $2 label
+            [ -f "$1" ] || { echo "no $2 zip at '$1'"; return 0; }
+            cp "$1" "$d/$2.zip"
+            # -v is the verbose listing: length, method, size, ratio, date,
+            # time, CRC-32, name. One line per entry, so a plain diff names
+            # the entry that moved and says whether it moved in content
+            # (CRC), in size, or only in order.
+            unzip -v "$1" > "$d/$2-listing.txt"
+            echo "$2: $(stat -c %s "$1") bytes, sha256 $(sha256sum "$1" | cut -d' ' -f1), $(unzip -Z1 "$1" | wc -l) entries"
+          }
+          listing "$DRY_ZIP" dry
+          listing "$(ls "$RUNNER_TEMP/release"/ICOR-for-Life-Scaffold-*.zip 2>/dev/null | head -1)" tag
+          if [ -f "$d/dry-listing.txt" ] && [ -f "$d/tag-listing.txt" ]; then
+            echo "--- entry listing diff (dry vs tag) ---"
+            diff "$d/dry-listing.txt" "$d/tag-listing.txt" || true
+            echo "--- end of diff ---"
+          fi
+
+      - name: Upload both zips and their entry listings for diffing
+        if: always()
+        # actions/upload-artifact v7.0.1, pinned to the commit.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-zips-and-listings
+          path: ${{ runner.temp }}/diag
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Create the release as a draft if it does not exist
         id: release
