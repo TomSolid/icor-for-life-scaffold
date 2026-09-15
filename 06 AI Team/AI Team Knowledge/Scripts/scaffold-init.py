@@ -842,6 +842,19 @@ raise SystemExit(subprocess.run([sys.argv[1],g],input=b).returncode)
 """
 
 
+# Every guard command starts here. A guard is launched from Scripts/, so
+# Python puts that folder at the front of sys.path and a stray Scripts/json.py
+# would win over the standard library inside the guard itself. session-start.sh
+# exports this for the start ritual's own subprocess tree (c6243ae), but a hook
+# is launched by the HOST, not by that tree, so it inherits nothing from it and
+# needs the variable on its own line.
+#
+# The variable and not `python3 -P`: Python before 3.11 ignores the variable
+# and hard-errors on the flag, and an old interpreter must degrade, never stop
+# a guard from running at all.
+GUARD_ENV = "PYTHONSAFEPATH=1 "
+
+
 def _guard_command(rule, host, hm):
     """The one line the host runs. How the project root is found is host data.
 
@@ -852,11 +865,13 @@ def _guard_command(rule, host, hm):
     """
     interp = rule.get("interpreter") or "python3"
     if hm.get("project_dir_finder") == "walk-up-to-AGENTS.md":
-        return "python3 -c '%s' %s \"%s\"" % (_CODEX_BOOTSTRAP, interp, rule["guard"])
+        # The bootstrap is python3 itself and it spawns the guard as a child,
+        # so one prefix on the front covers both.
+        return GUARD_ENV + "python3 -c '%s' %s \"%s\"" % (_CODEX_BOOTSTRAP, interp, rule["guard"])
     expr = hm.get("project_dir_expr")
     if not expr:
         expr = "$" + (hm.get("project_dir_var") or "CLAUDE_PROJECT_DIR")
-    return '%s "%s/%s"' % (interp, expr, rule["guard"])
+    return GUARD_ENV + '%s "%s/%s"' % (interp, expr, rule["guard"])
 
 
 def render_hooks_block(rules, host):
