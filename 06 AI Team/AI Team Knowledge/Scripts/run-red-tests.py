@@ -2913,6 +2913,41 @@ else:
 
 
 # ===========================================================================
+# BEGIN expansion-pack block (batch b2, Vex ruling 2026-09-15). Keep additions
+# to the expansion-pack guards inside these two markers: a second writer works
+# in this file at the same time and a block with edges is a block that rebases.
+# ===========================================================================
+# 86. THE EXPANSION PACK INSTALLER.
+#
+# Its fixture suite is run whole rather than restated here, one case per Vex
+# finding: F1 (no Scripts target), F2 (no __pycache__ segment and no .pyc .pyo
+# .pyd .so .dylib .pth .plist .pyw .egg-link), F3 (an Agents name that differs
+# only by case from a real folder), F4 (a pack namespace on every installed
+# SOP, Workstream, Guideline and Template, with the EP- control that must
+# still install), F5a/F5b/F5c (the receipt lives in .icor-for-life/expansions/,
+# a forged in-pack one neither reports a pack installed nor enables `remove`,
+# and a pack folder carrying one is refused at install).
+#
+# Each of those was watched red against the code as it stood on 3bf26a7 before
+# the fix landed. `--break-me` proves the suite can still go red, because a
+# fixture suite nobody watched fail is a green that proves nothing.
+#
+# It is NOT --fast-skipped. It builds temporary vaults, so it is not free, but
+# a fast run that skips the security fix is a fast run that reports a green
+# nobody earned.
+_ep_suite = HERE / "test-expansion-pack.py"
+checks += 1
+_ep = subprocess.run([PY, str(_ep_suite)], capture_output=True, text=True)
+if _ep.returncode != 0:
+    fails.append("expansion-pack/fixture-suite: "
+                 + (_ep.stderr or _ep.stdout or "").strip()[-1500:])
+expect_fail("expansion-pack/suite-can-go-red", [str(_ep_suite), "--break-me"])
+# ===========================================================================
+# END expansion-pack block
+# ===========================================================================
+
+
+# ===========================================================================
 # 85. --fast MUST STILL FAIL ON A BROKEN GUARD.
 #
 # A flag that makes a suite quicker is a flag that can make it quieter, and

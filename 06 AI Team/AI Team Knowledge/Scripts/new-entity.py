@@ -55,6 +55,11 @@ _spec = importlib.util.spec_from_file_location("new_base", HERE / "new-base.py")
 new_base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(new_base)
 
+# Same loader shape for the shared byte-safe reader and writer.
+_nio = importlib.util.spec_from_file_location("noteio", HERE / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
+
 # The room each entity type is filed in. Every folder here is asserted
 # against validate-scaffold.py's REQUIRED list at run time (rooms_check),
 # so this map cannot name a folder the scaffold does not guarantee.
@@ -195,6 +200,85 @@ def set_field(text, field, values):
     return pat.sub(lambda _: new, text, count=1)
 
 
+# --- filling a template line ------------------------------------------------
+# A template line is `field:` followed by, optionally, a default the template
+# ships, and, optionally, a trailing `# comment` that says which note_type the
+# field belongs to. Until 2026-09-15 only the bare `field:` shape could be
+# filled, so seven of note.md's own fields (source_url, consumed, idea_status,
+# transcript, transcribed_by, ai_summary, audio_retained) were unreachable
+# from --set and the script reported them as drift between GL-1002 and the
+# template (Ian Slattery, T15-B / Brian Carroll, T16-10).
+TEMPLATE_LINE = re.compile(
+    r"^(?P<field>[A-Za-z_][A-Za-z0-9_-]*):"
+    r"(?P<value>[^\n#]*)"
+    r"(?P<comment>#[^\n]*)?$", re.M)
+# The defaults a template may ship that still mean "nobody has answered this":
+# nothing, an empty list, and `false` on a boolean that only becomes true once
+# the member does something.
+UNANSWERED = {"", "[]", "false"}
+# Which note_type each `# <type> only` comment in Templates/note.md belongs to.
+# The comment in the template is the source: restating the map here would be a
+# second answer to a question GL-1002 and the template already answer once.
+ONLY_FOR = re.compile(r"#\s*(?P<types>[a-z][a-z ,/]*?)\s+only\b")
+
+
+def template_line(text, field):
+    """The whole template line for one field, or None."""
+    for m in TEMPLATE_LINE.finditer(text):
+        if m.group("field") == field:
+            return m.group(0)
+    return None
+
+
+def fillable(line):
+    """True while the template has not already answered this field itself."""
+    m = TEMPLATE_LINE.fullmatch(line)
+    return m is not None and m.group("value").strip() in UNANSWERED
+
+
+def line_number(text, line):
+    return text[:text.index(line)].count("\n") + 1
+
+
+def render_set(field, line, value):
+    """The replacement line. A field whose template default is a list is
+    written as a list: `--set tags=pkm` used to land `tags: pkm`, a string
+    where every reader expects a sequence (Ian Slattery, T15-B)."""
+    m = TEMPLATE_LINE.fullmatch(line)
+    if m.group("value").strip() == "[]":
+        return '%s: ["%s"]' % (field, value)
+    return "%s: %s" % (field, value)
+
+
+def prune_by_note_type(text, note_type):
+    """Drop the frontmatter lines a template marks `# <other type> only`.
+
+    Templates/note.md carries the union of every note_type's fields, so a
+    note copied straight from it arrives with four meeting keys, an idea key
+    and two reference keys whatever it actually is. They are not invented
+    fields, but they are noise in the Properties panel of every note in the
+    vault (GL-1002: a field that cannot mean anything here does not belong
+    here).
+    """
+    note_type = str(note_type).strip().strip("'\"")
+    if not note_type or not text.startswith("---\n"):
+        return text
+    close = text.find("\n---\n", 3)
+    if close == -1:
+        return text
+    front, rest = text[4:close], text[close:]
+    out = []
+    for line in front.split("\n"):
+        m = TEMPLATE_LINE.fullmatch(line)
+        only = ONLY_FOR.search(m.group("comment") or "") if m else None
+        if only and m.group("value").strip() in UNANSWERED:
+            types = {t for t in re.split(r"[ ,/]+", only.group("types")) if t}
+            if note_type not in types:
+                continue
+        out.append(line)
+    return "---\n" + "\n".join(out) + rest
+
+
 def main():
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("type", nargs="?")
@@ -313,6 +397,7 @@ def main():
     # invented_fields metric, created on purpose (CLAUDE.md hard rule 4).
     declared = new_base.gl002_fields(root).get(a.type, set())
     enums = new_base.gl002_enums(root).get(a.type, {})
+    link_fields = set(LINK_FIELDS.get(a.type, {}).values())
     scalars = {}
     for pair in a.sets:
         if "=" not in pair:
@@ -322,7 +407,11 @@ def main():
         if field not in declared:
             fail("%r is not a GL-1002 field for type %r; declared: %s"
                  % (field, a.type, ", ".join(sorted(declared))))
-        if field in by_field or field in SINGLE_FIELDS:
+        if field in link_fields or field in SINGLE_FIELDS:
+            # By name, not "did a --link happen to fill it": --set can reach a
+            # `field: []` line since 2026-09-15, and `--set topics=Foo` would
+            # otherwise write a bare name where every reader expects
+            # "[[Foo]]", which is a dangling link the moment it is saved.
             fail("%r is a link field; use --link, not --set" % field)
         if field in enums and value not in enums[field]:
             fail("%s must be one of %s (GL-1002), got %r"
@@ -332,18 +421,28 @@ def main():
         scalars[field] = value
 
     today = datetime.date.today()
-    text = template.read_text(encoding="utf-8")
+    # The template is read from bytes and then normalised to LF on purpose: a
+    # note this script creates ships LF whatever the member's template picked
+    # up from a sync (Ian Slattery, T15-A).
+    text = noteio.read_note(template)[0]
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = (text.replace("{{title}}", title)
                 .replace("{{date}}", today.isoformat())
                 .replace("{{time}}", datetime.datetime.now().strftime("%H:%M")))
     for field, values in by_field.items():
         text = set_field(text, field, values)
     for field, value in scalars.items():
-        pat = re.compile(r"^%s:[ \t]*$" % re.escape(field), re.M)
-        if not pat.search(text):
-            fail("Templates/%s.md has no empty %r field to fill; template and "
-                 "GL-1002 have drifted apart" % (a.type, field))
-        text = pat.sub("%s: %s" % (field, value), text, count=1)
+        line = template_line(text, field)
+        if line is None:
+            fail("Templates/%s.md has no %r line to fill; template and GL-1002 "
+                 "have drifted apart" % (a.type, field))
+        if not fillable(line):
+            fail("Templates/%s.md already fills %r on line %d and this script "
+                 "does not overwrite a template's own answer:\n    %s"
+                 % (a.type, field, line_number(text, line), line.strip()))
+        text = text.replace(line, render_set(field, line, value), 1)
+
+    text = prune_by_note_type(text, read_frontmatter(text).get("note_type", ""))
 
     # Every field GL-1002 marks required for this type must now carry a
     # value. Some arrive from the template (a project's status), some from
@@ -356,7 +455,7 @@ def main():
              % (", ".join(empty), a.type,
                 " ".join("--set %s=<value>" % f for f in empty)))
 
-    dest.write_text(text, encoding="utf-8")
+    noteio.write_note(dest, text)
     print("OK created %s" % dest.relative_to(root))
     return 0
 
