@@ -18,6 +18,17 @@ The pack format, boundaries and lifecycle are defined once in
 [[GL-1012-ai-team-expansions]]. The installation procedure is
 [[WS-1006-install-an-ai-team-expansion]].
 
-Keep each downloaded pack folder here after installation. Its
-`installation.json` records exactly which files it owns. It is not a
-credential store. Never put API keys in a pack.
+Keep each downloaded pack folder here after installation. What a pack
+owns is recorded OUTSIDE the pack, in
+`.icor-for-life/expansions/<pack-id>.json`, written by the install tool
+and read by nothing else. A receipt shipped inside a pack folder is
+ignored, and a pack that carries one is refused at install until you
+have looked at it.
+
+A pack folder is not a credential store. Never put API keys in a pack.
+
+Packs install readable text: agent contracts, procedures, templates.
+They cannot install anything under `06 AI Team/AI Team Knowledge/Scripts/`
+and cannot install a compiled or loadable file type. The installer runs
+nothing from a pack, and that is a statement about the installer, not a
+promise that a copied file is inert.
