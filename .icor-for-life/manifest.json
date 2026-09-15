@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.24.0",
-  "built": "2026-09-15T14:19:09Z",
-  "commit": "de6e7b2",
+  "version": "1.24.1",
+  "built": "2026-09-15T14:55:59Z",
+  "commit": "c10a5a1",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -816,7 +816,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py",
-      "sha256": "08d22f96267cf39a57f976c04464f5770ed540307fa998c4af5c7c318dc00aca",
+      "sha256": "c394470e057a997d6ca461f5a0f6b06c6ca2d5ce311e1bbc7c9bd8f68851750a",
       "kind": "script",
       "example": false
     },
@@ -828,7 +828,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
-      "sha256": "6da637f8cf2a66d7c72ac01c68ac0ca0d323dd3dcbf9956a7e704f06b7f8cfef",
+      "sha256": "ac5f769f1a4d876ec8405c543b3ddf7ef8410173e55a548d71b0e6569fafbaaa",
       "kind": "script",
       "example": false
     },
@@ -948,7 +948,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "998f2cec4ac5bf8a5b1e318b1134066b7ad5095cd90d0273511ce1b17d71d102",
+      "sha256": "918520108758328972a6ef77b605add63752d84a47080618c028bd23fb9e2cd4",
       "kind": "script",
       "example": false
     },
@@ -984,7 +984,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-expansion-pack.py",
-      "sha256": "54350ae8fbcabb1ad2d5a038989a504b8338c5622956f224cf9c4e7632c5478b",
+      "sha256": "1d216b7986d97a63cab147d1714de9985bf6f5b74a088aadd3a8d43b508af1d5",
       "kind": "script",
       "example": false
     },
@@ -1528,6 +1528,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.24.1",
+      "date": "2026-09-15",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.24.0",
       "date": "2026-09-15",

@@ -15,6 +15,60 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.24.1 (2026-09-15)
+
+Patch bump, one defect: the release's own red-test gate crashed on the CI
+runner, so 1.24.0 could not be published. Nothing in the vault itself changed,
+and every fix listed under 1.24.0 is in here unchanged.
+
+### Fixed
+
+- **The red-test suite no longer writes Python bytecode into the fixture vaults
+  it walks, it compares those vaults byte for byte rather than as UTF-8 text,
+  and it names the interpreter it runs under.** The 1.24.0 run did not fail, it
+  crashed: `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xcb in
+  position 0`, which is the first byte of a `.pyc` magic number. The chain:
+  `scaffold-init.py` loads its siblings by path, stock CPython compiles them and
+  writes `__pycache__/*.pyc` beside them, which is inside the fixture vault, and
+  the snapshot taken either side of the second apply then walked that fixture
+  reading every file as UTF-8 text. Three fixes, because any one of them alone
+  would have been a workaround. The write is stopped at the source:
+  `PYTHONDONTWRITEBYTECODE=1` on the suite's own environment, which every child
+  inherits, forced again at the spawn point so a caller-supplied env cannot drop
+  it, plus `sys.dont_write_bytecode` for the suite's own importlib loads, which
+  were dropping a `.pyc` into whatever tree the run was started from. The
+  snapshot compares `read_bytes()`, so a fixture holding bytes nobody wrote on
+  purpose is reported as a difference instead of raising on it, and bytes are
+  the stricter comparison anyway. And every run prints the interpreter it is
+  under: where that interpreter sets `sys.pycache_prefix`, which Apple's
+  `/usr/bin/python3` does, the run says at the start and again in its own
+  summary that it cannot see the defect class that crashed the 1.24.0 gate, and
+  names the reason. A pass from a Mac can no longer read as a pass it did not
+  earn, which is how this class reached CI twice. Filtering `__pycache__` out of
+  the snapshot was the other option and was not taken: it hides this, and it
+  hides any real difference standing next to it. The negative control then found
+  a fourth thing. The refusal counted its differences with `zip()` over two
+  sorted lists of different length, so a planted file that sorts last and shifts
+  nothing read as "the second apply changed 0 file(s)". A refusal whose own
+  count says nothing changed is a verdict contradicting itself, and under byte
+  identity that message is the reader's only information. It compares by path
+  now and names the files.
+- The same treatment for the two other spawners. `check-hire.py`, whose
+  `--self-test` copies helper scripts into a fixture vault and runs them out of
+  it, and `test-expansion-pack.py`, whose children import siblings by path, both
+  set `PYTHONDONTWRITEBYTECODE=1` on their own environment and pass it
+  explicitly to every child they spawn.
+- `Scripts/build-scaffold-manifest.py` sets `sys.dont_write_bytecode` for the
+  same reason. It importlib-loads `mint-agent-ids.py` out of the repo's own
+  `Scripts/` folder, so it was writing a `.pyc` into the very tree whose tracked
+  files it hashes. Gitignored, so it never reached the manifest or the zip, and
+  on the release path all the same.
+- `1.24.0` was tagged at `087b332` and never published: every gate before the
+  artifact was green on the maintainer's Mac, the suite crashed on the runner,
+  so the draft step never ran and there is no 1.24.0 release to delete. The tag
+  stays where it is, because a tag never moves. 1.24.1 is the same tree plus
+  this fix.
+
 ## 1.24.0 (2026-09-15)
 
 The first release cut from member bug reports end to end. Four members ran

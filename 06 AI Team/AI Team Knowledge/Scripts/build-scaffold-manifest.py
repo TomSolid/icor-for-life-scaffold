@@ -53,6 +53,14 @@ Exit 0 = manifest written (or --check passed). Exit 1 = see stderr.
 import ast, datetime, hashlib, json, re, subprocess, sys
 from pathlib import Path
 
+# This file importlib-loads mint-agent-ids.py out of THIS folder, so stock
+# CPython writes Scripts/__pycache__/mint-agent-ids.cpython-3NN.pyc into the
+# very tree whose tracked files it is about to hash. It is gitignored, so it
+# never reached the manifest or the zip, but it sat in the tree on the release
+# path, where a stray byte is exactly what nobody wants to have to explain.
+# Same switch and same reason as run-red-tests.py (1.24.0 CI).
+sys.dont_write_bytecode = True
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 META = ROOT / ".icor-for-life"
