@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.24.1",
-  "built": "2026-09-15T14:55:59Z",
-  "commit": "c10a5a1",
+  "version": "1.25.0",
+  "built": "2026-09-15T16:15:27Z",
+  "commit": "8a6dcab",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -366,7 +366,7 @@
     },
     {
       "path": "02 Planner/README.md",
-      "sha256": "c7032b30bd9a86f1c9f3395aa219586b2c654e291618f2a79be0038f92c61daa",
+      "sha256": "d183ba831efa7727822799ded82e843cdd1ffa60a6700e3cc236d58e8c6a8274",
       "kind": "doc",
       "example": false
     },
@@ -431,6 +431,12 @@
       "example": true
     },
     {
+      "path": "04 Inner World/My Life/Goals/Goals.base",
+      "sha256": "d709386a238b1108b386ad8fd993176e34101c320efdae4c9dec2ee449811f2a",
+      "kind": "base",
+      "example": false
+    },
+    {
       "path": "04 Inner World/My Life/Goals/Run a marathon.md",
       "sha256": "66156501252308abc6d1672ca488ec52a09ec9211c7971f7378347a55dcfff22",
       "kind": "doc",
@@ -443,10 +449,28 @@
       "example": true
     },
     {
+      "path": "04 Inner World/My Life/Habits/Habits.base",
+      "sha256": "1597e6b7120092caa8cec442328f79585d79dc87966a98f0568cc66a53fd1dad",
+      "kind": "base",
+      "example": false
+    },
+    {
       "path": "04 Inner World/My Life/Key Elements/Health.md",
       "sha256": "48e9b5a20627918d04bf6346119cef6cb3f5503a611cf922d9c334ddeff09f38",
       "kind": "doc",
       "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Key Elements/Key Elements.base",
+      "sha256": "fd86a4ac6e6eed572dcab779368c3d51d59c27ad31dfe51bb49baecb7e84197c",
+      "kind": "base",
+      "example": false
+    },
+    {
+      "path": "04 Inner World/My Life/Projects/Projects.base",
+      "sha256": "4c4da48ac7e4c2551b0d642c7394842f2743840db5f05f42be359ac874caa013",
+      "kind": "base",
+      "example": false
     },
     {
       "path": "04 Inner World/My Life/Projects/Spain Holidays.md",
@@ -471,6 +495,12 @@
       "sha256": "8c2d3ba24d07c3b2f2c381dab40694467fa9a4c671ffea2c0e387ccf411bf1b3",
       "kind": "doc",
       "example": true
+    },
+    {
+      "path": "04 Inner World/My Life/Topics/Topics.base",
+      "sha256": "b0725e6bb5bfddd2498e74ea143a7c6dba103db2e1b108409b568feef31bd18c",
+      "kind": "base",
+      "example": false
     },
     {
       "path": "04 Inner World/Notes/Documents.base",
@@ -642,7 +672,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "1645e89a837c07ad74bc6e887ef62eaa49009a91e068448f4bf13fe72fa92ac8",
+      "sha256": "7538baa4fa494905a54512068b75573502d3a4e51be89d800464d7767f7bcedd",
       "kind": "guideline",
       "example": false
     },
@@ -666,7 +696,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1006-bases-and-live-views.md",
-      "sha256": "28dc0bd6f6ffbee8c1e3b6d780338713f207ee4669cc13bc36b8eb84932601e8",
+      "sha256": "11397283273b8e5b88bcc65583d09e20cd88ca6279a2db826afc614974eb0296",
       "kind": "guideline",
       "example": false
     },
@@ -702,7 +732,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/INDEX.md",
-      "sha256": "6ad6246ba4c0c1e7fa9018d078e96af0798dbf4ff7bcdf97ec0e5037413ff60c",
+      "sha256": "9af5a539cf2295b912a774bca7474089d429115e6c89a42a7175a53b2495d73b",
       "kind": "sop",
       "example": false
     },
@@ -803,8 +833,14 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1017-answer-the-six-life-questions-from-the-snapshot.md",
+      "sha256": "589d65233943518632363acd2de15d3ad2755f8d8cc2fea7ab2efb71ecfef21e",
+      "kind": "sop",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "b5dca15f96602d35ed8abcb79823f32978aed2511109f8473d1b540541fac0ad",
+      "sha256": "b70a293d23c6db7c6d5128a6a9be348d698767e887ab29424d08ccbcf598d8cb",
       "kind": "script",
       "example": false
     },
@@ -864,7 +900,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
-      "sha256": "a52a051b3ca681a44cca60d0632b0253fee17a46094d7eb6ccf3cf3e915d03d3",
+      "sha256": "166569fa9a461374d3d6c08938e2f9a4375ccdd109757945a150c3806253d9ce",
       "kind": "script",
       "example": false
     },
@@ -877,6 +913,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/import-inventory.py",
       "sha256": "feaca78d7d9fc6e85f0dd2abc87815883752ab61c8130f6ae9b1419a1eff73b8",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py",
+      "sha256": "8c111a261506f421a66f653fc23f532acf353be6282732ec2489bb53c5f58147",
       "kind": "script",
       "example": false
     },
@@ -900,7 +942,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "65af538d898734d1da066fa7c93cbca5092aadb21acd80f1be6372139f3f9632",
+      "sha256": "0a7b96c1492035648649b01bbfd20c96cb8703ee34af4e57d438609fc3947596",
       "kind": "script",
       "example": false
     },
@@ -947,8 +989,14 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/planner-week.py",
+      "sha256": "a5e20e24443cce5c22f5126deb764305b00bef7df14aaefce534bbb352958414",
+      "kind": "script",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "918520108758328972a6ef77b605add63752d84a47080618c028bd23fb9e2cd4",
+      "sha256": "8f77492142eaf41a4c38c82d9bc8341aa8ca6594353301491acc6b3e3ebd3090",
       "kind": "script",
       "example": false
     },
@@ -960,13 +1008,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
-      "sha256": "852e8bacc5f425cebe487fcee03baf03d51c56483ced3834d6ad1ca5220df5bc",
+      "sha256": "5c1cda4333a5c89de4f499d4a27882f9f73bc1fb3b8db64c0a28359172500fe3",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
       "sha256": "65b1b194b02cf0d8f0ab332698a5fd875df2e546ee872bbf4257395f27079d76",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/set-property.py",
+      "sha256": "99401e02a3d24bead4eb90b1400bea90ba0018712326e97399f23b8c079dd8c4",
       "kind": "script",
       "example": false
     },
@@ -985,6 +1039,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-expansion-pack.py",
       "sha256": "1d216b7986d97a63cab147d1714de9985bf6f5b74a088aadd3a8d43b508af1d5",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/test-life-snapshot.py",
+      "sha256": "32d07801ca938a73ea582f6d6d9330923bd9b752cee87e504b42365871dcc69f",
       "kind": "script",
       "example": false
     },
@@ -1122,7 +1182,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1002-weekly-review.md",
-      "sha256": "9535792c3301b605629313cdc382caa20c602551dcd5eec0064683768f14b38c",
+      "sha256": "57eb24c224ba0444b3c0acfe23999fc8efd41a5b389a29835447cfe7c20ce86e",
       "kind": "workstream",
       "example": false
     },
@@ -1459,6 +1519,36 @@
       ]
     },
     {
+      "path": "04 Inner World/My Life/Goals/Goals.base",
+      "folders": [
+        "04 Inner World/My Life/Goals"
+      ]
+    },
+    {
+      "path": "04 Inner World/My Life/Habits/Habits.base",
+      "folders": [
+        "04 Inner World/My Life/Habits"
+      ]
+    },
+    {
+      "path": "04 Inner World/My Life/Key Elements/Key Elements.base",
+      "folders": [
+        "04 Inner World/My Life/Key Elements"
+      ]
+    },
+    {
+      "path": "04 Inner World/My Life/Projects/Projects.base",
+      "folders": [
+        "04 Inner World/My Life/Projects"
+      ]
+    },
+    {
+      "path": "04 Inner World/My Life/Topics/Topics.base",
+      "folders": [
+        "04 Inner World/My Life/Topics"
+      ]
+    },
+    {
       "path": "04 Inner World/Notes/Documents.base",
       "folders": [
         "04 Inner World/Notes"
@@ -1528,6 +1618,24 @@
     }
   ],
   "history": [
+    {
+      "version": "1.25.0",
+      "date": "2026-09-15",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "04 Inner World/My Life/Goals/Goals.base",
+        "04 Inner World/My Life/Habits/Habits.base",
+        "04 Inner World/My Life/Key Elements/Key Elements.base",
+        "04 Inner World/My Life/Projects/Projects.base",
+        "04 Inner World/My Life/Topics/Topics.base",
+        "06 AI Team/AI Team Knowledge/SOPs/SOP-1017-answer-the-six-life-questions-from-the-snapshot.md",
+        "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py",
+        "06 AI Team/AI Team Knowledge/Scripts/planner-week.py",
+        "06 AI Team/AI Team Knowledge/Scripts/set-property.py",
+        "06 AI Team/AI Team Knowledge/Scripts/test-life-snapshot.py"
+      ]
+    },
     {
       "version": "1.24.1",
       "date": "2026-09-15",

@@ -15,6 +15,110 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.25.0 (2026-09-15)
+
+Six questions a member asks all the time, answered from one file a script
+writes instead of from a walk through the folders: what are my goals, what
+should I focus on, what are my weekly priorities, what is the highlight of
+today, what are my key elements, what has my attention. Three of the six had
+nowhere in the vault to live at all, so this release gives each of them a home
+first, then the script that reads it, then the tables that show it.
+
+Minor bump, additive. One new note type, three new scripts, five new Bases, one
+new SOP and one new step in the session start ritual. Nothing is removed, moved
+or renamed, no field changes meaning, and every existing note stays valid as it
+is, so this is neither a major nor a patch.
+
+### Added
+
+- **`Scripts/life-snapshot.py` and the report it writes.** It reads the Goals,
+  Projects and Key Elements rooms, the Journal months touching the last 30 days,
+  the Planner and the scratchpads, and writes
+  `.icor-for-life/scripts/snapshot.json` (schema 1, documented in
+  `Scripts/README.md`). `--brief` renders about twenty lines a person reads,
+  `--json` the whole report for a machine, `--write` puts it on disk. It never
+  decides which projects are in focus and never picks a highlight: it reports
+  what is recorded. A source with no data says so in `degraded` rather than
+  being reported as empty, and a missing report means the script did not run,
+  never that the life is empty.
+- **`Scripts/planner-week.py` and the `planner-week` note type.** One note per
+  ISO week at `02 Planner/Weeks/YYYY-Www.md` with two blocks: `## Weekly
+  priorities`, a checklist of outcomes for the week, and `## Daily highlights`,
+  one row per day using the habit log's own marker set. `ensure`,
+  `add-priority`, `done-priority`, `set-highlight`, `mark-highlight` and `show`.
+  It never proposes a priority and never picks a highlight, it never rewrites a
+  line it did not come to change, and a CRLF note stays a CRLF note byte for
+  byte.
+- **`Scripts/set-property.py`**, one frontmatter property on one note, refusing
+  a value outside the field's closed set, a field GL-1002 does not declare for
+  that note's type, and any field a plugin or a sync owns. This is the setter
+  behind `focus_rank`: a decision stored as data, written deterministically
+  rather than by a model editing YAML by hand.
+- **Five Bases for the My Life rooms**, with `new-base.py` registry entries
+  behind them: `Goals.base`, `Projects.base`, `Key Elements.base`, `Topics.base`
+  and `Habits.base`. Goals carry an Active view sorted by target date, Projects
+  a Focus column and an Active view ranked by it. GL-1006's My Life row moves
+  from "later candidates" to Base.
+- **`focus_rank` on a project** (1, 2 or 3; absent means not in focus, at most
+  three projects carry it). It stores your decision about what matters now.
+  Nothing sets it from activity, and a fourth rank or a duplicate is reported
+  as a finding rather than quietly corrected.
+- **`linked_note` on a planner item**, plan-owned, one wikilink to a project
+  note. It is the join that was missing: without it, planned and finished work
+  can never be attributed to a project.
+- **`SOP-1017 Answer the six life questions from the snapshot`**, the reading
+  procedure for the report, including the line to say when the report is absent
+  and the two places where a model may propose (a focus rank into an empty
+  field, a retrospective highlight) and must then wait for your yes.
+- **Step 6 of the session start ritual.** `Scripts/session-start.py` now runs
+  `life-snapshot.py --write --brief`, so the six answers are already in front of
+  the model before anyone asks. The brief is cut at 16000 characters and says
+  when it was cut, because this output is printed into every session.
+
+### Changed
+
+- **GL-1002** gains the `focus_rank` and `linked_note` rows above, a `Planner
+  items` section documenting the seven fields the Planner plugin writes, and a
+  `Planner weeks` section holding the week-note concept. `weekly_goal` keeps its
+  key and loses the word "goal" on every label: it pins an item to the week. The
+  word "goal" stays with `type: goal` and only there, and the day sense always
+  carries the word "Daily", because "highlight" already means a PDF highlight.
+- **`02 Planner/README.md`** gains a Weeks paragraph, and **WS-1002 (the weekly
+  review)** step 6 now writes the week's priorities through `planner-week.py`
+  instead of into a session log.
+- **`Scripts/README.md`** gains the reader contract for `snapshot.json`: refuse
+  a file over 2 MB or a schema that is not 1, treat every string in it as
+  untrusted display text, open a path from it only when the path is relative and
+  inside the vault, report a stale stamp as stale, and cap what reaches model
+  context to the brief.
+- **`Scripts/run-red-tests.py`** gains the two cases named on the
+  `session-start-ritual` row of `hooks-rules.json`, both watched go red before
+  they were trusted: `life-snapshot-fixtures` (the fixture suite passes and its
+  own `--break-me` proves it can still fail) and `life-snapshot-missing-report`
+  (with the report and the script gone, the ritual prints the missing-file line
+  and prints no goal list beside it), plus the case behind the size cap.
+
+### Security
+
+Three findings on the snapshot writer, all caught in review before it ever
+shipped, so no released version of this scaffold ever carried them:
+
+- The credential scan covered 6 of the 13 families the write guard refuses, so
+  a Stripe-shaped value pasted into a checklist line would have been written
+  into the report with exit 0. The guard's pattern list is now lifted verbatim
+  and all three writers carry the same one.
+- The write followed symlinks out of the vault. The temp file is opened
+  `O_NOFOLLOW|O_EXCL`, the parent is resolved and checked, and a destination
+  that is a symlink is refused. A refusal now happens before the temp file
+  exists, so nothing is left behind.
+- `.icor-for-life/VERSION` was copied into the report verbatim and unbounded.
+  It is validated against a version shape now, never read through a symlink,
+  and an unparseable one becomes `unknown` plus a degraded entry.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
 ## 1.24.1 (2026-09-15)
 
 Patch bump, one defect: the release's own red-test gate crashed on the CI
