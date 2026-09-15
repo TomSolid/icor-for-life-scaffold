@@ -6,8 +6,8 @@ Usage:
       [--manifest <manifest.md>]
 
 Guards (code, not prose):
-  - destination must be INSIDE one of the six rooms (never the root,
-    never .obsidian, never outside the scaffold)
+  - destination must be INSIDE one of the importable rooms (never the
+    root, never .obsidian, never outside the scaffold)
   - refuses to overwrite an existing file
   - binary files may only land in 05 Assets
   - .md files may not land in 05 Assets
@@ -17,8 +17,13 @@ import argparse, datetime, os, shutil, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-ROOMS = ("00 Daily Scratchpad", "01 Inbox", "03 WiP", "04 Inner World",
-         "05 Assets", "06 AI Team")
+# The rooms an import may land in. 02 Planner is one of them: the Planner
+# writes notes a member imports alongside everything else, and leaving it out
+# refused every Planner destination (Brian Carroll, T16-2 / Andrew Gillley,
+# T13-6). 07 Databases stays out on purpose: nothing there has a markdown
+# source, so nothing is imported into it.
+ROOMS = ("00 Daily Scratchpad", "01 Inbox", "02 Planner", "03 WiP",
+         "04 Inner World", "05 Assets", "06 AI Team")
 
 ap = argparse.ArgumentParser()
 ap.add_argument("source")
@@ -36,7 +41,8 @@ try:
 except ValueError:
     sys.exit(f"FAIL destination escapes the scaffold: {dest}")
 if not rel.parts or rel.parts[0] not in ROOMS:
-    sys.exit(f"FAIL destination must be inside one of the six rooms: {rel}")
+    sys.exit("FAIL destination must be inside one of the importable rooms "
+             f"({', '.join(ROOMS)}): {rel}")
 if dest.exists():
     sys.exit(f"FAIL destination exists, refusing to overwrite: {rel}")
 is_md = src.suffix.lower() in (".md", ".markdown", ".txt")
@@ -47,8 +53,8 @@ if is_md and rel.parts[0] == "05 Assets":
 
 dest.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy2(src, dest)
-if args.mtime_from:
-    ref = Path(args.mtime_from).expanduser()
+if a.mtime_from:
+    ref = Path(a.mtime_from).expanduser()
     if not ref.exists():
         sys.exit(f"FAIL --mtime-from does not exist: {ref}")
     st = ref.stat()

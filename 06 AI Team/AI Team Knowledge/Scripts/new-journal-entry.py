@@ -11,8 +11,16 @@ Judgement parts NOT here: choosing the journal_type (GL-1003 teaches the
 four), the expansion and the connections; the model adds those to the
 created file afterwards.
 """
-import argparse, datetime, re, sys
+import argparse, datetime, importlib.util, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 TYPES = {"interaction", "note", "thought", "milestone"}
@@ -47,7 +55,12 @@ if dest.exists():
     sys.exit(f"FAIL entry already exists: {dest}")
 dest.parent.mkdir(parents=True, exist_ok=True)
 format_line = f"format: {a.format}\n" if a.format else ""
-dest.write_text(f"""---
+# a.original lands EXACTLY as the member said it. Until 2026-09-15 it was
+# written through .strip(), which quietly ate a deliberate leading indent or
+# a trailing blank line out of the one section GL-1003 calls sacred (Brian
+# Carroll, T16-4). The .strip() survives only in the empty-input guard above,
+# where it is asking a question rather than changing the text.
+noteio.write_note(dest, f"""---
 type: journal
 date: {d}
 journal_type: {a.journal_type}
@@ -59,11 +72,11 @@ linked_projects: []
 
 ## Original Text
 
-{a.original.strip()}
+{a.original}
 
 ## Expansion
 
-""", encoding="utf-8")
+""")
 if a.mtime_from:
     import os, pathlib
     ref = pathlib.Path(a.mtime_from).expanduser()

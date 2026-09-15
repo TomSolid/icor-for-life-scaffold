@@ -9,8 +9,16 @@ Usage:
 Deterministic parts owned here: location, filename, status field kept in
 sync with the folder, done/cancelled filed under YYYY/MM/.
 """
-import argparse, datetime, re, sys
+import argparse, datetime, importlib.util, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 ROOT = Path(__file__).resolve().parents[3]
 TASKS = ROOT / "06 AI Team/AI Team Knowledge/Tasks"
@@ -33,7 +41,10 @@ n.add_argument("--related", action="append", default=[],
                help='a wikilink this task belongs to, e.g. "[[WS-1005]]". Repeatable')
 m = sub.add_parser("move")
 m.add_argument("task")
-m.add_argument("--to", required=True, choices=STATES[1:])
+# Every state, `open` included. `move --to open` is how a task comes back
+# out of in-progress when the work is parked, and the argument parser used to
+# reject it with no way round it (Brian Carroll, T16-13).
+m.add_argument("--to", required=True, choices=STATES)
 a = ap.parse_args()
 
 today = datetime.date.today()
@@ -54,7 +65,7 @@ if a.cmd == "new":
     related = ("related: []" if not a.related
                else "related:\n" + "\n".join(f'  - "{w}"' for w in a.related))
     due = f"due: {a.due}\n" if a.due else ""
-    dest.write_text(f"""---
+    noteio.write_note(dest, f"""---
 type: task
 status: open
 assignee: {a.assignee}
@@ -63,7 +74,7 @@ created: {today}
 ---
 
 # {a.title}
-""", encoding="utf-8")
+""")
     print(f"OK created {dest}")
 else:
     cand = Path(a.task)
@@ -77,12 +88,17 @@ else:
     else:
         dest_dir = TASKS / a.to
     dest_dir.mkdir(parents=True, exist_ok=True)
-    text = cand.read_text(encoding="utf-8")
+    text, _eol = noteio.read_note(cand)
     if f"status: {a.to}" not in text:
-        text = re.sub(r"^status: .*$", f"status: {a.to}", text, count=1, flags=re.M)
+        # [^\r\n]* rather than .* : `.` matches a carriage return, so on a
+        # CRLF task file the old pattern swallowed the \r and turned that one
+        # line into a lone LF inside an otherwise CRLF file.
+        text = re.sub(r"^status:[^\r\n]*", f"status: {a.to}", text, count=1, flags=re.M)
     dest = dest_dir / cand.name
+    if dest.resolve() == cand.resolve():
+        sys.exit(f"FAIL {cand.name} is already in {a.to}")
     if dest.exists():
         sys.exit(f"FAIL destination already holds {cand.name}")
-    dest.write_text(text, encoding="utf-8")
+    noteio.write_note(dest, text)
     cand.unlink()
     print(f"OK moved {cand.name} -> {a.to}")

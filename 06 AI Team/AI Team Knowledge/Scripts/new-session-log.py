@@ -8,8 +8,16 @@ Usage:
 Deterministic parts owned here: location, filename, frontmatter skeleton.
 The model writes the content into the created file afterwards.
 """
-import argparse, datetime, re, sys
+import argparse, datetime, importlib.util, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 ROOT = Path(__file__).resolve().parents[3]
 LOGS = ROOT / "06 AI Team/AI Team Knowledge/Session Logs"
@@ -27,7 +35,7 @@ dest = LOGS / f"{dt:%Y}" / f"{dt:%m}" / f"{dt:%Y-%m-%d-%H-%M}_{a.agent}_{a.slug}
 if dest.exists():
     sys.exit(f"FAIL log already exists: {dest.name}")
 dest.parent.mkdir(parents=True, exist_ok=True)
-dest.write_text(f"""---
+noteio.write_note(dest, f"""---
 type: session-log
 date: {dt:%Y-%m-%d}
 agents: [{a.agent}]
@@ -40,5 +48,5 @@ agents: [{a.agent}]
 ## Decisions
 
 ## Open threads
-""", encoding="utf-8")
+""")
 print(f"OK created {dest}")
