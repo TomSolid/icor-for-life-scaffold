@@ -275,6 +275,46 @@ with tempfile.TemporaryDirectory() as td:
     check("achieved_90d is empty, never guessed",
           rep["goals"]["achieved_90d"] == [], str(rep["goals"]["achieved_90d"]))
 
+    # === case group 5b: the three carrier shapes (GL-002 v1.52) ===========
+    print("goal carriers")
+    V = TD / "carriers"
+    rooms(V)
+    write(V, "04 Inner World/My Life/Goals/Floor.md",
+          "---\ntype: goal\nstatus: active\n"
+          "linked_projects:\n  - podcast-relaunch\n"
+          "linked_habits:\n  - weekly-cadence\n"
+          "linked_workstreams:\n  - WS-013-video-publishing-lifecycle\n"
+          "linked_topics:\n  - revenue-growth\n---\n")
+    write(V, "04 Inner World/My Life/Goals/Public.md",
+          "---\ntype: goal\nstatus: not-achieved\n"
+          "workstreams: [\"[[WS-1002-weekly-review|WS-1002]]\"]\n---\n")
+    write(V, "04 Inner World/My Life/Goals/Plain.md",
+          "---\ntype: goal\nstatus: active\n---\n")
+    rep, r = snap(V)
+    floor = by_name(rep["goals"]["open"], "Floor")
+    check("carriers carries the three shapes: projects, habits, workstreams",
+          floor is not None
+          and sorted(floor["carriers"]) == ["habits", "projects", "workstreams"],
+          str(floor and floor["carriers"]))
+    check("the private `linked_workstreams` stem is read verbatim",
+          floor is not None
+          and floor["carriers"]["workstreams"] == ["WS-013-video-publishing-lifecycle"],
+          str(floor and floor["carriers"]))
+    check("a Topic is never a carrier (negative control)",
+          floor is not None
+          and "revenue-growth" not in json.dumps(floor["carriers"]),
+          str(floor and floor["carriers"]))
+    pub = by_name(rep["goals"]["open"], "Public")
+    check("the public `workstreams` wikilink shape resolves to the WS stem",
+          pub is not None
+          and pub["carriers"]["workstreams"] == ["WS-1002-weekly-review"],
+          str(pub and pub["carriers"]))
+    plain = by_name(rep["goals"]["open"], "Plain")
+    check("a goal with no carrier field carries three empty lists, never a missing key",
+          plain is not None
+          and plain["carriers"] == {"projects": [], "habits": [], "workstreams": []},
+          str(plain and plain["carriers"]))
+
     print("no goals room")
     V = TD / "no-goals"
     rooms(V, goals=False)

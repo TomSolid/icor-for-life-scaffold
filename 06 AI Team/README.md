@@ -7,7 +7,8 @@ rooms, cleanly separated from your knowledge.
   `Journal/` of durable insights. `agent-index.md` is the roster.
 - `AI Team Knowledge/` - shared operational know-how:
   - `SOPs/` - atomic procedures
-  - `Workstreams/` - multi-step orchestrations
+  - `Workstreams/` - multi-step orchestrations (see "A Workstream is not
+    a Project" below)
   - `Guidelines/` - static rules and reference
   - `Scripts/` - the deterministic half of the SOPs (code, not prose)
   - `Skills/` - the canonical home for generated skills, one folder per
@@ -26,6 +27,22 @@ rooms, cleanly separated from your knowledge.
 Knowledge lives OUTSIDE the agents so several agents can share one
 procedure. The operating law: code for anything a machine could check,
 instructions only for judgement ([[GL-1005-code-vs-instructions|GL-1005]]).
+
+## A Workstream is not a Project
+
+A Project is bounded and ends: it has a finish line, its note in
+`04 Inner World/My Life/Projects/` reaches `done`, and its working files
+live in `03 WiP/Projects/<name>/` until then. A Workstream is a
+repeatable process that never ends: the same choreography run again and
+again (the daily processing run, the weekly review, a video made every
+week), one result per run, no finish line. A Workstream can carry a
+Goal the way a Project can, through the results it keeps producing
+(`workstreams` on the goal, [[GL-1002-frontmatter-conventions|GL-1002]]),
+and when it runs continuously it keeps its running state in a standing
+folder `03 WiP/Workstreams/<Name>/` named in its `wip_folder`. The test
+when filing: is this one run of something that repeats, or a step
+toward a finish line? Both trees and a worked example each:
+`03 WiP/README.md`.
 
 ## Authoring rules
 

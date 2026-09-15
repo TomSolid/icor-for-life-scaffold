@@ -13,7 +13,12 @@ Answers, from the files alone, the questions a checkpoint asks:
   2. Which WiP folders could leave?  Every folder in 03 WiP/ (not _archive)
      whose newest file is older than --window days AND which no open or
      in-progress task mentions. Both facts are printed for every folder;
-     the flag is only the intersection.
+     the flag is only the intersection. The two standing trees,
+     Workstreams/ and Projects/ (03 WiP/README.md, 2026-09-15), are never
+     candidates: a process has no finish line to leave against and an
+     open Project's folder leaves with the Project. Their dated children
+     are scanned instead, one level down, under a `Workstreams/<Name>/`
+     or `Projects/<name>/` prefix, and only those can be flagged.
   3. Is there a session log for today?
   4. How many date mentions still are not linked to their daily note?
      Asked of link-dates-to-daily-notes.py --check, not re-implemented here,
@@ -96,6 +101,9 @@ K = ROOT / "06 AI Team" / "AI Team Knowledge"
 TASKS = K / "Tasks"
 LOGS = K / "Session Logs"
 WIP = ROOT / "03 WiP"
+# The standing trees of 03 WiP/README.md. Never candidates themselves; the
+# scan steps into them and reports the dated runs and project folders inside.
+STANDING = ("Workstreams", "Projects")
 today = datetime.date.fromisoformat(a.today) if a.today else datetime.date.today()
 now = datetime.datetime.combine(today, datetime.time(23, 59))
 
@@ -164,19 +172,42 @@ all_task_text = "\n".join(task_texts)
 
 # --- 3. WiP folders: age and task references -------------------------------
 wip = []
+
+
+def wip_row(entry: Path, label: str, standing: bool):
+    newest = newest_under(entry) or mtime(entry)
+    age = (now - newest).days
+    referenced = label in all_task_text or entry.name in all_task_text
+    return {
+        "folder": label,
+        "days_untouched": max(0, age),
+        "referenced_by_open_task": referenced,
+        "standing": standing,
+        "candidate_to_leave": (not standing) and age > a.window and not referenced,
+    }
+
+
 if WIP.exists():
     for entry in sorted(WIP.iterdir()):
         if not entry.is_dir() or entry.name.startswith("_") or entry.name.startswith("."):
             continue
-        newest = newest_under(entry) or mtime(entry)
-        age = (now - newest).days
-        referenced = entry.name in all_task_text
-        wip.append({
-            "folder": entry.name,
-            "days_untouched": max(0, age),
-            "referenced_by_open_task": referenced,
-            "candidate_to_leave": age > a.window and not referenced,
-        })
+        if entry.name in STANDING:
+            wip.append(wip_row(entry, entry.name, standing=True))
+            for child in sorted(entry.iterdir()):
+                if not child.is_dir() or child.name.startswith("."):
+                    continue
+                # Workstreams/<Name>/ is itself standing (a process); its
+                # dated runs sit one level further down. Projects/<name>/
+                # is the unit that leaves, with its Project.
+                if entry.name == "Workstreams":
+                    wip.append(wip_row(child, f"{entry.name}/{child.name}", standing=True))
+                    for run in sorted(child.iterdir()):
+                        if run.is_dir() and not run.name.startswith("."):
+                            wip.append(wip_row(run, f"{entry.name}/{child.name}/{run.name}", standing=False))
+                else:
+                    wip.append(wip_row(child, f"{entry.name}/{child.name}", standing=False))
+            continue
+        wip.append(wip_row(entry, entry.name, standing=False))
 
 # --- 4. date mentions not yet linked to their daily note (GL-1011) --------
 # Asked of the script that owns the rule. A count it could not read is
@@ -221,7 +252,7 @@ else:
     cands = [w for w in wip if w["candidate_to_leave"]]
     print(f"  wip folders      : {len(wip)}, candidates to leave: {len(cands)}")
     for w in wip:
-        flag = "LEAVE?" if w["candidate_to_leave"] else "keep  "
+        flag = "LEAVE?" if w["candidate_to_leave"] else ("stand " if w.get("standing") else "keep  ")
         ref = "task" if w["referenced_by_open_task"] else "none"
         print(f"    {flag}  {w['days_untouched']:>4}d  ref:{ref:<4}  {w['folder']}")
 

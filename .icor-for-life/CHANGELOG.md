@@ -15,6 +15,70 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.26.0 (2026-09-15)
+
+A Workstream is not a Project, and the vault now says so in three places:
+the schema, the workbench and the team's own README. A Project is bounded and
+ends; a Workstream is a repeatable process that never ends and carries a Goal
+through the results it keeps producing. The workbench gains two standing
+trees for exactly those two shapes, beside the dated deliverable folders.
+
+Minor bump, additive. Two optional fields, two new folders with a README
+each, one new rule in two checks. Nothing is removed, moved or renamed, no
+field changes meaning, and every existing note stays valid as it is.
+
+### Added
+
+- **`03 WiP/Workstreams/` and `03 WiP/Projects/`, the two standing trees.**
+  `Workstreams/<Name>/` is the standing working folder of a Workstream that
+  runs continuously: the queue, the current run, one dated subfolder per run.
+  `Projects/<Project note name>/` is the working folder of one bounded
+  Project, linked from the note's `## Working folder` line. Both trees carry
+  a `README.md` with the rules and one worked example each, and
+  `03 WiP/README.md` gains the table that puts the three kinds of folder side
+  by side: what each is, when it opens, when it closes, who links to it.
+  Both folders are required rooms in `validate-scaffold.py`, the same way
+  `03 WiP/_archive` is.
+- **The Workstream as a goal carrier ([[GL-1002]] ruling 2026-09-15).** Two
+  shapes were taught, a Project and a Habit; the third is a Workstream.
+  `workstreams` on a `goal` (a wikilink list to the Workstream notes that
+  carry it) and on a `project` (the Workstream a bounded project runs
+  through), both optional; `wip_folder` on a `workstream` note, the standing
+  folder, one string, set only when the folder exists. The working folder of
+  a Project is deliberately not a field: its path is the note's own name and
+  a derivable fact is not a field. `Templates/goal.md` and
+  `Templates/project.md` carry the new key empty; `.obsidian/types.json`
+  declares `workstreams` as `multitext` and `wip_folder` as `text`.
+- **`06 AI Team/README.md` §"A Workstream is not a Project"**, one paragraph
+  where the team already learns what the `Workstreams/` folder is for, with
+  the filing test: one run of something that repeats, or a step toward a
+  finish line.
+- **`life-snapshot.py`: `goals.open[].carriers.workstreams`.** The report
+  now names the Workstream carriers beside the Project and Habit ones,
+  reading `linked_workstreams` and `workstreams` alike. Additive inside
+  schema 1: the key is always present and empty when none, and
+  `Scripts/README.md` now states the rule precisely (a rename, removal,
+  retype or reorder is a new schema number; an added key is dated in the
+  README). Five new fixture cases in `test-life-snapshot.py`, including the
+  negative control that a Topic is never a carrier.
+
+### Changed
+
+- **`checkpoint.py` never proposes a standing tree as a candidate to
+  leave.** `Workstreams/` and `Projects/` and every `Workstreams/<Name>/`
+  are reported as `stand` and shielded; the dated runs and project folders
+  inside them are scanned one level down under their prefix and can still
+  be flagged, so the shield stops at the tree. Each `wip` row gains a
+  `standing` boolean. Two red cases in `run-red-tests.py`: a 400-day-old
+  `Workstreams/` must not be flagged, the 400-day-old run inside it must,
+  and a vault without `03 WiP/Projects/` must fail `validate-scaffold.py`.
+- `GL-1001` names the two standing trees in the `03 WiP` row; `GL-1002`'s
+  ladder table reads "Project, Habit or Workstream" for the carriers.
+
+### Removed
+
+Nothing.
+
 ## 1.25.1 (2026-09-15)
 
 Patch bump, one missing file: 1.25.0 shipped SOP-1017 and the scripts behind

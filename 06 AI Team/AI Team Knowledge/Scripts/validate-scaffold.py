@@ -72,6 +72,7 @@ REQUIRED = [
     "04 Inner World/My Life/Topics", "04 Inner World/My Life/Projects",
     "04 Inner World/My Life/Habits",
     "03 WiP/_archive",
+    "03 WiP/Workstreams", "03 WiP/Projects",   # the two standing trees (03 WiP/README.md, 2026-09-15)
     "07 Databases",
     "06 AI Team/AI Team Knowledge/Workstreams",
     "06 AI Team/AI Team Knowledge/SOPs",

@@ -328,6 +328,45 @@ with tempfile.TemporaryDirectory() as td:
             fails.append("checkpoint/wip-candidate: a 400-day-old unreferenced WiP folder was not flagged to leave")
     except Exception as e:
         fails.append(f"checkpoint/wip-candidate: report unreadable ({e})")
+    # 1c2. The standing trees (03 WiP/README.md, 2026-09-15). A 400-day-old
+    #      `03 WiP/Workstreams/` with nothing referencing it is NOT a
+    #      candidate: a process has no finish line to leave against. The
+    #      clean control inside the same fixture is a 400-day-old dated run
+    #      under `Workstreams/Probe/`, which MUST be flagged, because a rule
+    #      that shields the tree must not shield the runs inside it.
+    ws = nolog / "03 WiP" / "Workstreams"
+    run_dir = ws / "Probe" / "2020-01-01-stale-run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    rf = run_dir / "notes.md"; rf.write_text("old")
+    # Age EVERYTHING under the tree, the shipped README.md included. The
+    # scan takes the newest file under a folder, so one fresh file would
+    # keep the tree on age alone and the case would pass against a
+    # checkpoint that has no standing-tree rule at all (watched happen
+    # 2026-09-15 before this loop existed).
+    for _dp, _ds, _fs in _os.walk(ws):
+        for _n in _ds + _fs:
+            _os.utime(Path(_dp) / _n, (old_t, old_t))
+    _os.utime(ws, (old_t, old_t))
+    r = subprocess.run([PY, str(HERE / "checkpoint.py"), str(nolog), "--json", "--window", "30"], capture_output=True, text=True)
+    checks += 1
+    try:
+        rep = _json.loads(r.stdout)
+        rows = {w["folder"]: w for w in rep["wip"]}
+        tree = rows.get("Workstreams")
+        if tree is None or tree["candidate_to_leave"]:
+            fails.append("checkpoint/standing-tree-never-leaves: a 400-day-old `03 WiP/Workstreams/` was flagged to leave (or not listed); a standing tree is never a candidate")
+        checks += 1
+        run_row = rows.get("Workstreams/Probe/2020-01-01-stale-run")
+        if run_row is None or not run_row["candidate_to_leave"]:
+            fails.append("checkpoint/standing-tree-run-still-flagged: the 400-day-old run inside the standing tree was not flagged; the shield must stop at the tree")
+    except Exception as e:
+        fails.append(f"checkpoint/standing-tree: report unreadable ({e})")
+    # 1c3. validate-scaffold must refuse a vault without the two standing
+    #      trees, the same way it refuses one without `03 WiP/_archive`.
+    notree = tmp / "no-standing-tree"
+    shutil.copytree(ROOT, notree, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.rmtree(notree / "03 WiP" / "Projects")
+    expect_fail("validate-scaffold/missing-standing-tree", [str(HERE / "validate-scaffold.py"), str(notree)])
     # 1d. checkpoint must see a task that already shipped. A task closed
     #     earlier in the same session sits in Tasks/done/YYYY/MM/ (hard rule
     #     6) by the time the checkpoint runs; until 2026-09-07 the scan read

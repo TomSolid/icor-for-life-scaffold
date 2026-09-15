@@ -42,17 +42,17 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | company | name | industry, people, website | `[[Templates/company]]` |
 | note | note_type (reference/idea/outline/meeting/draft/other); at least one of projects / key_elements / topics | projects, key_elements, topics, people, companies (wikilink lists), source_url, consumed (boolean; both only meaningful on `reference`), transcript (a URL or a wikilink to the transcript, whatever tool made it; only meaningful on `meeting` and `other`), transcribed_by (text, the tool), ai_summary (text, the model id), audio_retained (boolean; those three only meaningful on `meeting`), idea_status (open/promoted/parked/dropped; only meaningful on `idea`) | `[[Templates/note]]` |
 | document | doc_type (contract/invoice/receipt/id/certificate/statement/letter/manual/other), source_file (wikilink to the binary in 05 Assets/Documents, MANDATORY) | projects, key_elements, topics (wikilink lists), preview_image, issued_on, expiry_date, amount, currency, people, companies, processed, processed_summary, processed_into | `[[Templates/document]]` |
-| goal | status (not-achieved/achieved) | target_date, key_elements | `[[Templates/goal]]` |
+| goal | status (not-achieved/achieved) | target_date, key_elements, workstreams (wikilink list to the Workstream notes that carry the goal; ruling 2026-09-15) | `[[Templates/goal]]` |
 | pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) | none: the plugin writes it |
 | key-element | - | people, goals | `[[Templates/key-element]]` |
 | topic | - | related_topics | `[[Templates/topic]]` |
-| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements, focus_rank (1, 2 or 3; absent means not in focus, at most three projects carry it) | `[[Templates/project]]` |
+| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements, focus_rank (1, 2 or 3; absent means not in focus, at most three projects carry it), workstreams (wikilink list to the Workstream notes the project runs through; ruling 2026-09-15) | `[[Templates/project]]` |
 | habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) | `[[Templates/habit]]` |
 | task | status (open/in-progress/done/cancelled), assignee | related, due | none: `Scripts/new-task.py` |
 | progress-report | status (live/closed), updated (ISO datetime) | plan | none: `Scripts/new-progress-report.py` |
 | hire-proposal | owner, title | status (draft/decision-ready/approved), skills (list of skill slugs, or the literal `none, judgement role`; the field `check-hire.py` checks 15 and 18 read) | none: the `proposal.md` in `03 WiP/YYYY-MM-DD-<name>-hire/`, [[SOP-1007-hire-a-new-agent]] row 2 |
 | session-log | date, agents | - | none: `Scripts/new-session-log.py` |
-| sop / workstream / guideline | id, title | skill_name (the skill's folder slug; REQUIRED once skill_triggers is non-empty), skill_summary (one sentence), skill_triggers (list of user phrases; non-empty makes the procedure skill-eligible), skill_prerun (one script invocation, injected before step 1); the four only meaningful on `sop` and `workstream` | none |
+| sop / workstream / guideline | id, title | skill_name (the skill's folder slug; REQUIRED once skill_triggers is non-empty), skill_summary (one sentence), skill_triggers (list of user phrases; non-empty makes the procedure skill-eligible), skill_prerun (one script invocation, injected before step 1); the four only meaningful on `sop` and `workstream`; wip_folder (text, the standing working folder `03 WiP/Workstreams/<Name>/`, set only when it exists; only meaningful on `workstream`; ruling 2026-09-15) | none |
 | agent-journal | date, agent | - | none |
 | agent-bio | agent, role | - | none |
 | agent | myicor_id (uuid v4, lowercase, immutable), name, role, routing_description (one line, required on every new hire) | shim_reads (list of paths), owns_gates (list of guard ids), brief_waived (why no research brief) | none: `Agents/Agent 01/` |
@@ -398,6 +398,44 @@ capture is both shapes, and the script refuses `--archive` and
   question, not a workshop). `Scripts/validate-scaffold.py` fails any
   project note without a goal link.
 
+## Workstreams as goal carriers, and the standing WiP folders (ruling 2026-09-15)
+
+A goal is carried by the work that moves it. Two shapes were taught: a
+**Project**, bounded, with a finish line, and a **Habit**, a practice on a
+cadence. The third shape is a **Workstream**: a repeatable process the
+team runs again and again, producing one result per run and never
+reaching a finish line. A video made every week carries a revenue goal;
+no single video is the project, the process is the carrier. A Topic is
+still never a carrier.
+
+- `workstreams` on a `goal`: a wikilink list to the Workstream notes that
+  carry it (`workstreams: ["[[WS-1002-weekly-review]]"]`). Name the hub
+  Workstream every run passes through, not every stage. Optional; a goal
+  carried by a Project alone carries no key.
+- `workstreams` on a `project`: the Workstream(s) a bounded project runs
+  through, same shape. Optional.
+- `wip_folder` on a `workstream`: the standing working folder
+  `03 WiP/Workstreams/<Name>/` where the team keeps the running state of
+  the process (the queue, the current run, one dated subfolder per run).
+  One string, set only when the folder exists. It is a field because it
+  is not derivable: one folder may serve several Workstreams and the
+  folder name is not the id.
+- **The working folder of a Project is not a field.** It is
+  `03 WiP/Projects/<Project note name>/`, derivable from the note, and a
+  derivable fact is not a field (the same rule that keeps `week_start`
+  off a planner week). The Project note carries a `## Working folder`
+  line so a reader finds it without knowing the rule.
+- The Workstream note does not mirror the goal back. It is an operational
+  document, not a My Life entity, and the Goals room is where the carrier
+  question is asked.
+
+The two standing trees, their lifecycle and a worked example each:
+`03 WiP/README.md`, `03 WiP/Workstreams/README.md`,
+`03 WiP/Projects/README.md`. `Scripts/checkpoint.py` never proposes a
+standing tree as a candidate to leave; `life-snapshot.py` reports the
+Workstream carriers beside the Project and Habit ones
+(`goals.open[].carriers.workstreams`).
+
 ## ICOR Journey reflections (ruling 2026-08-28)
 
 Growth assignment reflections from the user's app.myicor.com account sync
@@ -662,7 +700,7 @@ view over it later without a migration.
 | --- | --- | --- | --- |
 | Key Element | permanent | My Life | Key Element |
 | Goal | until achieved | My Life | Goal |
-| Project or Habit | bounded or cadenced | My Life for the meaning, Planner for the tracking | the carriers |
+| Project, Habit or Workstream | bounded, cadenced, or repeating without end | My Life for the meaning, Planner for the tracking, `06 AI Team/AI Team Knowledge/Workstreams/` for the process | the carriers |
 | the week | one ISO week | this note | **Weekly Priority** |
 | the day | one calendar day | this note | **Daily Highlight** |
 
@@ -670,8 +708,8 @@ view over it later without a migration.
 
 **"Goal" belongs to a `type: goal` note in `04 Inner World/My Life/Goals/`
 and only there.** A Goal is the measurable commitment anchored to a Key
-Element and carried by a Project or a Habit. That is the taught meaning
-and it does not move.
+Element and carried by a Project, a Habit or a Workstream. That is the
+taught meaning and it does not move.
 
 | Label | What it names | Where it is said |
 | --- | --- | --- |

@@ -212,7 +212,11 @@ never tracked in git.
 
 The shape is versioned by the top-level `schema` integer. **Inside a
 schema version the field names and their order are a contract**: a reader
-may rely on them. A change to any of them is a new schema number.
+may rely on them. Renaming, removing, retyping or reordering any of them
+is a new schema number. Adding a key is additive and stays inside the
+version, dated here so a reader knows what an older writer will not
+emit: `goals.open[].carriers.workstreams` (2026-09-15, the Workstream
+carrier of GL-1002).
 
 ```json
 {
@@ -250,7 +254,7 @@ may rely on them. A change to any of them is a new schema number.
 | `scaffold_version` | `.icor-for-life/VERSION`, or `unknown` in a vault that has none |
 | `week` | the ISO week the run used; `note` is the weekly Planner note, or null when there is none |
 | `thresholds` | the dict the run used, so a reader can say what "hot" meant without opening the script |
-| `goals.open[]` | every open goal, never trimmed; `carriers` holds the projects and habits that carry it |
+| `goals.open[]` | every open goal, never trimmed; `carriers` holds the projects, habits and workstreams that carry it (`workstreams` since 2026-09-15; always present, empty when none) |
 | `goals.achieved_90d[]` | empty until a dated completion exists; never guessed |
 | `projects.focus[]` | ONLY projects carrying `focus_rank`; an empty list means no decision is recorded |
 | `projects.active[]` | every open project with its activity facts, in `order_rule` order |

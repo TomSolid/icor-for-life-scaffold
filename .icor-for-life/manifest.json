@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.25.1",
-  "built": "2026-09-15T17:29:40Z",
-  "commit": "35eabc9",
+  "version": "1.26.0",
+  "built": "2026-09-15T18:52:32Z",
+  "commit": "153903a",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -23,6 +23,8 @@
     "04 Inner World/My Life/Projects",
     "04 Inner World/My Life/Habits",
     "03 WiP/_archive",
+    "03 WiP/Workstreams",
+    "03 WiP/Projects",
     "07 Databases",
     "06 AI Team/AI Team Knowledge/Workstreams",
     "06 AI Team/AI Team Knowledge/SOPs",
@@ -330,7 +332,7 @@
     },
     {
       "path": ".obsidian/types.json",
-      "sha256": "820e87295f8f89904a2d1c3c847307ce0941337397432f037b4d26411c45104f",
+      "sha256": "54bae287b9df7dd0496b800ff22a68f36d85fab3a37b2a4bb640501d44072557",
       "kind": "config",
       "example": false
     },
@@ -377,9 +379,21 @@
       "example": false
     },
     {
-      "path": "03 WiP/README.md",
-      "sha256": "7004568411ad2f5fd0bf3b1e3e65d07cd86804a7d996f49d4076524e08a5430f",
+      "path": "03 WiP/Projects/README.md",
+      "sha256": "00a8d0c893f89ea97863db597e281686ef89bb83d9e81876dacf38890ae33a00",
       "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "03 WiP/README.md",
+      "sha256": "7f0e34c87d75f724a40e3e66fed2e03dbaded52051c88379446e8442b9b0d8e9",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "03 WiP/Workstreams/README.md",
+      "sha256": "56a864f62ad747e6c49d1cce6584cf3febb0e3f40d34e7bfb1bf273b7e216f3f",
+      "kind": "workstream",
       "example": false
     },
     {
@@ -672,13 +686,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
-      "sha256": "8090e5393b039a2d08dd2d909e472812bd10274f88ad9ed5e4405a4aaaaacf3c",
+      "sha256": "4ffc84b5b5a8f17cc5a53ea83e834539765e1632b369c5339317ea733a4e7612",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "7538baa4fa494905a54512068b75573502d3a4e51be89d800464d7767f7bcedd",
+      "sha256": "a30df724d92fecab6e166227736347efe912e350e5952fdf7a7573fb4893cb2d",
       "kind": "guideline",
       "example": false
     },
@@ -846,7 +860,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "b70a293d23c6db7c6d5128a6a9be348d698767e887ab29424d08ccbcf598d8cb",
+      "sha256": "65980442adb622fdbc0aedf457de39c860f369bfa9d88769a572f7c85a6b90ff",
       "kind": "script",
       "example": false
     },
@@ -888,7 +902,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "7adb9d03f0d91942d3bb45f66be84b1b0747f468822d95d2224260a2bc5b3ea9",
+      "sha256": "ae9063463c6c5674d2dd0f77e6f5bc1241b586697de46f93dfa93c74ccb33e0c",
       "kind": "script",
       "example": false
     },
@@ -924,7 +938,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py",
-      "sha256": "8c111a261506f421a66f653fc23f532acf353be6282732ec2489bb53c5f58147",
+      "sha256": "fb7bb2056f36a820ccf0aefac2bc715d315d0d1bcbff0db948f7d8aa047eb8af",
       "kind": "script",
       "example": false
     },
@@ -1002,7 +1016,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "8f77492142eaf41a4c38c82d9bc8341aa8ca6594353301491acc6b3e3ebd3090",
+      "sha256": "9c0f1fecf28f542270617e5e9e8e70094cdc1ef6e29dafa085ee1461871805a9",
       "kind": "script",
       "example": false
     },
@@ -1050,7 +1064,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-life-snapshot.py",
-      "sha256": "32d07801ca938a73ea582f6d6d9330923bd9b752cee87e504b42365871dcc69f",
+      "sha256": "fbe4a2d72a875d4d1052418709f9d089d496fc2f77c112f16f9c82d650f8f9f3",
       "kind": "script",
       "example": false
     },
@@ -1062,7 +1076,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "f81f3aab6d4e5cc89acd93483d493a0de9f1ccbbdac54455d475353b49644c8c",
+      "sha256": "66a68eeda029af81b8c907453a00ee27db5b63b8d95f66175ad3fbb8c33c25a9",
       "kind": "script",
       "example": false
     },
@@ -1128,7 +1142,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Templates/goal.md",
-      "sha256": "14350eaffc3e05772ee4a4b59c0b673cd9d1ffe7a55bb59b6dc1ccd4b2e536ec",
+      "sha256": "6b834e923925170d75bdfddde66e607ddef169c6166c7a6cb499bac6665c7873",
       "kind": "doc",
       "example": false
     },
@@ -1170,7 +1184,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Templates/project.md",
-      "sha256": "58a97307cffe076994215a5924f1d7abfe4e9c07b2eea9ca37a37054ecb1a6a0",
+      "sha256": "86c832b1544e71d04a02501f6552895bb3c246ca4ca8b6bdfea7d151122c8c7b",
       "kind": "doc",
       "example": false
     },
@@ -1458,7 +1472,7 @@
     },
     {
       "path": "06 AI Team/README.md",
-      "sha256": "23fe573ac0b544d8c73c272f9553dd5cbc0378c23d63d9cba0601b6d514d656c",
+      "sha256": "7dea219cf8b5f9c2f251283cfc3a27795a0fc6545bac28b14614e53a6abb869f",
       "kind": "doc",
       "example": false
     },
@@ -1630,6 +1644,16 @@
     }
   ],
   "history": [
+    {
+      "version": "1.26.0",
+      "date": "2026-09-15",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "03 WiP/Projects/README.md",
+        "03 WiP/Workstreams/README.md"
+      ]
+    },
     {
       "version": "1.25.1",
       "date": "2026-09-15",

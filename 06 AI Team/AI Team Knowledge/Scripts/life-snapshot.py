@@ -91,6 +91,7 @@ FIELDS = {
     "goal_key_element": ("key_element", "key_elements"),        # private singular slug, public plural wikilinks
     "goal_projects": ("linked_projects", "projects"),           # the carriers doctrine: a goal is carried by projects
     "goal_habits": ("linked_habits", "habits"),                 # or by habits
+    "goal_workstreams": ("linked_workstreams", "workstreams"),  # or by a workstream (GL-002 v1.52 / GL-1002 2026-09-15)
     "project_goal": ("linked_goals", "goal", "goals"),          # private list, public one quoted wikilink
     "project_key_element": ("key_element", "key_elements"),     # same split as the goal room
     "topic_key_element": ("key_element", "key_elements"),       # a topic hangs under one key element
@@ -731,6 +732,9 @@ def run(root, today=None):
             "carriers": {
                 "projects": [link_name(v) for v in first_field(front, "goal_projects")],
                 "habits": [link_name(v) for v in first_field(front, "goal_habits")],
+                # Additive within schema 1 (2026-09-15): a third carrier shape.
+                # A reader that knows only projects and habits ignores it.
+                "workstreams": [link_name(v) for v in first_field(front, "goal_workstreams")],
             },
         })
     goals_open.sort(key=lambda g: (g["target_date"] is None,

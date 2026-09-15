@@ -15,6 +15,37 @@ the Inner World (or ship externally), and the working folder retires to
 `_archive/`. WiP is temporary by design; nothing is stored here long
 term. Lifecycle: [[SOP-1006-start-work-and-archive-a-wip-folder]].
 
+## Three kinds of folder: Workstream, Project, deliverable
+
+Most of what sits here is a dated deliverable folder, exactly as above.
+Two standing trees sit beside them, and the difference between the three
+is the difference between a process, a project and a piece of work.
+
+**A Project is bounded and ends.** It has a finish line, a `status` that
+reaches `done`, and a Project note in `04 Inner World/My Life/Projects/`
+that holds the why, the decisions and the links. **A Workstream is a
+repeatable process that never ends.** It is the same choreography run
+again and again (the weekly review, the daily processing run, a video
+made every week), producing one result per run, and it carries a Goal
+through those repeated results rather than through one finish line. Its
+document lives in `06 AI Team/AI Team Knowledge/Workstreams/`. A
+deliverable is one piece of work with a date on it.
+
+| | Workstream folder | Project folder | Deliverable folder |
+| --- | --- | --- | --- |
+| Path | `03 WiP/Workstreams/<Name>/` | `03 WiP/Projects/<Project note name>/` | `03 WiP/YYYY-MM-DD-<slug>/` |
+| What it is | The standing working folder of a Workstream that runs continuously: the queue, the current run, checklists, one dated subfolder per run. | The working folder of one bounded Project: drafts, checklists, everything produced while it runs. | One time-stamped piece of work. |
+| When it opens | When the Workstream runs continuously and needs a place for its state. Never in advance. | When the first working file of the Project lands. Never in advance. | When the work starts. |
+| When it closes | It does not. If the process stops for good, the Workstream note is retired and the folder moves to `_archive/Workstreams/<Name>/`. Runs inside it retire one by one. | When the Project note reaches `done` or `dropped`: the folder moves to `_archive/Projects/<name>/`. | When the work ships ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]] step 4). |
+| Who links to it | The Workstream note, through `wip_folder` ([[GL-1002-frontmatter-conventions|GL-1002]]). A Goal carried by the Workstream may point at it in its body. | The Project note, in a `## Working folder` line. The path is the note's own name and is not a frontmatter field. | The task that owns it. |
+| Name | A short PascalCase name for the process (`WeeklyReview`). | Exactly the Project note's name (`Spain Holidays`). | Date plus slug ([[GL-1004-naming-rules|GL-1004]]). |
+
+Inside a Workstream or Project folder the dated rule still applies one
+level down: a run of the process, or a piece of work inside the Project,
+is a `YYYY-MM-DD-<slug>/` subfolder. Each standing tree carries a
+`README.md` with a worked example. The weekly review never proposes a
+standing tree for archive; it rules on the dated runs inside it.
+
 ## Learn the concept
 
 The workbench implements ICOR's project execution: bounded work with a
