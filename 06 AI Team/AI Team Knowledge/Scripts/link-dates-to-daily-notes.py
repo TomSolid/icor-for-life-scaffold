@@ -42,12 +42,21 @@ reported as a collision and left alone.
 
 Usage:
   link-dates-to-daily-notes.py [<vault-root>] [--check|--dry-run|--fix]
-                               [--since YYYY-MM-DD] [--json]
+                               [--path FILE-OR-FOLDER]... [--since YYYY-MM-DD]
+                               [--json]
 
 Exit codes: 0 clean | 1 unlinked mentions found (--check) | 2 cannot run
 """
-import argparse, datetime, json, os, re, sys
+import argparse, datetime, importlib.util, json, os, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 # A date delimited by anything that is not a word character, a hyphen or a
 # slash, and not followed by a file extension. The three exclusions are the
@@ -272,6 +281,14 @@ mode.add_argument("--check", action="store_true", help="list unlinked mentions, 
 mode.add_argument("--dry-run", action="store_true", help="what --fix would do, no writes")
 mode.add_argument("--fix", action="store_true", help="write the links and create the missing daily notes")
 ap.add_argument("--since", default=None, help="only mentions of dates on or after this day, YYYY-MM-DD")
+# One note, or a folder, instead of the whole vault. SOP-1001 processes one
+# scratchpad and then wants the dates in THAT note linked; without this, --fix
+# rewrote date mentions across every note in the vault as a side effect of
+# processing one (Brian Carroll, T16-11). Repeatable; a file is a work list of
+# one. The collision scan still walks the whole vault, because a name clash
+# anywhere is what makes a link ambiguous here.
+ap.add_argument("--path", action="append", default=[], metavar="PATH",
+                help="limit the work to this file or folder inside the vault; repeatable")
 ap.add_argument("--json", action="store_true")
 a = ap.parse_args()
 
@@ -290,11 +307,40 @@ check_format(CFG)
 files, named = walk(ROOT)
 COLLIDING = collisions(ROOT, CFG, named)
 
+if a.path:
+    wanted = []
+    for raw in a.path:
+        target = Path(raw)
+        if not target.is_absolute():
+            target = (ROOT / raw) if (ROOT / raw).exists() else target
+        target = target.resolve()
+        if not target.exists():
+            fail(f"--path does not exist: {raw}")
+        try:
+            rel = target.relative_to(ROOT)
+        except ValueError:
+            fail(f"--path is outside {ROOT}: {raw}")
+        wanted.append(rel)
+    scoped = [f for f in files
+              if any(f == w or w in f.parents for w in wanted)]
+    skipped = [str(w) for w in wanted
+               if not any(f == w or w in f.parents for f in files)]
+    if skipped:
+        # Said out loud rather than passed over: a path that is simply out of
+        # the linker's scope (all of 06 AI Team/, 00 Daily Scratchpad/ itself)
+        # would otherwise look like a clean run on a note nobody looked at.
+        print("NOTE out of the linker's scope, nothing to do there: "
+              + ", ".join(sorted(skipped)), file=sys.stderr)
+    files = scoped
+
 items, per_file, wanted_days = [], {}, set()
 for rel in files:
     path = ROOT / rel
     try:
-        text = path.read_text(encoding="utf-8")
+        # From bytes: text mode folds a member's CRLF and any stray CR into
+        # LF on the way in, and the write below would then land that folded
+        # text as the new file (Ian Slattery, T15-A).
+        text, _eol = noteio.read_note(path)
     except (UnicodeDecodeError, OSError):
         continue
     wanted_days |= {d for d in already_linked(text, SINCE)
@@ -318,9 +364,9 @@ if MODE == "fix":
         out = text
         for s, e, d in reversed(found):          # back to front keeps offsets
             out = out[:s] + "[[" + out[s:e] + "]]" + out[e:]
-        # newline='' keeps the file's own line endings and final byte intact
-        with open(ROOT / rel, "w", encoding="utf-8", newline="") as fh:
-            fh.write(out)
+        # Bytes in, bytes out: the only edit on disk is the two pairs of
+        # brackets this script put there.
+        noteio.write_note(ROOT / rel, out)
         changed += 1
     for d in missing_days:
         p = daily_note_path(ROOT, CFG, d)
@@ -337,6 +383,7 @@ report = {
     "daily_folder": CFG.get("folder", ""),
     "daily_format": CFG["format"],
     "daily_config_defaulted": DEFAULTED,
+    "paths": [str(x) for x in a.path],
     "files_scanned": len(files),
     "files_changed": changed,
     "mentions": len(items),

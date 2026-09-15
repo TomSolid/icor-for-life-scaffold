@@ -89,14 +89,26 @@ def build(root: Path):
     write(root, "04 Inner World/Notes/prelinked.md",
           "Booked for [[2026-10-20]] and [[2026-10-21|that Tuesday]].\n")
 
+    # Line endings are the member's, not the script's. A CRLF note and a
+    # note with a stray lone CR in the body must come back out of --fix with
+    # every byte except the two pairs of brackets untouched.
+    write(root, "04 Inner World/Notes/crlf.md",
+          "---\r\ntype: note\r\n---\r\nSigned on 2026-06-01 in Madrid.\r\n"
+          "A second line.\r\n")
+    write(root, "04 Inner World/Notes/stray-cr.md",
+          "Filed on 2026-06-02.\nA line with a \r stray carriage return.\n")
+
     # The daily note that already exists; the others must be created.
     write(root, "00 Daily Scratchpad/2026/09/2026-09-11.md", "")
 
 
 def write(root, rel, text):
+    """Bytes, never write_text(). On Windows text mode turns every "\n" in a
+    fixture into "\r\n", so the CRLF cases below would have been testing the
+    platform instead of the script (Ian Slattery, T15-A)."""
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
+    p.write_bytes(text.encode("utf-8"))
 
 
 def run(root, *args):
@@ -190,6 +202,39 @@ with tempfile.TemporaryDirectory() as td:
     check("fix did not touch the code fence",
           "[[2026-03-04]]" not in
           (V / "04 Inner World/Notes/code.md").read_text(encoding="utf-8"))
+
+    print("line endings")
+    crlf = (V / "04 Inner World/Notes/crlf.md").read_bytes()
+    check("a CRLF note keeps every CRLF",
+          crlf == b"---\r\ntype: note\r\n---\r\nSigned on [[2026-06-01]] in "
+                  b"Madrid.\r\nA second line.\r\n", repr(crlf))
+    stray = (V / "04 Inner World/Notes/stray-cr.md").read_bytes()
+    check("a stray lone CR in the body survives",
+          stray == b"Filed on [[2026-06-02]].\nA line with a \r stray "
+                   b"carriage return.\n", repr(stray))
+    created = (V / "00 Daily Scratchpad/2026/06/2026-06-01.md").read_bytes()
+    check("a created daily note carries no CR at all", b"\r" not in created,
+          repr(created))
+
+    print("--path scoping")
+    V4 = Path(td) / "scoped"
+    shutil.copytree(V, V4)
+    write(V4, "04 Inner World/Notes/one.md", "Scoped 2026-05-01.\n")
+    write(V4, "04 Inner World/Notes/two.md", "Untouched 2026-05-02.\n")
+    before_two = (V4 / "04 Inner World/Notes/two.md").read_bytes()
+    r_scope = run(V4, "--fix", "--path", "04 Inner World/Notes/one.md")
+    check("--path exits 0", r_scope.returncode == 0,
+          r_scope.stdout + r_scope.stderr)
+    check("--path linked the file it was given",
+          b"[[2026-05-01]]" in (V4 / "04 Inner World/Notes/one.md").read_bytes())
+    check("--path left every other note alone",
+          (V4 / "04 Inner World/Notes/two.md").read_bytes() == before_two)
+    check("--path created only its own daily note",
+          (V4 / "00 Daily Scratchpad/2026/05/2026-05-01.md").is_file()
+          and not (V4 / "00 Daily Scratchpad/2026/05/2026-05-02.md").exists())
+    r_bad = run(V4, "--check", "--path", "nowhere/at/all.md")
+    check("--path refuses a path that is not there", r_bad.returncode == 2,
+          f"exit {r_bad.returncode}")
 
     print("idempotency")
     snap = {p: p.read_bytes() for p in V.rglob("*.md")}
