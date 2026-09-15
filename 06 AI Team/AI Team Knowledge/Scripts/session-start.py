@@ -10,6 +10,8 @@ the model READS results instead of being asked to fetch them.
   3. check-quality.py --write, only when quality.json is missing or older
      than today, then the one-line health verdict
   5. expansion-pack.py list
+  6. life-snapshot.py --write --brief, the six everyday life questions
+     answered before anyone asks them (SOP-1017 is the reading procedure)
 
 Steps 1, 2 and 4 of the ritual are judgement (read your contract, walk the
 tasks, look at the inbox) and stay with the model, which is the whole of
@@ -159,6 +161,74 @@ def last_receipt_line():
                ("; " + "; ".join(str(u) for u in unresolved[:3])) if unresolved else ""))
 
 
+LIFE_SNAPSHOT_MISSING = (
+    'No life snapshot on this device yet. Run: python3 '
+    '"06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py" --write. '
+    "Until then I would have to read the folders, which is slower and less "
+    "reliable; say the word and I will."
+)
+LIFE_SNAPSHOT_RULE = (
+    "Do NOT answer the six life questions from memory and do NOT say there are "
+    "no goals: a missing report means the script did not run, never that the "
+    "life is empty."
+)
+
+# THE SIZE CAP (Vex gate 2026-09-15, finding F1 MEDIUM, mirrored from the
+# private vault's wrapper). Nothing here is a leak; it is a flood. A tampered
+# or malformed snapshot, or one absurd note title, makes the brief render
+# megabytes, and this ritual prints whatever it renders straight into the
+# session context at EVERY start, so it repeats until somebody notices.
+# Measured on the private vault before the cap: 5,000,809 bytes of stdout.
+#
+# Only the character cap is mirrored. This ritual never opens snapshot.json:
+# it reads the child's stdout, so the private wrapper's 2 MB file refusal has
+# no surface here. A real brief is under 4000 characters.
+MAX_BRIEF_CHARS = 16000
+
+
+def bounded_brief(text):
+    """Cut an oversized brief and SAY it was cut, never silently."""
+    if len(text) <= MAX_BRIEF_CHARS:
+        return text
+    return (text[:MAX_BRIEF_CHARS]
+            + "\n(brief cut at %d characters; a real one is under 4000. "
+              "Something is oversized; check snapshot.json and the note titles "
+              "before trusting the lines above.)" % MAX_BRIEF_CHARS)
+
+
+def life_snapshot_lines():
+    """The six everyday questions, answered before anyone asks them.
+
+    `life-snapshot.py --write --brief` walks three entity rooms, the Journal
+    months touching the last 30 days, the Planner and the scratchpads, writes
+    `.icor-for-life/scripts/snapshot.json` and renders about sixteen lines.
+    Measured at 0.06s on this scaffold and 0.5s on a lived-in vault, so it runs
+    on every start rather than on a staleness check: a brief that is sometimes
+    yesterday's is a brief whose date nobody reads.
+
+    It never fails a start. A missing or unrunnable snapshot prints the line
+    the reader must say instead of listing goals from memory, which is the
+    whole point: an absent report means the script did not run, never that the
+    member has no goals. SOP-1017 is the reading procedure.
+    """
+    r, err = run("life-snapshot.py", str(ROOT), "--write", "--brief")
+    if err:
+        return ["  life snapshot: NOT TAKEN, %s" % err,
+                "    " + LIFE_SNAPSHOT_MISSING,
+                "    " + LIFE_SNAPSHOT_RULE]
+    if r.returncode != 0:
+        return ["  life snapshot: NOT TAKEN, life-snapshot.py exited %d (%s)"
+                % (r.returncode, (r.stderr or r.stdout or "no output").strip()[:200]),
+                "    " + LIFE_SNAPSHOT_MISSING,
+                "    " + LIFE_SNAPSHOT_RULE]
+    body = bounded_brief((r.stdout or "").strip()).splitlines()
+    if not body:
+        return ["  life snapshot: life-snapshot.py exited 0 and printed nothing",
+                "    " + LIFE_SNAPSHOT_MISSING,
+                "    " + LIFE_SNAPSHOT_RULE]
+    return ["  life snapshot:"] + ["    " + b for b in body]
+
+
 def main():
     lines = ["Session start ritual (run by the SessionStart hook, not by the model):"]
 
@@ -215,6 +285,8 @@ def main():
         lines.append("  expansion packs: " + (out[0] if out else "no output"))
         for extra in out[1:8]:
             lines.append("    " + extra)
+
+    lines.extend(life_snapshot_lines())
 
     lines.append("  " + last_receipt_line())
     lines.append("  still yours: read your contract, walk Tasks/open and "

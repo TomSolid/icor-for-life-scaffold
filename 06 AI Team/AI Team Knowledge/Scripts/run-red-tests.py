@@ -2149,6 +2149,118 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("session-start/guards-off-line: it warned, but did not name "
                      "where the trust state can be read")
 
+    # 69c-69e. THE LIFE SNAPSHOT (Mack, 2026-09-15; Axon section 10 of the
+    #     ICOR questions audit). Two rules, both named on the
+    #     `session-start-ritual` row in hooks-rules.json:
+    #
+    #       life-snapshot-fixtures        the fixture suite is a suite at all
+    #       life-snapshot-missing-report  an absent report reads as "not run",
+    #                                     never as an empty life
+    #
+    #     WHAT THIS DOES NOT PROVE: that the READER obeys the missing line. It
+    #     proves the ritual prints it and prints no goal list beside it.
+    _LS = HERE / "life-snapshot.py"
+    _LS_TEST = HERE / "test-life-snapshot.py"
+    if not (_LS.is_file() and _LS_TEST.is_file()):
+        skip("life-snapshot", "life-snapshot.py or test-life-snapshot.py is not "
+                              "in Scripts/")
+    else:
+        # 69c. life-snapshot-fixtures, both halves. The suite must pass, and
+        #      its own --break-me must still be able to fail it; a suite that
+        #      stopped asserting would otherwise print OK forever.
+        checks += 1
+        _lsr = subprocess.run([PY, str(_LS_TEST)], capture_output=True, text=True)
+        if _lsr.returncode != 0:
+            fails.append("life-snapshot-fixtures/suite-passes: exit %d: %s"
+                         % (_lsr.returncode,
+                            (_lsr.stdout or _lsr.stderr or "").strip()[-300:]))
+        checks += 1
+        _lsr = subprocess.run([PY, str(_LS_TEST), "--break-me"],
+                            capture_output=True, text=True)
+        if _lsr.returncode == 0:
+            fails.append("life-snapshot-fixtures/suite-can-go-red: --break-me "
+                         "plants a wrong expectation and the suite still exited "
+                         "0, so 57 green cases prove nothing")
+
+        # 69d. The ritual's own snapshot line, on the vault it just ran in.
+        #      Load-bearing for 69e: it proves a goal line is producible here,
+        #      so its absence below means something.
+        checks += 1
+        _sr = subprocess.run([PY, str(ss / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+                             capture_output=True, text=True,
+                             env={**_o.environ, "CLAUDE_PROJECT_DIR": str(ss)},
+                             input="")
+        if "life snapshot:" not in _sr.stdout:
+            fails.append("life-snapshot-fixtures/ritual-prints-it: the session "
+                         "start ritual said nothing about the life snapshot, so "
+                         "the six questions still cost a folder walk:\n%s"
+                         % _sr.stdout[-300:])
+        elif "Goals (" not in _sr.stdout:
+            fails.append("life-snapshot-fixtures/ritual-prints-it: the ritual "
+                         "named the snapshot but printed no goal line, so 69e "
+                         "below would pass for the wrong reason:\n%s"
+                         % _sr.stdout[-300:])
+
+        # 69e. life-snapshot-missing-report. Delete the report AND the script
+        #      that would regenerate it, which is the shape a member on a
+        #      machine with no working Python actually has, then assert the
+        #      ritual says "not run" rather than listing goals from memory.
+        checks += 1
+        _lsv = tmp / "life-snapshot-missing"
+        shutil.copytree(ROOT, _lsv, ignore=shutil.ignore_patterns(".git"))
+        _lssnap = _lsv / ".icor-for-life/scripts/snapshot.json"
+        if _lssnap.is_file():
+            _lssnap.unlink()
+        (_lsv / "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py").unlink()
+        _mr = subprocess.run([PY, str(_lsv / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+                             capture_output=True, text=True,
+                             env={**_o.environ, "CLAUDE_PROJECT_DIR": str(_lsv)},
+                             input="")
+        if _mr.returncode != 0:
+            fails.append("life-snapshot-missing-report: the ritual exited %d with "
+                         "no snapshot; absence is a known state, not a crash"
+                         % _mr.returncode)
+        elif "No life snapshot on this device yet." not in _mr.stdout:
+            fails.append("life-snapshot-missing-report: a missing snapshot did not "
+                         "produce the missing-file line:\n%s" % _mr.stdout[-400:])
+        elif "from memory" not in _mr.stdout:
+            fails.append("life-snapshot-missing-report: the missing-file line "
+                         "shipped without the rule that goes with it (do not "
+                         "answer from memory), so the reader is told a file is "
+                         "absent and not what to do about it:\n%s"
+                         % _mr.stdout[-400:])
+        elif "Goals (" in _mr.stdout:
+            fails.append("life-snapshot-missing-report: the ritual listed goals "
+                         "with no snapshot on disk, which is the exact defect this "
+                         "case exists to catch:\n%s" % _mr.stdout[-400:])
+
+        # 69f. THE SIZE CAP (Vex gate 2026-09-15, F1 MEDIUM). Not a leak, a
+        #      flood: this ritual prints into the session context at EVERY
+        #      start, so an oversized brief repeats until somebody notices.
+        #      Measured on the private vault before the cap: 5,000,809 bytes.
+        #      This ritual never opens snapshot.json (it reads the child's
+        #      stdout), so the character cap is the only surface here.
+        checks += 1
+        _capv = tmp / "life-snapshot-cap"
+        shutil.copytree(ROOT, _capv, ignore=shutil.ignore_patterns(".git"))
+        (_capv / "04 Inner World/My Life/Goals/oversized-title.md").write_text(
+            "---\ntype: goal\nname: " + "Y" * 20000 + "\nstatus: active\n---\n",
+            encoding="utf-8")
+        _cr = subprocess.run([PY, str(_capv / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+                             capture_output=True, text=True,
+                             env={**_o.environ, "CLAUDE_PROJECT_DIR": str(_capv)},
+                             input="")
+        if len(_cr.stdout) > 18_000:
+            fails.append("life-snapshot-fixtures/size-cap-on-the-brief: a 20000-"
+                         "character goal name rendered %d characters into the "
+                         "session; the brief must be cut at 16000"
+                         % len(_cr.stdout))
+        elif "brief cut at" not in _cr.stdout:
+            fails.append("life-snapshot-fixtures/size-cap-on-the-brief: the brief "
+                         "was short enough, but nothing said it had been cut; a "
+                         "silent truncation is a brief that reads as complete:\n%s"
+                         % _cr.stdout[-300:])
+
     # 70-75. the completion receipt (Codex audit finding 7). The defect this
     #     replaces: --assert-logged passed on ANY log dated today, so a
     #     morning log closed an afternoon session that wrote nothing.

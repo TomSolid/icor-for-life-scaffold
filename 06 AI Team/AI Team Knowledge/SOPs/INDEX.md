@@ -23,3 +23,4 @@ The scaffold's own SOPs carry numbers from 1001 up; yours take 001 to
 | [[SOP-1014-check-and-repair-what-was-filed-by-hand\|SOP-1014 Check and repair what was filed by hand]] | Penn | "check my notes", "fix my vault", `quality.json` not `ok`, step 4 of WS-1001 |
 | [[SOP-1015-digest-a-meeting-transcript\|SOP-1015 Digest a meeting transcript]] | Penn | a transcript from any tool is turned into the part of a meeting note worth keeping |
 | [[SOP-1016-run-the-red-tests-and-gate-a-release\|SOP-1016 Run the red tests and gate a release]] | Mack | "run the red tests", after any guard is written or changed, and before every release |
+| [[SOP-1017-answer-the-six-life-questions-from-the-snapshot\|SOP-1017 Answer the six life questions from the snapshot]] | Mack | "what are my goals", "what should I focus on", "weekly priorities", "highlight of today", "my key elements", "what am I paying attention to" |
