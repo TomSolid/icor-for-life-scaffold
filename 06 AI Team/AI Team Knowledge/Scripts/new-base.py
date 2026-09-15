@@ -20,8 +20,16 @@ file wrappers) and Notes.base (type note). A collection is therefore
 (folder, type), and check-bases.py keys its one-Base-per-collection rule
 the same way.
 """
-import argparse, re, sys
+import argparse, importlib.util, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 GL002 = "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md"
@@ -349,7 +357,7 @@ def main():
                  "(delete it first if a re-stamp is intended)"
                  % dest.relative_to(root))
 
-    dest.write_text(render(a.entity), encoding="utf-8")
+    noteio.write_note(dest, render(a.entity))
     print("OK stamped -> %s" % dest.relative_to(root))
     return 0
 

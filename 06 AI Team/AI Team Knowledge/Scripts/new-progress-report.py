@@ -13,8 +13,16 @@ mermaid skeleton, the scoreboard rows, the legend, the updated stamp.
 The model writes the phase names, what each delivers, the decisions,
 and the log entries.
 """
-import argparse, datetime, re, sys
+import argparse, datetime, importlib.util, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--wip", required=True, help="folder name inside 03 WiP/")
@@ -36,11 +44,13 @@ if not folder.is_dir():
 if a.touch:
     if not dest.exists():
         sys.exit(f"FAIL no progress report to stamp: 03 WiP/{a.wip}")
-    text = dest.read_text(encoding="utf-8")
-    new, n = re.subn(r"(?m)^updated: .*$", f"updated: {now:%Y-%m-%d %H:%M}", text, count=1)
+    text, _eol = noteio.read_note(dest)
+    # [^\r\n]* rather than .* : `.` matches a carriage return, so on a CRLF
+    # report the old pattern ate the \r and left one lone LF line behind.
+    new, n = re.subn(r"(?m)^updated:[^\r\n]*", f"updated: {now:%Y-%m-%d %H:%M}", text, count=1)
     if not n:
         sys.exit("FAIL progress report has no updated field")
-    dest.write_text(new, encoding="utf-8")
+    noteio.write_note(dest, new)
     print(f"OK stamped {dest}")
     sys.exit(0)
 
@@ -66,7 +76,7 @@ rows = "\n".join(
 title = a.title or a.wip.replace("-", " ")
 plan = f'plan: "{a.plan}"\n' if a.plan else ""
 
-dest.write_text(f"""---
+noteio.write_note(dest, f"""---
 type: progress-report
 status: live
 created: {now:%Y-%m-%d}
@@ -96,5 +106,5 @@ flowchart TD
 
 ### {now:%Y-%m-%d %H:%M}
 - Work started.
-""", encoding="utf-8")
+""")
 print(f"OK created {dest}")

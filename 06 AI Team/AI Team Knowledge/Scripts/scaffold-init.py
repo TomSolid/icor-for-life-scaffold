@@ -77,6 +77,7 @@ WHY THE SKILL NAME IS A FIELD AND NOT A DERIVATION
 import argparse
 import datetime
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -84,6 +85,14 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -1305,7 +1314,12 @@ def diff(root, b):
         if not p.exists():
             create.append(rel)
             continue
-        cur = p.read_text(encoding="utf-8")
+        # Read from bytes, not through text mode. Text mode folds CRLF
+        # back to LF on the way in, so a generated file that landed as CRLF
+        # (write_text on Windows did that until 2026-09-15) compared equal
+        # and was never corrected. Bytes make the difference visible, and the
+        # write below lands LF on every platform (Ian Slattery, T15-A).
+        cur = noteio.read_note(p)[0]
         if cur == text:
             same.append(rel)
         else:
@@ -1336,7 +1350,7 @@ def diff(root, b):
         if p.is_symlink():
             remove.append((rel, "the skill it links to is no longer generated"))
             continue
-        line = header_line_of(p.read_text(encoding="utf-8")) or ""
+        line = header_line_of(noteio.read_note(p)[0]) or ""
         m = re.search(r"from `([^`]+)`", line)
         src = m.group(1) if m else None
         if src and (root / src).exists():
@@ -1359,7 +1373,10 @@ def diff(root, b):
 def write(root, rel, text):
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
+    # Bytes, so a generated file is byte-identical on macOS, Linux and
+    # Windows. write_text() would turn every "\n" into "\r\n" on Windows and
+    # the manifest hashes would differ per platform.
+    noteio.write_note(p, text)
 
 
 def link(root, rel, target):
@@ -1400,7 +1417,7 @@ def apply_settings(root, b):
                              "not `hooks`." % e)
     doc["hooks"] = b.claude_hooks
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    noteio.write_note(p, json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
 
 
 # A SANDBOX THAT REFUSES THE WRITE MUST SAY SO IN WORDS, NOT IN A TRACEBACK
@@ -1822,8 +1839,8 @@ def do_doctor(root, b, out, run_tests=True, write_json=False):
         # at all, and a write into a missing parent is the usual way this
         # fails on the machine nobody tested on.
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(harness_doc(report), indent=2,
-                                   ensure_ascii=False) + "\n", encoding="utf-8")
+        noteio.write_note(path, json.dumps(harness_doc(report), indent=2,
+                                           ensure_ascii=False) + "\n")
         out("")
         out("wrote       : %s" % HARNESS_PATH)
     return 1 if report["problems"] else 0

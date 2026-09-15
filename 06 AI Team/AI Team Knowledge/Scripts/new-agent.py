@@ -55,6 +55,7 @@ never what anyone meant.
 Exit 0 = created, or already complete. Exit 1 = FAIL line on stderr.
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -63,6 +64,14 @@ import subprocess
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parents[2]
@@ -268,7 +277,7 @@ def main():
                     "retire the specialist first." % (AGENTS_REL, name))
     index = agents / "agent-index.md"
     if index.is_file():
-        text = index.read_text(encoding="utf-8", errors="replace")
+        text, _eol = noteio.read_note(index)
         cells = re.findall(r"^\|[^|]+\|\s*([a-z0-9-]+)\s*\|", text, re.M)
         if slug in cells:
             return fail("the slug `%s` is already in agent-index.md. A slug is a dispatch key and "
@@ -301,7 +310,7 @@ def main():
     # 1 and 2. the folder and the contract
     if public and (agents / "Agent 01").is_dir():
         plan.append("render %s/%s/AGENT.md from the Agent 01 template" % (AGENTS_REL, name))
-        template_contract = (agents / "Agent 01" / "AGENT.md").read_text(encoding="utf-8")
+        template_contract = noteio.read_note(agents / "Agent 01" / "AGENT.md")[0]
         body = re.sub(r"^name: .*$", "name: " + name, template_contract, flags=re.M)
         body = re.sub(r"^role: .*$", "role: " + role, body, flags=re.M)
         body = re.sub(r"^created: .*$", "created: " + today, body, flags=re.M)
@@ -331,8 +340,12 @@ def main():
 
     # 6. the agent-index row
     row = None
+    index_eol = "\n"
     if index.is_file():
-        text = index.read_text(encoding="utf-8", errors="replace")
+        # agent-index.md is a file the member reads and edits. The row is
+        # inserted in the file's OWN line ending so the rest of the table is
+        # not rewritten under it (Ian Slattery, T15-A).
+        text, index_eol = noteio.read_note(index)
         header_re = re.compile(r"^\|[^\n]*\|\s*\n\|[\s:|-]+\|\s*$", re.M)
         target = None
         if args.section:
@@ -354,7 +367,7 @@ def main():
             plan.append("insert the agent-index row into the table at line %d"
                         % (text[:target].count("\n") + 1))
         if row and target is not None:
-            new_text = text[:target] + "\n" + row + text[target:]
+            new_text = text[:target] + index_eol + row + text[target:]
             writes.append((index, new_text))
 
     if args.dry:
@@ -365,20 +378,20 @@ def main():
         return 0
 
     marker.parent.mkdir(parents=True, exist_ok=True)
-    marker.write_text(json.dumps({
+    noteio.write_note(marker, json.dumps({
         "started": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "agent": name,
         "session_id": session_id,
         "why": ("write-guard.py stands down on this one AGENT.md while this file "
                 "is here and younger than 24 hours; check-hire.py deletes it on a "
                 "green run"),
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\n")
     print("wrote  " + str(marker.relative_to(root))
           + "  (hiring marker, 24h, this contract only)")
 
     for path, text in writes:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        noteio.write_note(path, text)
         print("wrote  " + str(path.relative_to(root)))
 
     # 3. the id, minted by the one script that owns ids

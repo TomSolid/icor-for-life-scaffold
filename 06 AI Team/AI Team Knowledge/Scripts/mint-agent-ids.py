@@ -45,12 +45,21 @@ Rules, all deterministic (GL-1005):
 Exit 0 = done (or --check passed). Exit 1 = FAIL lines on stderr.
 """
 import argparse
+import importlib.util
 import json
 import re
 import sys
 import uuid
 from collections import defaultdict
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parents[2]
@@ -72,17 +81,29 @@ def is_template(name):
 
 
 def frontmatter(text):
-    """(lines, end): the frontmatter lines and the offset where the
-    closing fence starts (the newline before `---`). None when absent."""
-    if not text.startswith("---\n"):
+    r"""(lines, fence, opening): the frontmatter lines with their own line
+    endings stripped off, the offset where the closing `---` itself starts,
+    and the opening fence exactly as the file writes it. None when absent.
+
+    Both fences are read in either line ending. A contract synced from
+    Windows is CRLF, and "---\n" alone does not find its fences at all, so
+    the whole file read as "no frontmatter" and the id could not be minted.
+    The caller rebuilds with the file's own eol, so nothing else in the
+    block is rewritten (Ian Slattery, T15-A).
+    """
+    opening = next((f for f in ("---\n", "---\r\n") if text.startswith(f)), None)
+    if opening is None:
         return None
-    end = text.find("\n---\n", 4)
-    if end == -1:
-        if text.endswith("\n---"):
-            end = len(text) - 4
-        else:
+    close = noteio.FM_CLOSE.search(text, len(opening) - 1)
+    if close is not None:
+        raw, fence = text[len(opening):close.start()], close.start() + 1
+    else:
+        tail = next((t for t in ("\r\n---", "\n---") if text.endswith(t)), None)
+        if tail is None:
             return None
-    return text[4:end].split("\n"), end
+        raw, fence = text[len(opening):len(text) - len(tail)], len(text) - 3
+    lines = [ln[:-1] if ln.endswith("\r") else ln for ln in raw.split("\n")]
+    return lines, fence, opening
 
 
 def read_value(lines):
@@ -92,7 +113,11 @@ def read_value(lines):
         m = FIELD_RE.match(line)
         if m:
             raw = m.group(1).strip()
-            raw = re.split(r"\s+#", raw, 1)[0].strip()
+            # maxsplit= by name: the positional third argument to
+            # re.split is deprecated since 3.13 and prints a
+            # DeprecationWarning straight into the member's terminal
+            # (Andrew Gillley, T13-5).
+            raw = re.split(r"\s+#", raw, maxsplit=1)[0].strip()
             if raw.startswith("#"):
                 raw = ""
             return i, raw.strip("'\"")
@@ -151,13 +176,13 @@ def main():
             continue  # validate-scaffold reports a folder without AGENT.md
         name = d.name
         tmpl = is_template(name)
-        text = f.read_text(encoding="utf-8")
+        text, eol = noteio.read_note(f)
         fm = frontmatter(text)
         if fm is None:
             errors.append(f"{name}: AGENT.md has no frontmatter, so it cannot carry {FIELD}")
             rows.append((name, "-", "no-frontmatter"))
             continue
-        lines, end = fm
+        lines, fence, opening = fm
         idx, val = read_value(lines)
 
         if idx is not None:
@@ -195,7 +220,8 @@ def main():
             new_id, action = str(uuid.uuid4()), "minted"
             new_line = f"{FIELD}: {new_id}"
         lines.insert(insert_index(lines), new_line)
-        writes.append((f, "---\n" + "\n".join(lines) + text[end:]))
+        writes.append((f, opening + "".join(ln + eol for ln in lines)
+                       + text[fence:]))
         rows.append((name, new_id, action))
         if not tmpl:
             seen[new_id].append(name)
@@ -226,7 +252,7 @@ def main():
 
     if not readonly:
         for f, new_text in writes:
-            f.write_text(new_text, encoding="utf-8")
+            noteio.write_note(f, new_text)
     counts = defaultdict(int)
     for _, _, action in rows:
         counts[action] += 1

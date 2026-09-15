@@ -16,8 +16,16 @@ Writes the entry to .mcp.json and a PLACEHOLDER line to .env. Guards
   - env var names must be UPPER_SNAKE; existing .env values are never
     overwritten; values are never printed
 """
-import argparse, json, re, sys
+import argparse, importlib.util, json, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_nio = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_nio)
+_nio.loader.exec_module(noteio)
 
 ROOT = Path(__file__).resolve().parents[3]
 MCP = ROOT / ".mcp.json"
@@ -44,7 +52,7 @@ for v in a.env:
     if not re.fullmatch(r"[A-Z][A-Z0-9_]*", v):
         sys.exit(f"FAIL env var must be UPPER_SNAKE: {v}")
 
-cfg = json.loads(MCP.read_text()) if MCP.exists() else {"mcpServers": {}}
+cfg = json.loads(noteio.read_note(MCP)[0]) if MCP.exists() else {"mcpServers": {}}
 cfg.setdefault("mcpServers", {})
 if a.name in cfg["mcpServers"]:
     sys.exit(f"FAIL server already configured: {a.name}")
@@ -60,14 +68,19 @@ else:
 if a.env:
     entry["env"] = {v: "${" + v + "}" for v in a.env}
 cfg["mcpServers"][a.name] = entry
-MCP.write_text(json.dumps(cfg, indent=2) + "\n")
+noteio.write_note(MCP, json.dumps(cfg, indent=2) + "\n")
 
-existing = ENV.read_text() if ENV.exists() else ""
+# .env is a file the member edits by hand, so it keeps its own line
+# endings: a placeholder appended with a bare "\n" into a CRLF .env leaves
+# one mixed line behind, and every line after it reads as changed in git
+# (Ian Slattery, T15-A).
+existing, eol = noteio.read_note(ENV) if ENV.exists() else ("", "\n")
 added = []
 for v in a.env:
     if re.search(rf"^{v}=", existing, re.M):
         continue
-    existing = existing.rstrip("\n") + f"\n{v}=\n" if existing.strip() else f"{v}=\n"
+    existing = (existing.rstrip("\r\n") + eol + f"{v}=" + eol
+                if existing.strip() else f"{v}=" + eol)
     added.append(v)
-ENV.write_text(existing)
+noteio.write_note(ENV, existing)
 print(f"OK {a.name} wired into .mcp.json" + (f"; fill in .env: {', '.join(added)}" if added else ""))
