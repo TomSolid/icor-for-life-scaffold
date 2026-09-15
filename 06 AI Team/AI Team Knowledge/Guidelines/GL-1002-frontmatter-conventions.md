@@ -46,7 +46,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | pdf-highlight | highlight_id, source_file (wikilink to the PDF), page, anchor (selection/rect), rects, color, created, cssclasses | document (wikilink to the `document` wrapper note), selection (selection anchors), quote, image (rect anchors), canvases, linked_notes (both plugin-owned) | none: the plugin writes it |
 | key-element | - | people, goals | `[[Templates/key-element]]` |
 | topic | - | related_topics | `[[Templates/topic]]` |
-| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements | `[[Templates/project]]` |
+| project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements, focus_rank (1, 2 or 3; absent means not in focus, at most three projects carry it) | `[[Templates/project]]` |
 | habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) | `[[Templates/habit]]` |
 | task | status (open/in-progress/done/cancelled), assignee | related, due | none: `Scripts/new-task.py` |
 | progress-report | status (live/closed), updated (ISO datetime) | plan | none: `Scripts/new-progress-report.py` |
@@ -57,9 +57,10 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | agent-bio | agent, role | - | none |
 | agent | myicor_id (uuid v4, lowercase, immutable), name, role, routing_description (one line, required on every new hire) | shim_reads (list of paths), owns_gates (list of guard ids), brief_waived (why no research brief) | none: `Agents/Agent 01/` |
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) | none: the plugin writes it |
-| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal, synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due | none: the plugin writes it |
+| planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal (pins the item to the week; label: pinned, never goal), linked_note (one wikilink to a project note, plan-owned), synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due | none: the plugin writes it |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) | none: the plugin writes it |
 | planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (wikilink to the My Life habit note), created_at (ISO datetime) | none: the plugin writes it |
+| planner-week | week (ISO week, YYYY-Www, matching the filename) | created_at (ISO datetime) | none: `Scripts/planner-week.py` |
 
 ## Journal: the ICOR four (ruling 2026-09-06)
 
@@ -642,6 +643,123 @@ what stops self-reported streaks from drifting. The Planner's check-in
 writes exactly this: `Y` on check, `_` on uncheck (or `N` when the row
 already carries a note), and it creates the `## Log` section with the
 `streak` sentinel when the note has none.
+
+## Planner weeks: weekly priorities and the daily highlight (ruling 2026-09-15)
+
+One note per ISO week, `02 Planner/Weeks/YYYY-Www.md`, `type: planner-week`.
+It is the home of two things ICOR had no place for: the **Weekly
+Priorities** and the **Daily Highlight**. Same shape of decision as a
+Routine and a Habit: the frontmatter is the definition, the body holds
+the content behind a sentinel, and the Planner plugin can grow a Week
+view over it later without a migration.
+
+> The Daily Highlight is the one thing that, if it happens, makes the
+> day a win: chosen in the morning, confirmed in the evening.
+
+### The ladder, and why the day was the missing rung
+
+| Rung | Span | Home | The ICOR name |
+| --- | --- | --- | --- |
+| Key Element | permanent | My Life | Key Element |
+| Goal | until achieved | My Life | Goal |
+| Project or Habit | bounded or cadenced | My Life for the meaning, Planner for the tracking | the carriers |
+| the week | one ISO week | this note | **Weekly Priority** |
+| the day | one calendar day | this note | **Daily Highlight** |
+
+### The two labels, and the one word that does not move
+
+**"Goal" belongs to a `type: goal` note in `04 Inner World/My Life/Goals/`
+and only there.** A Goal is the measurable commitment anchored to a Key
+Element and carried by a Project or a Habit. That is the taught meaning
+and it does not move.
+
+| Label | What it names | Where it is said |
+| --- | --- | --- |
+| **Goal** | a `type: goal` note | chat, `Goals.base`, the My Life INDEX, the course |
+| **Weekly Priority** | one line in this week's note: an outcome for the week, with a done state | chat, the heading here, the Planner tray, `life-snapshot.py --brief` |
+
+**The starred planner item is neither.** It is a task **pinned to the
+week**: `weekly_goal: true` on a `planner-item` keeps its key for now,
+and stops wearing the word "goal" on every surface (tray section
+**PINNED THIS WEEK**, chip **WEEK**). A task may serve a Weekly
+Priority; the priority is the outcome, the task is the means. The
+item-level `priority` (1 to 5, source-owned) never appears with the word
+"weekly" beside it, so the two never meet.
+
+### The note
+
+```yaml
+type: planner-week
+week: 2026-W38                        # required, ISO week, matches the filename
+created_at: 2026-09-14T07:00:00Z      # optional
+tags: []
+```
+
+No `week_start` and no `week_end`: both derive from `week`, and a
+derivable fact is not a field. Nothing computed goes in the
+frontmatter either: no done count, no streak, no "priorities this week:
+3", for the same reason a habit streak is never written into its log.
+
+```markdown
+## Weekly priorities
+<!-- weekly-priorities: schema=checklist -->
+- [ ] Ship the explainer video
+- [x] Book the sleep lab follow-up
+
+## Daily highlights
+<!-- daily-highlights: schema=highlight -->
+| Date | Highlight | Done |
+|---|---|---|
+| 2026-09-15 | Record episode 3 | _ |
+| 2026-09-14 | Paco review call | Y |
+```
+
+- `## Weekly priorities` carries `<!-- weekly-priorities: schema=checklist -->`
+  on its own line immediately before the list. One priority per `- [ ]`
+  line; `- [x]` is done. Order is yours and nothing sorts it. A line that
+  is not a checkbox is not a priority: the parser ignores it and every
+  writer leaves it exactly where it is.
+- `## Daily highlights` carries `<!-- daily-highlights: schema=highlight -->`
+  immediately before the table. Columns `Date | Highlight | Done`:
+  `Date` is an ISO date inside the week, `Highlight` is one sentence,
+  `Done` uses the marker set the habit log already defines (`Y` done,
+  `N` not done, `_` or blank pending). One row per date, newest on top,
+  and a writer replaces a day's row in place rather than rewriting the
+  lines around it.
+
+### The four rules the concept carries
+
+1. **One sentence, one per day.** Not a list and not a task. A Planner
+   item may serve it; the highlight is the outcome, the item is the
+   means. It may carry a wikilink to a Project, Key Element or Topic,
+   and `life-snapshot.py` counts that as attention for the linked note.
+2. **One sense, two moments.** The morning sets the sentence, the
+   evening confirms it. "What turned out best today", judged
+   afterwards, is a different thing and already has a home: a
+   `journal_type: milestone` entry. **The model never writes a sentence
+   into this table from a guess.** On a day with no morning sentence it
+   may offer one drawn from today's entries, and only your confirmed
+   words land.
+3. **A blank day is not a finding.** No highlight set means one line
+   saying so. Nothing nags.
+4. **Planner-owned.** Never a daily-note property (the daily note is
+   blank by design, per [[GL-1007-capture-and-where-things-go|GL-1007]])
+   and never a journal field.
+
+Never bare "Highlight" as a label, a heading or a sentinel: in this
+scaffold `highlight` already means a PDF highlight (`type: pdf-highlight`).
+The day sense always carries the word **Daily**; the PDF sense always
+carries **PDF** in prose. Neither side changes a filename or a type.
+
+### Who writes it
+
+`Scripts/planner-week.py` creates and edits the note:
+`ensure` (this week's note, both sections empty, refuses to overwrite),
+`add-priority`, `done-priority`, `set-highlight`, `mark-highlight`.
+Filing is deterministic, so the team runs the script rather than editing
+the table by hand ([[GL-1005-code-vs-instructions|GL-1005]]). Editing
+the note yourself in Obsidian is equal: the parser reads the shape, not
+the writer. `life-snapshot.py` only ever reads it.
 
 ## Agents: the stable identity `myicor_id` (ruling 2026-09-07)
 

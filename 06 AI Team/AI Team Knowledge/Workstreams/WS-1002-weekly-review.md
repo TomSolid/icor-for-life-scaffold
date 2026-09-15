@@ -36,5 +36,9 @@ flowchart TD
    consumed, or let it wait; the user answers, the team flips the field.
 5. Journal: the week's entries as a two-minute narrated recap
    (headlines only, links provided).
-6. Forward: the user names the week's priorities; Larry records them in
-   the session log and creates or reprioritizes tasks.
+6. Forward: the user names the week's priorities; Larry writes them into
+   this week's note through [SCRIPT] `Scripts/planner-week.py
+   add-priority "<the priority>"` (`ensure` first if the note does not
+   exist yet), then creates or reprioritizes tasks. The note is the home
+   of a Weekly Priority, not the session log; see
+   [[GL-1002-frontmatter-conventions|GL-1002]] "Planner weeks".

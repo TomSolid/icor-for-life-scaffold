@@ -3,6 +3,7 @@
 
 Usage:
   new-base.py <entity>            entity: person | company | document | note
+                                  | goal | project | key-element | topic | habit
   new-base.py --list              show the registry
   new-base.py <entity> --root X   operate on another scaffold root
 
@@ -89,6 +90,98 @@ REGISTRY = {
         ],
         "sort": ("note.issued_on", "DESC"),
         "cards_image": "note.preview_image",
+    },
+    # The five My Life rooms. Promoted from GL-1006's "later candidates" on
+    # 2026-09-15: these are the rooms that answer "what are my goals",
+    # "which projects am I focused on" and "what are my key elements", and
+    # they are edited as rows, which is exactly the decision test.
+    "goal": {
+        "folder": "04 Inner World/My Life/Goals",
+        "base": "Goals.base",
+        "view": "Goals",
+        "type_value": "goal",
+        "columns": [
+            ("status", "Status"),
+            ("target_date", "Target"),
+            ("key_elements", "Key Elements"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
+        "extra_views": [
+            # The answer to "what are my goals". Open goals only, soonest
+            # target first, so the list is ordered by when rather than by
+            # name: a goal two months past its target has to be visible
+            # without anybody sorting the table by hand.
+            {"name": "Active", "filters": ['note.status == "not-achieved"'],
+             "order": ["target_date", "key_elements"],
+             "sort": ("note.target_date", "ASC")},
+        ],
+    },
+    "project": {
+        "folder": "04 Inner World/My Life/Projects",
+        "base": "Projects.base",
+        "view": "Projects",
+        "type_value": "project",
+        "columns": [
+            # Focus first: `focus_rank` is your decision about what matters
+            # now (1, 2 or 3, absent means not in focus), and a decision
+            # belongs in the leftmost column, not buried at the right.
+            ("focus_rank", "Focus"),
+            ("status", "Status"),
+            ("goal", "Goal"),
+            ("start_date", "Started"),
+            ("end_date", "Ended"),
+            ("key_elements", "Key Elements"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
+        "extra_views": [
+            # The answer to "which projects should I focus on". Open work
+            # only, your ranks at the top. Obsidian sorts an empty property
+            # last, which is what makes the unranked projects fall below
+            # the three you chose without a second filter.
+            {"name": "Active", "filters": ['note.status == "active"'],
+             "order": ["focus_rank", "goal", "start_date", "key_elements"],
+             "sort": ("note.focus_rank", "ASC")},
+        ],
+    },
+    "key-element": {
+        "folder": "04 Inner World/My Life/Key Elements",
+        "base": "Key Elements.base",
+        "view": "Key Elements",
+        "type_value": "key-element",
+        "columns": [
+            ("goals", "Goals"),
+            ("people", "People"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
+    },
+    "topic": {
+        "folder": "04 Inner World/My Life/Topics",
+        "base": "Topics.base",
+        "view": "Topics",
+        "type_value": "topic",
+        "columns": [
+            ("related_topics", "Related"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
+    },
+    "habit": {
+        "folder": "04 Inner World/My Life/Habits",
+        "base": "Habits.base",
+        "view": "Habits",
+        "type_value": "habit",
+        "columns": [
+            ("status", "Status"),
+            # The link to the Planner note that carries the cadence and the
+            # log. The meaning lives here, the tracking lives there, and
+            # this column is the one place you can see which is which.
+            ("planner_habit", "Planner"),
+        ],
+        "sort": ("file.name", "ASC"),
+        "cards_image": None,
     },
     "note": {
         "folder": "04 Inner World/Notes",

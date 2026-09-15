@@ -35,7 +35,7 @@ Applied to this scaffold:
 | Contacts/Companies | **Base** (`Companies.base`) | same: a browsable register |
 | Notes (`type: note`) | **Base** (`Notes.base`) | outlines, references, meeting notes are browsed by kind, link and `consumed` state, not read as a set of prose |
 | Documents (wrapper notes, `type: document`) | **Base** (`Documents.base`, inside `04 Inner World/Notes/`) | scans/PDFs are found by metadata, not read as prose |
-| My Life entities (Goals, Projects, Habits...) | later candidates | earn their Base when populated enough that the user browses them as a set |
+| My Life entities (Goals, Projects, Key Elements, Topics, Habits) | **Base**, one per room (`Goals.base`, `Projects.base`, `Key Elements.base`, `Topics.base`, `Habits.base`) | promoted from "later candidate" on 2026-09-15: these five rooms answer "what are my goals", "which projects am I focused on" and "what are my key elements", and the user edits `status`, `target_date` and `focus_rank` as rows. Goals carry an **Active** view sorted by target date; Projects carry a **Focus** column (`focus_rank`) and an Active view |
 | Journal, Daily Scratchpad, ICOR Journey Notes | **never** | narrative; the value is the prose, not the properties |
 | SOPs, Workstreams, Guidelines, Session Logs | **never** | team-facing; agents read files, not tables |
 | 02 Planner | **never** | machine-tended app surface with its own board UI |

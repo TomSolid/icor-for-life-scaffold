@@ -43,6 +43,18 @@ never the steps. The AI team reads the steps and today's row to answer
 the same way it does for habits. Field names and the marker rules are in
 [[GL-1002-frontmatter-conventions|GL-1002]].
 
+## Weeks
+
+`02 Planner/Weeks/` holds one note per ISO week (`type: planner-week`,
+named `YYYY-Www.md`): your weekly priorities as a checklist and your
+daily highlight as one row per day. `Scripts/planner-week.py` creates
+and edits it (`ensure`, `add-priority`, `done-priority`, `set-highlight`,
+`mark-highlight`), the AI team reads it to answer "what am I working
+toward this week" and "what is today's highlight", and editing it
+yourself in Obsidian is equally valid. The concept, the two labels and
+the note shape are in
+[[GL-1002-frontmatter-conventions|GL-1002]] "Planner weeks".
+
 ## Habits
 
 Habits are a Planner concept now, the same way Routines are: `02 Planner/Habits/`

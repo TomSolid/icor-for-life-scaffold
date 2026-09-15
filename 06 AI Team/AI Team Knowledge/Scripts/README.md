@@ -29,9 +29,13 @@ it actually says no.
 | `find-entity.py` | Finds the entity note a name or an alias belongs to, so one thing never gets two notes | `find-entity.py "Alex Rivera"` |
 | `import-file.py` | Copies one external file into the scaffold with the placement rules enforced | `import-file.py <path>` |
 | `import-inventory.py` | Scans an external knowledge source and reports what is in it, as JSON, before anything is imported | `import-inventory.py <folder>` |
+| `life-snapshot.py` | Answers the six everyday life questions from one regenerated file: goals, the projects to focus on, this week's priorities, today's highlight, key elements, the topics with recent attention | `life-snapshot.py --write --brief` |
+| `test-life-snapshot.py` | The fixture suite behind `life-snapshot.py`: one case per rule, and the negative controls (a session log, an mtime and a double-counted scratchpad must all score 0) | `test-life-snapshot.py` |
 | `link-dates-to-daily-notes.py` | Turns a full date written in a note body into `[[YYYY-MM-DD]]`, and creates the daily note it points at, so the backlinks alone make a blank daily note the timeline of that day (GL-1011) | `link-dates-to-daily-notes.py --fix` |
 | `mint-agent-ids.py` | Gives every agent contract its stable `myicor_id`, and checks that none is missing, malformed or shared | `mint-agent-ids.py --check` |
 | `new-agent.py` | The scripted half of a hire: the agent folder, the contract and bio skeletons, the minted id, the first `Journal/` entry, and the index row. Refuses to overwrite a contract. Drops `06 AI Team/Agents/<Name>/.hiring`, the marker that lets the write guard accept writes to that one contract for the next 24 hours; a green `check-hire.py <Name>` deletes it. No `ICOR_UNLOCK_WRITES` on a hire | `new-agent.py <Name> --slug <slug> --role "<Role>"` |
+| `planner-week.py` | Creates and edits this week's Planner note: the weekly priorities checklist and the daily highlight table. It writes; `life-snapshot.py` reads. It never proposes a priority and never picks a highlight | `planner-week.py ensure`, then `planner-week.py add-priority "..."` |
+| `set-property.py` | Sets or removes ONE frontmatter property on ONE note, refusing anything outside the field's closed set or outside GL-1002. The setter behind `focus_rank` | `set-property.py "<note>" focus_rank 1` |
 | `new-base.py` | Stamps a house-shaped `.base` for one entity collection; also the one parser of GL-1002's per-type table that every other script reads | `new-base.py note` |
 | `new-entity.py` | Creates one entity note from its template, in its room, already linked and with its required fields filled | `new-entity.py note "Title" --link "[[Health]]" --set note_type=outline` |
 | `new-journal-entry.py` | Creates a journal entry in `YYYY/MM/` with the right name, and the user's words verbatim under `## Original Text` | `new-journal-entry.py --date ... --slug ... --journal-type thought --original "..."` |
@@ -194,6 +198,115 @@ The thirteen metrics, in their fixed order:
 
 The thresholds are judgement, not doctrine: they live in one dict at the
 top of `check-quality.py`, one comment per line, and are yours to move.
+
+## snapshot.json
+
+`life-snapshot.py --write` writes
+`.icor-for-life/scripts/snapshot.json`, in the machine layer
+([[GL-1008-the-machine-layer|GL-1008]]), beside `quality.json`. The AI
+Team reads it at the start of a session and answers the six everyday
+questions from it, with no folder walk: your goals, the projects to focus
+on, this week's priorities, today's highlight, your key elements, and the
+topics with your recent attention. It is regenerated, never edited, and
+never tracked in git.
+
+The shape is versioned by the top-level `schema` integer. **Inside a
+schema version the field names and their order are a contract**: a reader
+may rely on them. A change to any of them is a new schema number.
+
+```json
+{
+  "schema": 1,
+  "generated_at": "2026-09-15T15:32:00Z",
+  "generated_local_date": "2026-09-15",
+  "scaffold_version": "1.24.0",
+  "week": { "iso": "2026-W38", "start": "2026-09-14", "end": "2026-09-20",
+            "note": "02 Planner/Weeks/2026-W38.md" },
+  "thresholds": { "topics_shown": 5, "attention_hot_score": 6, "focus_max": 3,
+                  "weekly_goals_max": 5, "stale_after_hours": 6 },
+  "goals": { "open": [], "achieved_90d": [],
+             "order_rule": "target_date ascending, nulls last, then name" },
+  "projects": { "focus": [], "active": [], "active_count": 2, "order_rule": "..." },
+  "weekly_goals": { "week": "2026-W38", "path": null, "items": [],
+                    "done_count": 0, "reason": "no note at ..." },
+  "highlight": { "date": "2026-09-15", "text": null, "done": null,
+                 "path": null, "reason": "no note at ...", "recent": [] },
+  "key_elements": [],
+  "topics": { "hot": [], "ranked_count": 1,
+              "sources_counted": { "journal": 1, "scratchpad": 0,
+                                   "notes": 1, "planner": 0 },
+              "order_rule": "score desc, n7 desc, name" },
+  "today": { "date": "2026-09-15", "journal_entries": [], "scratchpads": [] },
+  "findings": [],
+  "degraded": []
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `schema` | the shape version, currently `1`. Check it before trusting a field |
+| `generated_at` | when the snapshot was made, ISO 8601 in UTC |
+| `generated_local_date` | the local calendar date the run belongs to; staleness is judged on both |
+| `scaffold_version` | `.icor-for-life/VERSION`, or `unknown` in a vault that has none |
+| `week` | the ISO week the run used; `note` is the weekly Planner note, or null when there is none |
+| `thresholds` | the dict the run used, so a reader can say what "hot" meant without opening the script |
+| `goals.open[]` | every open goal, never trimmed; `carriers` holds the projects and habits that carry it |
+| `goals.achieved_90d[]` | empty until a dated completion exists; never guessed |
+| `projects.focus[]` | ONLY projects carrying `focus_rank`; an empty list means no decision is recorded |
+| `projects.active[]` | every open project with its activity facts, in `order_rule` order |
+| `weekly_goals` | the checklist in this week's Planner note; `reason` says why it is empty |
+| `highlight` | today's row; `done` is `true`, `false` or `null` (pending); `recent` holds the last seven rows |
+| `key_elements[]` | every non-archived Key Element, ordered by attention score then name |
+| `topics.hot[]` | the top `topics_shown` topics scoring above 0; `ranked_count` is how many were scored |
+| `today` | the paths the AI needs for the one judgement question, so it never searches for them |
+| `findings[]` | data-quality facts worth acting on: `goal_overdue_active`, `focus_over_max`, `focus_duplicate_rank`, `focus_rank_not_active`, `weekly_goals_over_max`, `journal_undated` |
+| `degraded[]` | which input was missing and what that emptied; an empty list means every source was present |
+
+`degraded` is "a missing report is never a green" turned inward. An empty
+`goals.open` with `degraded` empty means you have no open goals; an empty
+`goals.open` with a `degraded` entry naming the Goals room means the
+script could not look. A reader has to tell those two apart, and this
+field is what makes that possible.
+
+The attention score counts one dated link event per source note, so a
+journal entry that names a topic four times is one event. Events are
+weighted 3 in the last 7 days, 2 for 8 to 14 days, 1 for 15 to 30, and
+nothing older counts. `n7`, `n14`, `n30` and `last_seen` sit beside the
+score, so you can always see why a number is what it is. File mtime and
+the AI Team's own session logs are deliberately NOT signals: mtime moves
+when a script rewrites frontmatter or a sync lands on a second device,
+and a session log is the team's work record, not your attention.
+
+### Readers of `snapshot.json`
+
+The file is written by a script and read by a hook, a skill prerun and a
+plugin, so the contract has two halves and this is the reader's half
+(Vex F4, 2026-09-15). Every reader implements all five lines:
+
+1. Refuse the file if it is larger than 2 MB, or is not a JSON object
+   carrying `"schema": 1`.
+2. Treat every string as untrusted display text. Never eval it, never
+   build a shell command from it, never hand it to a wikilink resolver
+   that opens files. The writer copies `key_element`, `carriers`, goal
+   names and checklist lines verbatim out of frontmatter, so a note can
+   put any string there.
+3. A `path` or `note` value is opened only if it is relative, contains no
+   `..`, and resolves under the vault root. Otherwise it is shown as text.
+4. Apply the staleness rule: a stale or unparsable `generated_at` is
+   reported as stale, never shown as current. An absent file means "the
+   script did not run", never "you have no goals".
+5. Cap what is injected into model context to the `--brief` shape, not the
+   whole file.
+
+The writer's own side: the payload is scanned against the same credential
+pattern list `write-guard.py` uses, and a hit refuses the whole snapshot
+rather than writing a redacted one; the write stays inside
+`.icor-for-life/scripts/` whatever symlink is planted on the path; and
+`scaffold_version` is validated against a version shape rather than
+copied out of `VERSION` verbatim.
+
+Thresholds are judgement, not doctrine: they live in one dict at the top
+of `life-snapshot.py`, one comment per line, and are yours to move.
 
 ## Optional AI Team packs
 
