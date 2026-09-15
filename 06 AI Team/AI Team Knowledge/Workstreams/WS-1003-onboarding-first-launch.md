@@ -88,9 +88,14 @@ flowchart TD
    [SCRIPT NOTE] `open-in-obsidian.py` prefers the official Obsidian
    CLI and falls back to the `obsidian://` URI. When its output
    carries a `RECOMMEND` line, relay it: suggest installing the
-   official Obsidian CLI (Obsidian 1.12+) so tours and future
-   sessions can open files in new tabs cleanly. Recommend once, never
-   nag.
+   official Obsidian CLI (Obsidian **installer** 1.12.7 or newer) so
+   tours and future sessions can open files in new tabs cleanly.
+   Recommend once, never nag. Say "installer" out loud: the number in
+   Settings is the app version, the CLI shipped with the installer, and
+   the two are not the same number, so a member on a newer-looking app
+   can still be missing the CLI. On Windows the executable is
+   `Obsidian.com` and it stays off PATH until the member turns the CLI
+   on in Settings.
 3. [JUDGEMENT] Walk the six rooms in one screen (the [[GL-1001-the-six-rooms|GL-1001]] table, not
    a lecture) for anyone who skipped the tour. Point at
    [[GL-1007-capture-and-where-things-go|GL-1007]] for filing by hand,

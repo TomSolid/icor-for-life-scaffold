@@ -21,7 +21,7 @@ this SOP is the same moves run by the team.
 2. [SCRIPT-CHECKED] `Scripts/find-entity.py "<name>"` searches every
    entity folder, names and aliases, before anything is created; a hit
    means update, not create. One entity, one note, forever. By hand:
-   the quick switcher (Cmd+O).
+   the quick switcher (Cmd+O, or Ctrl+O on Windows).
 3. [SCRIPT] Create with `Scripts/new-entity.py <type> "<Title>"
    --link "[[X]]"`: the script owns the folder, the natural-title
    filename, and the frontmatter skeleton from the type's template

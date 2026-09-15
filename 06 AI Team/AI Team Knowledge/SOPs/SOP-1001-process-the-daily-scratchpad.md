@@ -42,7 +42,18 @@ runs silently.
    scratchpads stay in place forever. By hand: tick `processed`, fill
    `processed_summary` and `processed_into` in the Properties panel
    ([[GL-1002-frontmatter-conventions|GL-1002]] "The processed stamp").
-8. Report to the user what was created, with links.
+8. [SCRIPT] Link the dates in the notes THIS run created or updated, and
+   in nothing else:
+   `Scripts/link-dates-to-daily-notes.py --fix --path <note>` with one
+   `--path` per note from steps 4 to 6
+   ([[GL-1011-date-mentions-link-to-daily-notes|GL-1011]]). `--path` is
+   not optional here. Without it the linker walks the whole vault, so
+   processing one scratchpad rewrites date mentions across every note in
+   `04 Inner World/`, `03 WiP/` and `01 Inbox/` as a side effect. The
+   scratchpad itself is not in the list: GL-1011 keeps
+   `00 Daily Scratchpad/` out of scope on purpose, because a daily note
+   does not link to itself.
+9. Report to the user what was created, with links.
 
 The scratchpad body is never edited. If a piece is ambiguous, ask; do
 not guess it into the Inner World.

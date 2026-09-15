@@ -82,8 +82,9 @@ cannot hold.
    their homes yourself and tick `processed` on the scratchpad (step 4
    shows the moves).
 4. File your first note by hand: right-click `04 Inner World/Notes/`
-   in the file explorer, choose New note, then Cmd+P, "Templates:
-   Insert template", pick `note`. Fill the properties at the top and
+   in the file explorer, choose New note, then Cmd+P (Ctrl+P on
+   Windows), "Templates: Insert template", pick `note`. Fill the
+   properties at the top and
    link the note to a Project, Key Element or Topic with `[[`. The
    whole walkthrough, for every kind of note, is one section:
    `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`,

@@ -60,7 +60,7 @@ an inbox has an inbox nobody empties.
 | # | Workflow | You are doing this when | Tool | Lands in |
 | --- | --- | --- | --- | --- |
 | 1 | Closest to Paper | you want to write or draw by hand, or mark up a PDF | Handwriting, Canvases, PDF Annotation | the note, or `05 Assets/` |
-| 2 | Jot Things Down | a thought arrives and you have seconds | Scratchpad plugin, or `Cmd+Alt+N` | `00 Daily Scratchpad/YYYY/MM/` |
+| 2 | Jot Things Down | a thought arrives and you have seconds | Scratchpad plugin, or `Cmd+Alt+N` (`Ctrl+Alt+N` on Windows) | `00 Daily Scratchpad/YYYY/MM/` |
 | 3 | Develop Thinking | you are building something out over days | Outliner, Canvases, the Journal | `04 Inner World/Notes/` or `Journal/` |
 | 4 | Write and Connect | you are in a meeting or on a call | your own transcriber, plus a `meeting` note | wherever your tool keeps the transcript, plus `04 Inner World/Notes/` |
 | 5 | Third-Party Content | you found an article, video or PDF | Web Clipper, PDF Annotation | `01 Inbox/Outer World/` then `Notes/` |
@@ -133,6 +133,12 @@ Each section marks which is which.
 
 The Scaffold sets these up for you. They are in `.obsidian/hotkeys.json`
 and you can change any of them under Settings, Hotkeys.
+
+**Keys are written the Mac way on this page: `Cmd` is `Ctrl` on Windows and
+Linux, and `Alt` is `Alt` everywhere.** So `Cmd+Alt+N` is `Ctrl+Alt+N` on
+Windows. Every document in the Scaffold spells the Windows key out on its
+first mention and then uses the short form, and this table is that mention
+for this page.
 
 | Key | Does | Workflow |
 | --- | --- | --- |

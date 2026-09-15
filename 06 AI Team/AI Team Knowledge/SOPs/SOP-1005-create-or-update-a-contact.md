@@ -17,7 +17,8 @@ this SOP is the same moves run by the team.
 1. [SCRIPT-CHECKED] `Scripts/find-entity.py "<name>"` searches People
    and Companies (names AND aliases) before anything is created; a hit
    means update, not create. One person, one note. By hand: the quick
-   switcher (Cmd+O). Create with `Scripts/new-entity.py person "<Name>"`
+   switcher (Cmd+O, or Ctrl+O on Windows). Create with
+   `Scripts/new-entity.py person "<Name>"`
    (or `company`), which owns the folder, the filename and the
    frontmatter skeleton from the template.
 2. A contact note holds PROPERTIES, not stories: role, relation,

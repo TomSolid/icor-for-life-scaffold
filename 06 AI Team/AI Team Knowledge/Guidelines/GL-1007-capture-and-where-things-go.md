@@ -40,9 +40,9 @@ at the moment of capture rather than weeks later.
 ### Direct placement is normal. The door is the fallback.
 
 If you know the home, go to the home. A phone number goes on the person's
-note. A thought about a live Project goes on that Project. `Cmd+O` opens
-any note by name in about a second, which is faster than capturing and
-processing twice.
+note. A thought about a live Project goes on that Project. `Cmd+O`
+(`Ctrl+O` on Windows) opens any note by name in about a second, which is
+faster than capturing and processing twice.
 
 The inbox exists for the case where direct placement is not practical: you
 are walking, you are in a meeting, you do not yet know what the thing is.
