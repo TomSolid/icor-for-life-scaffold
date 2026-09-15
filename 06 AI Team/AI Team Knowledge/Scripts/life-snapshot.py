@@ -423,6 +423,13 @@ def read_note(root, rel):
 def walk_md(root, folder, flat=False):
     """Every markdown note under a room, skipping what is never read.
 
+    A SYMLINKED `.md` is skipped, at every depth (Vex F5, 2026-09-15). It
+    was the one way text from outside the vault reached the brief and, once
+    the session-start hook runs this unattended, model context: plant a
+    link in a room and its frontmatter `name` is read as a goal. The room
+    boundary has to be a real boundary, not a naming convention. Nothing
+    legitimate in this vault is a symlinked note, so the cost is zero.
+
     `flat=True` reads the room's direct children only, which is what an
     entity room IS: one file per concept, never nested (AGENTS.md hard rule
     5). It is also what keeps a project's own working subfolder, and an
@@ -433,6 +440,8 @@ def walk_md(root, folder, flat=False):
         return []
     out = []
     for p in sorted(base.glob("*.md") if flat else base.rglob("*.md")):
+        if p.is_symlink():
+            continue        # Vex F5, see the docstring
         rel = p.relative_to(root)
         if skip_rel(rel):
             continue
@@ -552,6 +561,8 @@ def run(root, today=None):
                 if not p.is_dir():
                     continue
                 for f in sorted(p.glob("*.md")):
+                    if f.is_symlink():
+                        continue        # Vex F5
                     rel = f.relative_to(root)
                     if not skip_rel(rel):
                         rels.append(rel)
@@ -895,6 +906,8 @@ def run(root, today=None):
     jd = root / ROOMS["journal"] / today.strftime("%Y") / today.strftime("%m")
     if jd.is_dir():
         for p in sorted(jd.glob("*.md")):
+            if p.is_symlink():
+                continue        # Vex F5
             rel = p.relative_to(root)
             if skip_rel(rel):
                 continue
@@ -1157,14 +1170,19 @@ def main():
             if real_parent != root.resolve() / ".icor-for-life" / "scripts":
                 sys.exit("FAIL %s resolves outside the vault machine layer; "
                          "nothing was written" % dest.parent)
+            # BOTH refusals happen BEFORE the temp file exists. They call
+            # sys.exit, which raises SystemExit, which is not an OSError, so
+            # the cleanup in the `except` below never ran for them: refusing
+            # used to leave a `snapshot.json.tmp` holding the whole payload.
+            # Checking first is the fix, not a second except clause.
+            if dest.is_symlink():
+                sys.exit("FAIL %s is a symlink; nothing was written" % dest)
             if tmp.is_symlink() or tmp.exists():
                 tmp.unlink()
             fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL
                          | os.O_NOFOLLOW, 0o644)
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write(payload + "\n")
-            if dest.is_symlink():
-                sys.exit("FAIL %s is a symlink; nothing was written" % dest)
             os.replace(tmp, dest)
         except OSError as exc:
             try:

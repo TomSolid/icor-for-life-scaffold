@@ -757,6 +757,52 @@ with tempfile.TemporaryDirectory() as td:
           raw.count(b"\n") == raw.count(b"\r\n") and b"focus_rank: 3" in raw,
           str(raw))
 
+
+    # === case group 17: the two LOW follow-ups ===========================
+    # Vex F5 and the temp-file leak on the dest-symlink refusal.
+    print("symlinked notes and the refusal path")
+    V = TD / "symlink-note"
+    rooms(V)
+    smuggled = outside / "smuggled-goal.md"
+    smuggled.write_text("---\ntype: goal\nname: Text from outside the vault\n"
+                        "status: not-achieved\n---\nbody\n", encoding="utf-8")
+    os.symlink(smuggled, V / "04 Inner World/My Life/Goals/Innocent.md")
+    write(V, "04 Inner World/My Life/Goals/Real.md",
+          "---\ntype: goal\nname: A real goal\nstatus: not-achieved\n---\n")
+    rep, r = snap(V)
+    names = [g["name"] for g in rep["goals"]["open"]]
+    check("F5: a symlinked note in a room is never read",
+          names == ["A real goal"], str(names))
+    check("F5: and its text reaches neither the JSON nor the brief",
+          "outside the vault" not in json.dumps(rep), "it did")
+
+    V = TD / "symlink-journal"
+    rooms(V)
+    d = TODAY.isoformat()
+    month = V / "04 Inner World/Journal" / d[:4] / d[5:7]
+    month.mkdir(parents=True, exist_ok=True)
+    os.symlink(smuggled, month / ("%s-smuggled.md" % d))
+    rep, r = snap(V)
+    check("F5: a symlinked journal entry is not counted as today's",
+          rep["today"]["journal_entries"] == [],
+          str(rep["today"]["journal_entries"]))
+
+    V = TD / "dest-symlink"
+    rooms(V)
+    victim = outside / "victim-dest.txt"
+    victim.write_text("untouched\n", encoding="utf-8")
+    (V / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
+    os.symlink(victim, V / ".icor-for-life/scripts/snapshot.json")
+    r = run(V, "--write")
+    leftovers = [f.name for f in (V / ".icor-for-life/scripts").iterdir()
+                 if f.name.endswith(".tmp")]
+    check("a symlinked destination refuses, exit 1", r.returncode == 1, r.stderr)
+    check("and the target is untouched",
+          victim.read_text(encoding="utf-8") == "untouched\n",
+          victim.read_text(encoding="utf-8")[:40])
+    check("and the refusal leaves no .tmp behind", leftovers == [],
+          str(leftovers))
+
     if BREAK:
         check("DELIBERATE: a session-log mention must score (it must not)",
               "Topic C" in allranked, "the suite is proving it can go red")
