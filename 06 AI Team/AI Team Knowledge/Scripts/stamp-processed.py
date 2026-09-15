@@ -33,8 +33,16 @@ Rules enforced here, not in prose:
     and no capture is both
 Every refusal is a FAIL line and exit 1, never a traceback.
 """
-import argparse, hashlib, re, sys
+import argparse, hashlib, importlib.util, json, re, sys
 from pathlib import Path
+
+# noteio.py sits beside this script and is loaded by path, not by name, so
+# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
+# the script's own folder from it.
+_spec = importlib.util.spec_from_file_location(
+    "noteio", Path(__file__).resolve().parent / "noteio.py")
+noteio = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(noteio)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("note")
@@ -63,7 +71,7 @@ for w in a.into:
         sys.exit(f"FAIL not a wikilink: {w}")
 
 try:
-    text = note.read_text(encoding="utf-8")
+    text, eol = noteio.read_note(note)
 except UnicodeDecodeError:
     sys.exit(f"FAIL {note.name} is not UTF-8 text and a binary cannot carry the stamp; "
              "stamp its wrapper note in 04 Inner World/Notes/ and pass the binary as --capture")
@@ -93,13 +101,18 @@ def created_block(note):
     return lines
 
 
-if not text.startswith("---\n"):
-    fm, body, created = "\n".join(created_block(note)), text, True
+# The opening fence and the closing fence are both read in the note's own
+# line ending. A member's note may be CRLF (written on Windows, or synced
+# from there) and splitting it on "\n---\n" alone finds nothing, which
+# would send a perfectly good note down the "it has no frontmatter" path.
+opening = next((f for f in ("---\n", "---\r\n") if text.startswith(f)), None)
+if opening is None:
+    fm, body, created = eol.join(created_block(note)), text, True
 else:
-    end = text.find("\n---\n", 4)
-    if end == -1:
+    close = noteio.FM_CLOSE.search(text, len(opening) - 1)
+    if close is None:
         sys.exit("FAIL unterminated frontmatter block")
-    fm, body, created = text[4:end], text[end + 5:], False
+    fm, body, created = text[len(opening):close.start()], text[close.end():], False
 if re.search(r"(?m)^processed:\s*true\s*$", fm):
     sys.exit("FAIL note is already stamped processed")
 
@@ -168,17 +181,13 @@ if a.capture:
         sys.exit(f"FAIL shelf copy differs from the inbox original (sha256 mismatch): "
                  f"{shelf} vs {cap}; nothing removed, nothing stamped")
 
-stamp = ["processed: true", f'processed_summary: "{a.summary}"', "processed_into:"]
-stamp += [f'  - "{w}"' for w in a.into]
-head = fm.strip("\n")
-out = "---\n" + (head + "\n" if head else "") + "\n".join(stamp) + "\n---\n" + body
-note.write_text(out, encoding="utf-8")
-
-if a.capture:
-    cap.unlink()
-    print(f"OK stamped {note.name}; capture verified on the shelf "
-          f"({shelf.relative_to(root).as_posix()}) and removed from 01 Inbox")
-elif a.archive:
+# ARCHIVE route: its checks run BEFORE the write, beside --capture's. Until
+# 2026-09-15 they ran after it, so a note outside 01 Inbox/Outer World/ was
+# stamped processed and THEN refused the move: the member was left with a
+# note marked done that had not been archived, and a second run refused it
+# as already stamped (Brian Carroll, T16-1).
+dest = None
+if a.archive:
     parts = [p.name for p in note.parents]
     if "Outer World" not in parts or "01 Inbox" not in parts:
         sys.exit("FAIL --archive only applies to notes inside 01 Inbox/Outer World/")
@@ -186,6 +195,24 @@ elif a.archive:
     dest = ow / "archive" / note.name
     if dest.exists():
         sys.exit(f"FAIL archive already holds {note.name}")
+
+# json.dumps, never an f-string: a summary carrying a double quote, a
+# backslash or a colon used to be pasted raw between two quotes and broke
+# the YAML block while the script printed OK (Brian Carroll, T16-19). A
+# JSON string is a valid YAML 1.2 double-quoted scalar, escapes and all.
+stamp = ["processed: true", "processed_summary: " + json.dumps(a.summary),
+         "processed_into:"]
+stamp += ["  - " + json.dumps(w) for w in a.into]
+head = fm.strip("\r\n")
+lines = ([head] if head else []) + stamp
+out = "---" + eol + eol.join(lines) + eol + "---" + eol + body
+noteio.write_note(note, out)
+
+if a.capture:
+    cap.unlink()
+    print(f"OK stamped {note.name}; capture verified on the shelf "
+          f"({shelf.relative_to(root).as_posix()}) and removed from 01 Inbox")
+elif a.archive:
     dest.parent.mkdir(parents=True, exist_ok=True)
     note.rename(dest)
     print(f"OK stamped and archived -> {dest}")
