@@ -126,10 +126,27 @@ ENTITY_FOLDERS = {
 }
 SKIP_NAMES = {"README.md", "_template.md"}
 WIKILINK = re.compile(r"!?\[\[([^\]\n]+)\]\]")
+# A fenced block and an inline code span are code, not prose. `[[Some Note]]`
+# written inside a fence in an SOP is an EXAMPLE of a link, not a link, and
+# counting it made every guideline that teaches wikilinks look like a note
+# full of dangling links (Brian Carroll, T16-7). Same reader shape as
+# GL-1011's linker, so the two agree on what a code span is. An unterminated
+# fence runs to the end of the file, because that is how a renderer reads it.
+CODE_FENCE = re.compile(r"(?ms)^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*\1[^\n]*$|\Z)")
+CODE_SPAN = re.compile(r"`[^`\n]*`")
 SEVERITY_RANK = {"broken": 0, "attention": 1, "ok": 2}
 
 
 # --- reading ---------------------------------------------------------------
+
+def blank_code(text):
+    """The note with every fenced block and inline code span replaced by
+    spaces. BLANKED, not deleted: every offset and every line number stays
+    exactly where it was, so a finding still points at the right line."""
+    def wipe(m):
+        return "".join(c if c == "\n" else " " for c in m.group(0))
+    return CODE_SPAN.sub(wipe, CODE_FENCE.sub(wipe, text))
+
 
 def split_front(text):
     """(frontmatter text, body). Both may be empty; never raises."""
@@ -212,7 +229,10 @@ def link_name(raw):
     if m:
         s = m.group(1)
     s = s.split("|", 1)[0]
-    s = re.split(r"[#^]", s, 1)[0]
+    # maxsplit= by name: the positional third argument to re.split is
+    # deprecated since Python 3.13 and prints a DeprecationWarning straight
+    # into the member's terminal (Andrew Gillley, T13-5).
+    s = re.split(r"[#^]", s, maxsplit=1)[0]
     return s.strip()
 
 
@@ -243,24 +263,53 @@ def collect(root):
         if p.suffix == ".md":
             text = p.read_text(encoding="utf-8", errors="ignore")
             front, body = split_front(text)
-            notes[rel] = {"front": parse_front(front), "text": text}
+            # `text` is what the note says; `prose` is the same note with code
+            # blanked, and is what the link scans read. The frontmatter is
+            # kept in both: a wikilink in a `topics:` list is a real link.
+            notes[rel] = {"front": parse_front(front), "text": text,
+                          "body": body, "prose": front + blank_code(body)}
     return files, notes
 
 
-def resolver(files):
-    """Obsidian-shaped link resolution: full path, filename, or stem."""
-    by_path, by_name, by_stem = {}, {}, {}
+def _shorter(a, b):
+    """Obsidian's "shortest path when possible": of two notes that answer to
+    the same name, the one nearer the top of the vault wins, and a tie is
+    broken on the path string so the answer never depends on walk order."""
+    if a is None:
+        return b
+    return min((a, b), key=lambda r: (len(r.parts), len(r.as_posix()),
+                                      r.as_posix()))
+
+
+def resolver(files, notes=None):
+    """Obsidian-shaped link resolution: full path, filename, stem, alias.
+
+    Two corrections over the 1.23.1 reader (Brian Carroll, T16-6). It took
+    the FIRST file the walk happened to hand it, so `[[Notes]]` resolved to
+    whichever `Notes.md` os.walk reached first and the answer changed with
+    the folder name beside it. And it never read `aliases`, so every link
+    written to an alias, which is what an alias is for, was reported as
+    dangling. Aliases are indexed last and never displace a real filename:
+    a note IS its name first.
+    """
+    by_path, by_name, by_stem, by_alias = {}, {}, {}, {}
     for rel in files:
-        by_path.setdefault(norm(rel.as_posix()), rel)
-        by_path.setdefault(norm(rel.with_suffix("").as_posix()), rel)
-        by_name.setdefault(norm(rel.name), rel)
-        by_stem.setdefault(norm(rel.stem), rel)
+        for key in (norm(rel.as_posix()), norm(rel.with_suffix("").as_posix())):
+            by_path[key] = _shorter(by_path.get(key), rel)
+        by_name[norm(rel.name)] = _shorter(by_name.get(norm(rel.name)), rel)
+        by_stem[norm(rel.stem)] = _shorter(by_stem.get(norm(rel.stem)), rel)
+    for rel, n in (notes or {}).items():
+        for al in as_list(n["front"].get("aliases", "")):
+            key = norm(link_name(al))
+            if key:
+                by_alias[key] = _shorter(by_alias.get(key), rel)
 
     def resolve(name):
         k = norm(name)
         if not k:
             return None
-        return by_path.get(k) or by_name.get(k) or by_stem.get(k)
+        return (by_path.get(k) or by_name.get(k) or by_stem.get(k)
+                or by_alias.get(k))
     return resolve
 
 
@@ -314,7 +363,7 @@ def run(root):
     known_types = set(declared) | {"scratchpad", "capture"}
 
     files, notes = collect(root)
-    resolve = resolver(files)
+    resolve = resolver(files, notes)
     findings = []
     values = {k: 0 for k, _, _ in METRIC_ORDER}
 
@@ -326,7 +375,7 @@ def run(root):
     # note counts. A note that links to itself is not linked to.
     linked_to = set()
     for rel, n in notes.items():
-        for raw in WIKILINK.findall(n["text"]):
+        for raw in WIKILINK.findall(n["prose"]):
             tgt = resolve(link_name(raw))
             if tgt is not None and tgt != rel:
                 linked_to.add(tgt)
@@ -395,7 +444,7 @@ def run(root):
                         "add it to GL-1002 first and then use it.")
 
         # --- dangling links ---------------------------------------------------
-        for raw in WIKILINK.findall(n["text"]):
+        for raw in WIKILINK.findall(n["prose"]):
             name = link_name(raw)
             if not name:
                 continue      # [[#heading]]: a link inside this note
@@ -422,7 +471,15 @@ def run(root):
                     "or fix the link.")
 
         # --- the queues ---------------------------------------------------------
-        if t == "scratchpad" and not truthy(front.get("processed", "")):
+        # A blank scratchpad is not a queue item. link-dates-to-daily-notes.py
+        # --fix CREATES the daily note for any day a link points at, empty and
+        # on purpose (GL-1007), so a member who linked forty dates woke up to
+        # forty "unprocessed scratchpads" and an oldest-unprocessed age
+        # measured from a note nobody had written in (Brian Carroll, T16-5).
+        # Nothing to process means nothing to report, and it stays out of the
+        # oldest-unprocessed clock too.
+        if t == "scratchpad" and n["body"].strip() \
+                and not truthy(front.get("processed", "")):
             days = age_days(rel, root, front, today)
             scratchpad_ages.append(days)
             values["unprocessed_scratchpads"] += 1
