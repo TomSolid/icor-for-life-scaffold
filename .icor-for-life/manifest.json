@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.23.0",
-  "built": "2026-09-14T23:22:53Z",
-  "commit": "ac47799",
+  "version": "1.23.1",
+  "built": "2026-09-15T00:07:02Z",
+  "commit": "3ccf0fd",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -942,7 +942,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "852777ef19d1ee6c7a0541315ba45583614a73355f35c63a90622de4ffbd2136",
+      "sha256": "05b3d5c6efa20f99488cd01b3e063eb94c86e05f973702106b86466191c594a0",
       "kind": "script",
       "example": false
     },
@@ -997,6 +997,12 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/write-guard.py",
       "sha256": "ce80ef36f4d5e63f248d965a9c3a98a79f49bb9a21225e0e75a971abd866f2b2",
+      "kind": "script",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/zip-staged-tree.sh",
+      "sha256": "1ed4ae53268557646f5a185dd50443f03c7197f85ced6101495fcdf82394da8e",
       "kind": "script",
       "example": false
     },
@@ -1516,6 +1522,15 @@
     }
   ],
   "history": [
+    {
+      "version": "1.23.1",
+      "date": "2026-09-15",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Scripts/zip-staged-tree.sh"
+      ]
+    },
     {
       "version": "1.23.0",
       "date": "2026-09-15",

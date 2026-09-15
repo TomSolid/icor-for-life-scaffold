@@ -15,6 +15,54 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.23.1 (2026-09-15)
+
+Patch bump, one defect: the member zip was not reproducible on the CI runner,
+so 1.23.0 could not be published. Nothing in the vault itself changed.
+
+### Fixed
+
+- **The member zip is a function of the commit again, on the runner as well as
+  on a Mac.** The release workflow builds the zip twice, once as a dry run and
+  once from the tag, and refuses to publish unless the two are the same bytes.
+  It went red twice on 1.23.0 with four distinct hashes. The cause: the
+  release's red-test gate runs the suite against the staged tree, the suite
+  imports three of the tree's own scripts with `importlib`, CPython writes
+  their `__pycache__/*.pyc` next to them inside that tree, and a `.pyc`
+  embeds the absolute path of its source, which is a `mktemp` directory whose
+  name ends in six random characters. Three entries of the zip therefore
+  changed on every build. It was invisible on the maintainer's Mac, where
+  Apple's `/usr/bin/python3` redirects the bytecode cache to
+  `~/Library/Caches/com.apple.python` and the files never reached the tree at
+  all. Three locks, in order of strength: the red-test gate now runs against a
+  byte-identical COPY of the staged tree, so nothing a gate does can reach the
+  bytes that ship; the staged tree is hashed either side of that gate and a
+  single added or changed byte blocks the build; and compiled bytecode
+  anywhere in the tree blocks the zip outright, rather than being filtered out
+  quietly, because a filter hides whatever ran inside the bytes.
+- `1.23.0` was tagged at `c21d17e` and never published: every gate before the
+  artifact was green, the reproducibility comparison went red, so the draft
+  step never ran and there is no 1.23.0 release to delete. The tag stays where
+  it is, because a tag never moves. 1.23.1 is the same tree plus this fix.
+
+### Added
+
+- `06 AI Team/AI Team Knowledge/Scripts/zip-staged-tree.sh` - the part of the
+  builder that turns a staged tree into bytes, in its own file for the same
+  reason the red-test gate is: `build-release-zip.sh` needs a git mirror, the
+  gh CLI and the network, so a red test cannot call it. Four new cases in
+  `run-red-tests.py` build a fixture tree twice under two locales and two
+  clocks and assert one sha256, and plant the bytecode that must block and
+  watch it block.
+- `ICOR_ZIP_DEBUG_DIR` on the builder: a listing of the staged tree (sha256
+  and path) at three points, plus the finished zip's per-entry listing. Like
+  `ICOR_ZIP_SELFTEST` it can only ever add output, never turn a failing gate
+  green.
+- `ICOR_ZIP_SELFTEST=stage-write`: plants a file in the staged tree after it
+  was hashed, so the new assertion can be watched going red. It was.
+- The release workflow keeps both zips and both entry listings as run
+  artefacts on every run, red or green, and diffs them into the log.
+
 ## 1.23.0 (2026-09-15)
 
 The harness layer starts here. The rules a machine can check stop being prose

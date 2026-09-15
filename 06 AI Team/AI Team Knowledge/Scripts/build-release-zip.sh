@@ -32,6 +32,20 @@
 #      tag with the same plugin releases gives the same bytes. The release
 #      workflow relies on this: a re-run compares its zip with the asset
 #      already published under that version instead of overwriting it.
+#      The zip itself is written by zip-staged-tree.sh, which is a separate
+#      file so that run-red-tests.py can build a fixture twice under two
+#      locales and two clocks and assert one sha256.
+#   7. NO GATE WRITES INTO THE BYTES IT IS CHECKING. Every gate that executes
+#      code out of the staged tree runs against a COPY of it, and the staged
+#      tree is hashed either side of that gate; a single changed or added byte
+#      blocks the build. This is what 1.23.0 died of: the red-test gate
+#      imports three Scripts modules with importlib, CPython wrote their
+#      __pycache__/*.pyc into the staged tree, and a .pyc embeds the absolute
+#      path of its source, which is a mktemp directory with six random
+#      characters in its name. Three zip entries therefore changed on every
+#      build. It was invisible on the maintainer's Mac, where Apple's
+#      /usr/bin/python3 redirects the bytecode cache to
+#      ~/Library/Caches/com.apple.python and nothing ever reached the tree.
 #
 # Why gate 4 exists. Three times a correct version number sat on top of the
 # wrong bytes, and each time a person caught it, not a check:
@@ -59,8 +73,22 @@
 #   ICOR_SCAFFOLD_REMOTE  where that mirror fetches from (default: the public
 #                         scaffold repository). A local dry run points both of
 #                         these at a throwaway clone; CI never sets either.
+#   ICOR_ZIP_DEBUG_DIR    write a listing of the staged tree (sha256 + path,
+#                         one line per file) at three points, plus the finished
+#                         zip's per-entry listing, into this directory. Nothing
+#                         is read back and nothing is skipped because of it:
+#                         like ICOR_ZIP_SELFTEST it can only ever ADD output,
+#                         never turn a failing gate green. This exists because
+#                         two zips of the same tag differed by two bytes on the
+#                         CI runner while the same builder was byte-stable on
+#                         the maintainer's Mac, and reasoning about which byte
+#                         moved without holding both listings cost an hour.
 
 set -euo pipefail
+
+# The helper scripts this one calls live beside it, in the repo checkout, never
+# in the staged tree: what archives the bytes must not be one of the bytes.
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 MIRRORS="$HOME/.icor-git"
 SCAFFOLD_GIT="${ICOR_SCAFFOLD_GIT:-$MIRRORS/scaffold.git}"
@@ -70,6 +98,49 @@ OUT_DIR="${1:-$HOME/Desktop}"
 STAMP="$(date +%Y-%m-%d)"
 STAGE="$(mktemp -d /tmp/icor-release.XXXXXX)"
 trap 'rm -rf "$STAGE"' EXIT
+DEBUG_DIR="${ICOR_ZIP_DEBUG_DIR:-}"
+[ -n "$DEBUG_DIR" ] && mkdir -p "$DEBUG_DIR"
+# Scratch space for the builder's own bookkeeping. It sits OUTSIDE $STAGE on
+# purpose: a file the builder writes into the tree it is about to ship is the
+# exact defect this directory exists to detect.
+WORK="$(mktemp -d /tmp/icor-release-work.XXXXXX)"
+trap 'rm -rf "$STAGE" "$WORK"' EXIT
+
+# Every `sort` and every `zip` in this script must order and stamp the same
+# way on every machine, or the zip stops being a function of the commit. The
+# individual call sites already say LC_ALL=C and TZ=UTC; setting both here as
+# well means a call site that forgets cannot quietly reintroduce the defect.
+export LC_ALL=C
+export TZ=UTC
+
+# A snapshot of the staged tree: sha256 and relative path, one line per file,
+# in C order. Called at the points where something could have written into the
+# tree, so that "which byte moved" is a diff rather than an argument.
+snapshot() {  # $1 label -> $WORK/staged-$1.txt (and $DEBUG_DIR, if set)
+  python3 - "$STAGE" "$WORK/staged-$1.txt" <<'PYSNAP'
+import hashlib, os, sys
+root, out = sys.argv[1], sys.argv[2]
+rows = []
+for d, dirs, files in os.walk(root):
+    for n in files:
+        p = os.path.join(d, n)
+        rel = os.path.relpath(p, root)
+        if os.path.islink(p):
+            rows.append(("symlink:" + os.readlink(p), rel))
+            continue
+        h = hashlib.sha256()
+        with open(p, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        rows.append((h.hexdigest(), rel))
+rows.sort(key=lambda r: r[1])
+with open(out, "w", encoding="utf-8") as fh:
+    for h, rel in rows:
+        fh.write(f"{h}  {rel}\n")
+PYSNAP
+  [ -n "$DEBUG_DIR" ] && cp "$WORK/staged-$1.txt" "$DEBUG_DIR/staged-$1.txt"
+  return 0
+}
 
 # A mirror that does not exist yet is created as a bare clone of its remote.
 # On a maintainer's machine every mirror already exists and this is a no-op;
@@ -245,6 +316,8 @@ for rspec in "${RELEASE_SPECS[@]}"; do
     --pattern main.js --pattern styles.css --dir "$R_DEST" --clobber
 done
 
+snapshot "01-after-staging"
+
 fail=0
 
 # ---------------------------------------------------------------------------
@@ -267,8 +340,43 @@ fail=0
 # red test cannot call it.
 # ---------------------------------------------------------------------------
 echo "==> red-test gate (no release while a guard has not been watched go red)"
-if ! sh "$STAGE/06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh" "$STAGE"; then
+# AGAINST A COPY, NEVER THE STAGED TREE. The suite runs the tree's own scripts,
+# and one of them is imported rather than spawned, so CPython writes a .pyc
+# beside it; a .pyc carries the absolute path of its source, and the staged
+# tree's path ends in six random mktemp characters. Three entries of the zip
+# changed on every build, which is what the release workflow's reproducibility
+# comparison went red on for 1.23.0. The copy is byte-identical, so the gate
+# still proves what it always proved: these bytes refuse what they must refuse.
+PROBE="$WORK/probe"
+mkdir -p "$PROBE"
+cp -a "$STAGE"/. "$PROBE"/
+if ! PYTHONDONTWRITEBYTECODE=1 sh "$PROBE/06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh" "$PROBE"; then
   echo "BLOCKED red-tests: the staged tree carries a guard that did not refuse what it must refuse"; fail=1
+fi
+rm -rf "$PROBE"
+
+# The self-test hook for the assertion below: a gate that writes into the tree
+# it is checking. Plant a file the way the red-test gate used to, and watch the
+# next check refuse the build.
+#   ICOR_ZIP_SELFTEST=stage-write bash build-release-zip.sh   # expect: BLOCKED
+if [ "${ICOR_ZIP_SELFTEST:-}" = "stage-write" ]; then
+  echo "    SELFTEST: writing into the staged tree after it was hashed; this build must fail"
+  mkdir -p "$STAGE/06 AI Team/AI Team Knowledge/Scripts/__pycache__"
+  printf 'planted by the stage-write self-test\n' \
+    > "$STAGE/06 AI Team/AI Team Knowledge/Scripts/__pycache__/selftest.cpython-000.pyc"
+fi
+
+# NOTHING the gate did may have reached the bytes that ship. Hashing the tree
+# either side is the general form of the rule: it does not know about .pyc, so
+# it catches the next writer too, whatever it turns out to be.
+snapshot "02-after-red-tests"
+if ! cmp -s "$WORK/staged-01-after-staging.txt" "$WORK/staged-02-after-red-tests.txt"; then
+  echo "BLOCKED: the gates changed the staged tree. A zip has to be a function of the commit,"
+  echo "         and a gate that writes into the bytes it is checking makes it a function of"
+  echo "         the run as well. Run the gate against a copy. What moved:"
+  diff "$WORK/staged-01-after-staging.txt" "$WORK/staged-02-after-red-tests.txt" \
+    | sed -n 's/^[<>] [0-9a-f]\{64\}  /         /p' | LC_ALL=C sort -u
+  fail=1
 fi
 
 # ---------------------------------------------------------------------------
@@ -314,6 +422,8 @@ declare -a RESIDUE_PATHS=(
 #   ICOR_ZIP_SELFTEST=residue bash build-release-zip.sh   # expect: BLOCKED
 #   ICOR_ZIP_SELFTEST=rename  bash build-release-zip.sh   # expect: BLOCKED
 #   ICOR_ZIP_SELFTEST=plugin-workflow bash build-release-zip.sh   # expect: BLOCKED
+# The fourth case, stage-write, is planted earlier, right after the red-test
+# gate, because that is where the assertion it proves lives.
 case "${ICOR_ZIP_SELFTEST:-}" in
   residue)
     echo "    SELFTEST: planting residue in the staged tree; this build must fail"
@@ -692,16 +802,18 @@ rm -f "$OUT_DIR/$NAME"
 # the staged commit's timestamp, the entries are written in one sorted
 # order, and the zip carries no per-file extra attributes. The zip format
 # keeps its times in local time, so the clock is pinned to UTC as well.
+snapshot "03-before-zip"
 echo "==> zipping -> $OUT_DIR/$NAME"
 STAGE_EPOCH="$(git --git-dir "$SCAFFOLD_GIT" log -1 --format=%ct "$scaffold_staged")"
-python3 - "$STAGE" "$STAGE_EPOCH" <<'PYSTAMP'
-import os, sys
-root, t = sys.argv[1], int(sys.argv[2])
-for d, dirs, files in os.walk(root):
-    for n in dirs + files:
-        os.utime(os.path.join(d, n), (t, t), follow_symlinks=False)
-os.utime(root, (t, t))
-PYSTAMP
-( cd "$STAGE" && find . -type f ! -name ".DS_Store" | sed 's|^\./||' | LC_ALL=C sort \
-  | TZ=UTC zip -qX "$OUT_DIR/$NAME" -@ )
+if ! sh "$SELF_DIR/zip-staged-tree.sh" "$STAGE" "$OUT_DIR/$NAME" "$STAGE_EPOCH"; then
+  echo "RELEASE ABORTED: the staged tree could not be archived reproducibly." >&2
+  exit 1
+fi
+if [ -n "$DEBUG_DIR" ]; then
+  # Per-entry length, method, compressed size, date, CRC-32 and name. A diff of
+  # two of these says whether an entry moved in content, in size or only in
+  # order, which is the one question a pair of zip hashes cannot answer.
+  unzip -v "$OUT_DIR/$NAME" > "$DEBUG_DIR/zip-listing.txt"
+  echo "    debug: zip entry listing -> $DEBUG_DIR/zip-listing.txt"
+fi
 echo "==> done: $OUT_DIR/$NAME ($(du -h "$OUT_DIR/$NAME" | cut -f1), sha256 $(sha_of "$OUT_DIR/$NAME"))"

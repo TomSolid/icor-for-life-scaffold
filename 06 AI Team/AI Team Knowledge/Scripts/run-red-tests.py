@@ -1846,12 +1846,106 @@ with tempfile.TemporaryDirectory() as td:
     else:
         checks += 1
         brz = (HERE / "build-release-zip.sh").read_text(encoding="utf-8")
-        call = _r.search(r'if\s+!\s+sh\s+"[^"]*release-gate-red-tests\.sh"\s+"\$STAGE"\s*;\s*then'
+        # It runs against $PROBE, a copy of the staged tree, since 1.23.1: the
+        # suite imports three Scripts modules, CPython wrote their .pyc files
+        # into the staged tree, and a .pyc carries the absolute path of its
+        # source, which is a mktemp name. Three zip entries changed on every
+        # build and the release workflow's reproducibility comparison went red.
+        # So the wiring check asserts BOTH halves: the gate is called, and it
+        # is called on a byte-identical copy rather than on the bytes that ship.
+        call = _r.search(r'if\s+!\s+[A-Za-z0-9_]+=\S+\s+sh\s+"[^"]*release-gate-red-tests\.sh"\s+"\$PROBE"\s*;\s*then'
                          r'[^\n]*\n\s*echo[^\n]*BLOCKED red-tests[^\n]*fail=1', brz)
         if not call:
             fails.append("release-gate/wired-into-build: build-release-zip.sh does not "
-                         "call the red-test gate on the staged tree and set fail=1 on "
-                         "its refusal, so a release can be cut on an unproven tree")
+                         "call the red-test gate on a copy of the staged tree and set "
+                         "fail=1 on its refusal, so a release can be cut on an unproven "
+                         "tree, or on a tree the gate wrote into")
+        checks += 1
+        if not _r.search(r'cp\s+-a\s+"\$STAGE"/\.\s+"\$PROBE"/', brz):
+            fails.append("release-gate/probe-is-a-copy: build-release-zip.sh does not "
+                         "copy the staged tree into $PROBE, so $PROBE is not the bytes "
+                         "that ship and the gate proves nothing about them")
+        checks += 1
+        if not _r.search(r'cmp\s+-s\s+"\$WORK/staged-01[^"]*"\s+"\$WORK/staged-02[^"]*"', brz):
+            fails.append("release-gate/staged-tree-untouched: build-release-zip.sh does "
+                         "not compare the staged tree either side of the gates, so the "
+                         "next thing that writes into the bytes that ship goes unnoticed")
+
+    # 78e-78h. THE ZIP IS A FUNCTION OF THE TREE. Same reason the gate above
+    #     lives in its own file: build-release-zip.sh needs a git mirror, the
+    #     gh CLI and the network, so the part that turns a staged tree into
+    #     bytes is zip-staged-tree.sh, and that is what gets red-tested here.
+    #
+    #     1.23.0 was tagged and never published because two builds of the same
+    #     commit were not the same bytes on the CI runner while they were on
+    #     the maintainer's Mac. Two builds under two locales and two clocks,
+    #     compared by sha256, is the check that was missing.
+    _skip_zip = FAST and fast_skip(
+        "zip-staged-tree/*",
+        "4 case(s); each builds a fixture tree into a zip")
+    ZS = HERE / "zip-staged-tree.sh"
+    if _skip_zip:
+        pass
+    elif not ZS.is_file():
+        skip("zip-staged-tree/*", "zip-staged-tree.sh is not here")
+    elif shutil.which("zip") is None:
+        skip("zip-staged-tree/*", "the zip command is not installed, so nothing was proven")
+    else:
+        import hashlib as _hl
+
+        # A tree whose names sort differently in C and in en_US, so a build
+        # that lets the locale through comes back with a different entry
+        # order and a different sha256.
+        _zt = tmp / "ziptree"
+        for _rel, _body in (("Ab.md", "A\n"), ("aB.md", "a\n"), ("a-b.md", "-\n"),
+                            ("a_b.md", "_\n"), ("nested/deep/z.md", "z\n"),
+                            ("nested/deep/A.md", "A\n")):
+            _f = _zt / _rel
+            _f.parent.mkdir(parents=True, exist_ok=True)
+            _f.write_text(_body, encoding="utf-8")
+
+        def _zip_build(out, env_extra, expect=0, name=""):
+            global checks
+            checks += 1
+            env = dict(os.environ)
+            env.update(env_extra)
+            r = subprocess.run(["/bin/sh", str(ZS), str(_zt), str(out), "1757894400"],
+                               capture_output=True, text=True, env=env)
+            if r.returncode != expect:
+                fails.append("zip-staged-tree/%s: exit %d, expected %d: %s"
+                             % (name, r.returncode, expect,
+                                (r.stderr or r.stdout or "").strip()[:200]))
+            return r
+
+        def _zip_sha(path):
+            return _hl.sha256(Path(path).read_bytes()).hexdigest()
+
+        _o1, _o2 = tmp / "zip-one.zip", tmp / "zip-two.zip"
+        _zip_build(_o1, {"TZ": "Asia/Tokyo", "LC_ALL": "en_US.UTF-8", "LANG": "en_US.UTF-8"},
+                   name="build-tokyo-en-US")
+        _zip_build(_o2, {"TZ": "America/Los_Angeles", "LC_ALL": "C", "LANG": "C"},
+                   name="build-los-angeles-C")
+        checks += 1
+        if not (_o1.is_file() and _o2.is_file()):
+            fails.append("zip-staged-tree/reproducible: one of the two builds wrote no zip")
+        elif _zip_sha(_o1) != _zip_sha(_o2):
+            fails.append("zip-staged-tree/reproducible: the same tree gave two different "
+                         "zips under two locales and two clocks (%s vs %s). The zip has to "
+                         "be a function of the tree, or a release can never tell 'already "
+                         "published' from 'different bytes under the same version'."
+                         % (_zip_sha(_o1)[:12], _zip_sha(_o2)[:12]))
+
+        # And the one thing that must block: compiled bytecode in the tree. It
+        # is what 1.23.0 died of, and it is never filtered out quietly, because
+        # a filter hides whatever ran inside the bytes that are about to ship.
+        _pd = _zt / "__pycache__"
+        _pd.mkdir(exist_ok=True)
+        (_pd / "planted.cpython-000.pyc").write_bytes(b"not a commit\n")
+        _zip_build(tmp / "zip-pycache.zip", {}, expect=1, name="pycache-blocks")
+        shutil.rmtree(_pd)
+        (_zt / "stray.pyc").write_bytes(b"not a commit\n")
+        _zip_build(tmp / "zip-stray-pyc.zip", {}, expect=1, name="stray-pyc-blocks")
+        (_zt / "stray.pyc").unlink()
 
     # 79-83. check-bases reads .base files with the standard library only
     #     (tsk-2026-09-11-005). It imported PyYAML until 2026-09-14, and on a
