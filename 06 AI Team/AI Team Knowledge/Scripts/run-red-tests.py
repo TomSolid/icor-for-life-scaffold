@@ -136,6 +136,61 @@ def skip(name, reason):
     skips.append((name, reason))
     print(f"SKIP {name}: {reason}")
 
+
+# ---------------------------------------------------------------------------
+# THE POSIX SHELL, RESOLVED ONCE
+# ---------------------------------------------------------------------------
+#
+# Five cases here spawn a .sh fixture, and each of them used to name
+# "/bin/sh" itself. Windows has no such path: the first of them raised
+# FileNotFoundError, the whole suite died before it ran a single case, and
+# `scaffold-init.py doctor` reported "RED, exit 1. The suite found something",
+# which reads as a guard letting bad input through when the truth is that the
+# suite could not start (Conrad Froehling, Windows 11, 2026-09-16).
+#
+# So: resolved once, from PATH rather than from a hardcoded path, and where
+# there is no shell at all the five cases SKIP BY NAME with the reason. A skip
+# is counted and printed and is never a green; the alternative was a suite that
+# cannot report on the guards it never reached.
+def resolve_shell():
+    """The POSIX shell to spawn .sh fixtures with, or None where there is none.
+
+    PATH, not /bin/sh: a Windows member running under Git Bash or MSYS has a
+    working `sh` that is nowhere near /bin, and a stripped Linux image can have
+    bash and no sh.
+    """
+    for _cand in ("sh", "bash"):
+        _hit = shutil.which(_cand)
+        if _hit:
+            return _hit
+    return None
+
+
+SH = resolve_shell()
+
+
+def sh_skip_reason():
+    """Why no .sh fixture can be spawned here, or None when one can.
+
+    Kept apart from `sh_run` so a case can ask the question without recording a
+    skip as a side effect.
+    """
+    if SH is None:
+        return ("no POSIX shell on PATH (platform %s), so this case is skipped "
+                "on this platform: it spawns a .sh fixture and there is nothing "
+                "here that can start one" % sys.platform)
+    return None
+
+
+def sh_run(name, args, **kw):
+    """Spawn a .sh fixture, or skip THIS case by name and return None."""
+    why = sh_skip_reason()
+    if why:
+        skip(name, why)
+        return None
+    return subprocess.run([SH] + [str(a) for a in args], **kw)
+
+
 def fingerprint(paths):
     """{path: sha256 or None} for every file under each path given.
 
@@ -4369,6 +4424,430 @@ with tempfile.TemporaryDirectory() as _b8td:
 # ===========================================================================
 # ---- END silas b8 ----
 
+
+
+
+# ---- BEGIN mack b9 ----
+# ===========================================================================
+# 96-107. CONRAD FROEHLING, community bug reports, 2026-09-16: Windows 11,
+#         Python 3.12.10, Developer Mode off, Scaffold 1.26.0. Five defects a
+#         Windows member meets on the first command they run, plus the two
+#         bytecode-hygiene lines from the same report.
+#
+# Every case below was watched RED on 6959eba before its fix landed.
+#
+# WHAT THESE CASES CAN AND CANNOT PROVE. This machine is macOS. It has the
+# symlink privilege, it has /bin/sh, its select() answers for pipes, and its
+# os module carries O_NOFOLLOW; no amount of test writing changes that. So
+# each case takes away the ONE api Windows does not have, in a child process,
+# and measures what the script does without it. That proves the code path
+# exists and behaves. It does not prove the script runs on a real Windows box,
+# and nothing here claims it does.
+# ===========================================================================
+
+_B9_SKIP = FAST and fast_skip(
+    "windows/generator", "the generator cases that build a fixture vault and "
+    "run apply with os.symlink refusing the way Windows refuses it")
+
+if not _B9_SKIP and SI.is_file():
+    with tempfile.TemporaryDirectory() as _b9td:
+        _b9 = Path(_b9td)
+
+        # A child that runs any script with os.symlink refusing exactly the
+        # way Windows refuses it for an unprivileged shell with Developer Mode
+        # off: ERROR_PRIVILEGE_NOT_HELD, WinError 1314.
+        _nosym = _b9 / "no_symlink.py"
+        _nosym.write_text(
+            "import os, runpy, sys\n"
+            "def _refuse(*a, **k):\n"
+            "    e = OSError(1314, 'A required privilege is not held by the client')\n"
+            "    e.winerror = 1314\n"
+            "    raise e\n"
+            "os.symlink = _refuse\n"
+            "sys.argv = sys.argv[1:]\n"
+            "runpy.run_path(sys.argv[0], run_name='__main__')\n", encoding="utf-8")
+
+        def _si_nosym(v, verb, *extra):
+            _e = dict(os.environ)
+            _e["PYTHONDONTWRITEBYTECODE"] = "1"
+            return subprocess.run(
+                [PY, str(_nosym),
+                 str(Path(v) / "06 AI Team" / "AI Team Knowledge" / "Scripts"
+                     / "scaffold-init.py"), verb] + list(extra),
+                capture_output=True, text=True, cwd=str(v), env=_e)
+
+        # -------------------------------------------------------------
+        # 96. APPLY SURVIVES A REFUSED SYMLINK, AND THE COPY LANDS AFTER
+        #     THE TARGET EXISTS.
+        #
+        # `do_apply` walked `sorted(set(create + update))`. "." sorts before
+        # "0", so `.agents/skills/<name>` (a link) was always processed before
+        # `06 AI Team/AI Team Knowledge/Skills/<name>/SKILL.md` (its target).
+        # On POSIX the dangling link is filled in a moment later and nothing
+        # shows. On Windows os.symlink raises WinError 1314, `link()` falls
+        # through to shutil.copytree, and copytree has nothing to copy:
+        # FileNotFoundError, errno 2, which the handler did not catch (it
+        # caught 1 and 13 only). The member got a traceback and half a
+        # harness, and an Administrator terminal hid all of it.
+        _wv = _si_fixture(_b9 / "win-symlink")
+        checks += 1
+        _wr = _si_nosym(_wv, "apply")
+        _wskill = _wv / "06 AI Team/AI Team Knowledge/Skills/fixture-0/SKILL.md"
+        _wlink = _wv / ".agents/skills/fixture-0/SKILL.md"
+        if "Traceback" in (_wr.stderr or ""):
+            fails.append("windows/symlink-1314-no-traceback: `apply` died with a "
+                         "traceback when os.symlink refused (WinError 1314). "
+                         "Links are written before their targets and the copy "
+                         "fallback then has nothing to copy (Conrad Froehling, "
+                         "2026-09-16): %s" % (_wr.stderr or "").strip()[-400:])
+        elif _wr.returncode != 0:
+            fails.append("windows/symlink-1314-no-traceback: `apply` exited %d "
+                         "with os.symlink refusing. A member without the symlink "
+                         "privilege must still end up with a whole harness: %s"
+                         % (_wr.returncode,
+                            (_wr.stderr or _wr.stdout or "").strip()[-400:]))
+        elif not _wskill.is_file():
+            fails.append("windows/symlink-1314-no-traceback: `apply` exited 0 but "
+                         "wrote no Skills/fixture-0/SKILL.md, so the file the "
+                         "link points at was never written at all")
+        elif not _wlink.is_file():
+            fails.append("windows/symlink-1314-copy-after-the-target: `apply` "
+                         "exited 0 and wrote the skill, but .agents/skills/"
+                         "fixture-0 holds no SKILL.md. The copy ran before the "
+                         "target existed, so the host got an empty folder")
+
+        # 97. AND IT SAYS SO. A copy and a symlink behave differently under a
+        #     sync tool and under a host that resolves paths itself. A member
+        #     who got copies is told, in the summary, that they got copies.
+        checks += 1
+        if _wr.returncode == 0 and "copy" not in (_wr.stdout or ""):
+            fails.append("windows/symlink-1314-says-so: apply fell back to "
+                         "copying the .agents/skills entries and never said the "
+                         "word in its summary: %s"
+                         % (_wr.stdout or "").strip()[-300:])
+
+        # 98. A SECOND APPLY ON A SYMLINK-LESS PLATFORM IS STILL IDEMPOTENT.
+        #     `diff` read any non-symlink at a link path as "update", so on
+        #     Windows every `check` was red and every `apply` rewrote the same
+        #     copies for ever. A generator whose check can never go green is a
+        #     generator nobody can prove anything with.
+        checks += 1
+        _wc = _si_nosym(_wv, "check")
+        if _wr.returncode == 0 and _wc.returncode != 0:
+            fails.append("windows/symlink-1314-check-goes-green: a fresh apply "
+                         "with os.symlink refusing does not satisfy `check` "
+                         "(exit %d), so on a platform without the symlink "
+                         "privilege `check` is red for ever: %s"
+                         % (_wc.returncode, (_wc.stdout or "").strip()[-400:]))
+
+        # -------------------------------------------------------------
+        # 99-100. `plan` AND `apply` PROCESS THE SAME THINGS IN THE SAME
+        #         ORDER.
+        #
+        # `plan` printed `create` then `update` in the order `diff` built them
+        # (every file, then every link); `apply` walked one sorted set. The two
+        # commands disagreed about what happens when, and the order that
+        # mattered was the one nobody printed. Measured against the real
+        # functions rather than against a rendered line: `write` and `link`
+        # record what they are handed.
+        checks += 1
+        import importlib.util as _b9ilu
+        _ov = _si_fixture(_b9 / "win-order")
+        _b9spec = _b9ilu.spec_from_file_location(
+            "si_b9", str(_ov / "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py"))
+        _b9si = _b9ilu.module_from_spec(_b9spec)
+        sys.modules["si_b9"] = _b9si
+        _b9spec.loader.exec_module(_b9si)
+        _b9b = _b9si.build(_ov)
+        _b9plan = []
+        _b9si.do_plan(_ov, _b9b, _b9plan.append)
+        _planned = [_m9.group(1) for _m9 in
+                    (re.match(r"^(?:CREATE|UPDATE)  (.+?)   <- ", _l9)
+                     for _l9 in _b9plan) if _m9]
+        _seen = []
+        _b9w, _b9l = _b9si.write, _b9si.link
+
+        def _b9_write(root, rel, text, _f=_b9w):
+            _seen.append(rel)
+            return _f(root, rel, text)
+
+        def _b9_link(root, rel, target, _f=_b9l):
+            _seen.append(rel)
+            return _f(root, rel, target)
+
+        _b9si.write, _b9si.link = _b9_write, _b9_link
+        try:
+            _b9si.do_apply(_ov, _b9b, lambda _s: None)
+        finally:
+            _b9si.write, _b9si.link = _b9w, _b9l
+        if _seen != _planned:
+            fails.append("windows/plan-and-apply-agree-on-order: `plan` listed "
+                         "%r and `apply` wrote %r. Two commands that disagree "
+                         "about what happens when is how a link came to be built "
+                         "before its target (Conrad Froehling, 2026-09-16)"
+                         % (_planned[:8], _seen[:8]))
+        checks += 1
+        _LINK9 = ".agents/skills/fixture-0"
+        _TGT9 = "06 AI Team/AI Team Knowledge/Skills/fixture-0/SKILL.md"
+        if _LINK9 not in _seen:
+            fails.append("windows/links-come-after-their-targets: apply wrote no "
+                         "link at all, so this case measured nothing")
+        elif _TGT9 not in _seen:
+            fails.append("windows/links-come-after-their-targets: apply wrote the "
+                         "link %s and never wrote the SKILL.md it points at" % _LINK9)
+        elif _seen.index(_LINK9) < _seen.index(_TGT9):
+            fails.append("windows/links-come-after-their-targets: apply wrote the "
+                         "link at position %d and its target at position %d. "
+                         "Every file before every link is the rule; a copy "
+                         "fallback cannot copy what is not there yet"
+                         % (_seen.index(_LINK9), _seen.index(_TGT9)))
+
+# ===========================================================================
+# 101-102. THE SUITE ITSELF NEEDS A POSIX SHELL, AND SAYS SO INSTEAD OF DYING.
+#
+# Five cases here spawned "/bin/sh". Windows cannot start that path, so
+# FileNotFoundError killed the whole suite on its way to case 68, and
+# `scaffold-init.py doctor` then printed "RED, exit 1. The suite found
+# something", blaming a guard for the platform. The shell is resolved once,
+# and where there is none the five cases skip BY NAME.
+# ===========================================================================
+
+# 101. Structural: nothing spawns a hardcoded shell path any more, and every
+#      shell-dependent case goes through the one helper, with a name.
+checks += 1
+_b9src = Path(__file__).resolve().read_text(encoding="utf-8")
+_hard9 = re.findall(r"subprocess\.run\(\s*\[\s*[\"']/bin/(?:sh|bash|zsh)[\"']", _b9src)
+if _hard9:
+    fails.append("shell/resolved-in-one-place: %d call site(s) still spawn a "
+                 "hardcoded POSIX shell path. Windows cannot start /bin/sh and "
+                 "the suite dies before its first case (Conrad Froehling, "
+                 "2026-09-16)" % len(_hard9))
+_names9 = set(re.findall(r"sh_run\(\s*[\"']([^\"']+)[\"']", _b9src))
+if len(_names9) < 5:
+    fails.append("shell/resolved-in-one-place: only %d named case(s) go through "
+                 "sh_run(); the five that spawn a .sh fixture must each skip by "
+                 "their own name where there is no shell: %s"
+                 % (len(_names9), sorted(_names9)))
+
+# 102. Behavioural: with the resolver finding nothing, the reason is a skip and
+#      it says "skipped on this platform" in words. Read through the pure
+#      predicate, so the probe records no skip of its own.
+checks += 1
+_saved_sh9 = SH
+try:
+    SH = None
+    _why9 = sh_skip_reason()
+finally:
+    SH = _saved_sh9
+if not _why9:
+    fails.append("shell/skips-by-name-with-no-shell: with the resolver finding no "
+                 "shell, sh_skip_reason() still returned None, so the five cases "
+                 "would run and die instead of skipping")
+elif "skipped on this platform" not in _why9:
+    fails.append("shell/skips-by-name-with-no-shell: the skip reason is %r, which "
+                 "never says the case was skipped on this platform; doctor quotes "
+                 "this line verbatim" % _why9)
+
+# ===========================================================================
+# 103-105. doctor TELLS A CRASH FROM A RED.
+#
+# `_red_tests` called every non-zero exit "RED, exit %d. The suite found
+# something", which on Windows read as a guard letting bad input through when
+# the truth was that the suite could not start. A suite that goes red names the
+# case on a FAIL line; a suite that crashed does not.
+# ===========================================================================
+
+with tempfile.TemporaryDirectory() as _b9dtd:
+    _b9d = Path(_b9dtd)
+    import importlib.util as _b9ilu2
+    _dspec9 = _b9ilu2.spec_from_file_location("si_doctor_b9", str(SI))
+    _dsi9 = _b9ilu2.module_from_spec(_dspec9)
+    sys.modules["si_doctor_b9"] = _dsi9
+    _dspec9.loader.exec_module(_dsi9)
+
+    def _b9_runner(name, body):
+        _r = _b9d / name / "06 AI Team" / "AI Team Knowledge" / "Scripts"
+        _r.mkdir(parents=True, exist_ok=True)
+        (_r / "run-red-tests.py").write_text(body, encoding="utf-8")
+        return _b9d / name
+
+    _crash9 = _b9_runner("crash", "raise SystemError('no POSIX shell here')\n")
+    _red9 = _b9_runner(
+        "red", "import sys\nprint('FAIL write-guard/let-it-through', "
+               "file=sys.stderr)\nsys.exit(1)\n")
+    _green9 = _b9_runner(
+        "green", "print('SKIP session-start/missing-python: no POSIX shell here "
+                 "(win32), skipped on this platform')\n"
+                 "print('OK 1/1 guards went red on bad input')\n")
+    checks += 1
+    _s9, _l9a = _dsi9._red_tests(_crash9, True)
+    if _s9["status"] == "red" or _s9["summary"].startswith("RED"):
+        fails.append("doctor/crash-is-not-a-red: a suite that raised before its "
+                     "first case was reported as %r. Calling a crash RED blames a "
+                     "guard for the platform (Conrad Froehling, 2026-09-16)"
+                     % _s9["summary"][:160])
+    checks += 1
+    _s9b, _l9b = _dsi9._red_tests(_red9, True)
+    if not _s9b["summary"].startswith("RED"):
+        fails.append("doctor/crash-is-not-a-red, the clean control: a suite that "
+                     "printed a FAIL line and exited 1 was reported as %r, not as "
+                     "RED. Telling a crash from a red must not cost us the red"
+                     % _s9b["summary"][:160])
+    checks += 1
+    _s9c, _l9c = _dsi9._red_tests(_green9, True)
+    if _s9c["status"] != "ok":
+        fails.append("doctor/platform-skip-is-quoted, the green control: a suite "
+                     "that exited 0 was reported as %r" % _s9c["summary"][:160])
+    elif not any("skipped on this platform" in _x for _x in _l9c):
+        fails.append("doctor/platform-skip-is-quoted: the suite skipped a case on "
+                     "this platform and doctor's report never carried the line: %r"
+                     % _l9c)
+
+# ===========================================================================
+# 106. session-start.py READS A PIPED PAYLOAD WITH select UNAVAILABLE.
+#
+# select.select() answers for pipes on POSIX and for sockets only on Windows,
+# where it raises. The except swallowed that into `ready = []`, the payload was
+# never read, a `local-` id was minted, and the ritual announced "GUARDS: no
+# host session id received" while the hooks were working perfectly.
+# ===========================================================================
+
+with tempfile.TemporaryDirectory() as _b9std:
+    _b9s = Path(_b9std)
+    _noselect9 = _b9s / "no_select.py"
+    _noselect9.write_text(
+        "import select, runpy, sys\n"
+        "def _refuse(*a, **k):\n"
+        "    raise OSError(10038, 'An operation was attempted on something that "
+        "is not a socket')\n"
+        "select.select = _refuse\n"
+        "sys.argv = sys.argv[1:]\n"
+        "runpy.run_path(sys.argv[0], run_name='__main__')\n", encoding="utf-8")
+    _ssv9 = fixture_vault(_b9s, "session-start-no-select")
+    checks += 1
+    _env9 = dict(os.environ)
+    _env9["CLAUDE_PROJECT_DIR"] = str(_ssv9)
+    _env9.pop("ICOR_SESSION_ID", None)
+    _sr9 = subprocess.run(
+        [PY, str(_noselect9),
+         str(_ssv9 / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+        capture_output=True, text=True, env=_env9,
+        input=json.dumps({"session_id": "conrad-no-select",
+                          "hook_event_name": "SessionStart"}))
+    _sj9 = _ssv9 / ".icor-for-life/scripts/session.json"
+    if not _sj9.is_file():
+        fails.append("session-start/reads-stdin-without-select: no session.json "
+                     "was written at all (exit %d): %s"
+                     % (_sr9.returncode, (_sr9.stderr or "").strip()[-300:]))
+    else:
+        _got9 = json.loads(_sj9.read_text(encoding="utf-8")).get("session_id")
+        if _got9 != "conrad-no-select":
+            fails.append("session-start/reads-stdin-without-select: the host piped "
+                         "a payload and select.select could not answer for the "
+                         "pipe, so the id was minted as %r instead of read (Conrad "
+                         "Froehling, 2026-09-16)" % _got9)
+        elif "GUARDS:" in (_sr9.stdout or ""):
+            fails.append("session-start/reads-stdin-without-select: the payload was "
+                         "read and the ritual still announced that no host session "
+                         "id arrived; a warning that fires on a good run is a "
+                         "warning nobody reads")
+
+# ===========================================================================
+# 107. life-snapshot.py --write WITH os.O_NOFOLLOW GONE.
+#
+# os.O_NOFOLLOW does not exist on Windows. The atomic write named it unguarded,
+# so the script raised AttributeError before a byte was written and the session
+# start ritual lost its snapshot on every Windows run. The second half is the
+# control that matters: the protection O_NOFOLLOW stood for is carried by the
+# symlink refusals above the open() and by O_EXCL, and both must still refuse
+# with the flag gone.
+# ===========================================================================
+
+with tempfile.TemporaryDirectory() as _b9ltd:
+    _b9l2 = Path(_b9ltd)
+    _nonofollow9 = _b9l2 / "no_nofollow.py"
+    _nonofollow9.write_text(
+        "import os, runpy, sys\n"
+        "for _n in ('O_NOFOLLOW', 'O_NOATIME'):\n"
+        "    if hasattr(os, _n):\n"
+        "        delattr(os, _n)\n"
+        "sys.argv = sys.argv[1:]\n"
+        "runpy.run_path(sys.argv[0], run_name='__main__')\n", encoding="utf-8")
+    _lsv9 = fixture_vault(_b9l2, "life-snapshot-no-nofollow")
+    _lsp9 = str(_lsv9 / "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py")
+    checks += 1
+    _lr9 = subprocess.run([PY, str(_nonofollow9), _lsp9, "--write", str(_lsv9)],
+                          capture_output=True, text=True)
+    _snap9 = _lsv9 / ".icor-for-life/scripts/snapshot.json"
+    if "AttributeError" in (_lr9.stderr or ""):
+        fails.append("life-snapshot/no-O_NOFOLLOW: --write raised AttributeError "
+                     "with os.O_NOFOLLOW absent, which is every Windows run "
+                     "(Conrad Froehling, 2026-09-16): %s"
+                     % (_lr9.stderr or "").strip()[-300:])
+    elif _lr9.returncode != 0:
+        fails.append("life-snapshot/no-O_NOFOLLOW: --write exited %d with "
+                     "os.O_NOFOLLOW absent: %s"
+                     % (_lr9.returncode,
+                        (_lr9.stderr or _lr9.stdout or "").strip()[-300:]))
+    elif not _snap9.is_file():
+        fails.append("life-snapshot/no-O_NOFOLLOW: --write exited 0 and wrote no "
+                     "snapshot.json")
+    checks += 1
+    _victim9 = _lsv9 / "victim.txt"
+    _victim9.write_text("untouched\n", encoding="utf-8")
+    if _snap9.exists() or _snap9.is_symlink():
+        _snap9.unlink()
+    _snap9.parent.mkdir(parents=True, exist_ok=True)
+    os.symlink(_victim9, _snap9)
+    subprocess.run([PY, str(_nonofollow9), _lsp9, "--write", str(_lsv9)],
+                   capture_output=True, text=True)
+    if _victim9.read_text(encoding="utf-8") != "untouched\n":
+        fails.append("life-snapshot/symlink-refusal-survives-no-O_NOFOLLOW: with "
+                     "O_NOFOLLOW gone, --write followed the symlink at "
+                     "snapshot.json and overwrote the file it pointed at")
+    if _snap9.is_symlink():
+        _snap9.unlink()
+
+# ===========================================================================
+# 108. NO SCRIPT DROPS BYTECODE INTO THE TREE IT RUNS IN.
+#
+# validate-scaffold.py and check-bases.py importlib-load new-base.py out of
+# Scripts/, so stock CPython wrote Scripts/__pycache__/new-base.cpython-3NN.pyc
+# into whatever tree they were pointed at: a member's vault, or the repo in CI.
+# Every script in this folder that loads a sibling by path has the same shape,
+# and they all carry the switch now.
+# ===========================================================================
+
+if sys.pycache_prefix is not None:
+    skip("bytecode/no-pyc-in-the-tree",
+         "this interpreter redirects every .pyc to %s, so no tree here can "
+         "receive one and the case would pass without measuring anything"
+         % sys.pycache_prefix)
+else:
+    with tempfile.TemporaryDirectory() as _b9ptd:
+        _pv9 = fixture_vault(Path(_b9ptd), "no-pyc")
+        # The switch this suite sets for its own children is taken back off, or
+        # the case measures the environment variable and not the scripts.
+        _penv9 = {k: v for k, v in os.environ.items()
+                  if k != "PYTHONDONTWRITEBYTECODE"}
+        for _rel9 in ("validate-scaffold.py", "check-bases.py"):
+            checks += 1
+            subprocess.run(
+                [PY, str(_pv9 / "06 AI Team/AI Team Knowledge/Scripts" / _rel9),
+                 str(_pv9)], capture_output=True, text=True, env=_penv9,
+                cwd=str(_pv9))
+            _pyc9 = sorted(str(_p.relative_to(_pv9)) for _p in _pv9.rglob("*.pyc"))
+            if _pyc9:
+                fails.append("bytecode/no-pyc-in-the-tree: %s dropped %d .pyc "
+                             "file(s) into the tree it was pointed at: %s. A "
+                             "script that writes into a member's vault in order "
+                             "to read it changes the thing it measures (Conrad "
+                             "Froehling, 2026-09-16)"
+                             % (_rel9, len(_pyc9), ", ".join(_pyc9[:4])))
+                for _pc9 in _pv9.rglob("__pycache__"):
+                    shutil.rmtree(_pc9, ignore_errors=True)
+# ===========================================================================
+# ---- END mack b9 ----
 
 if fails:
     for f in fails:
