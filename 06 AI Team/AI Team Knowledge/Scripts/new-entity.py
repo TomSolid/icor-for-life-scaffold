@@ -44,6 +44,17 @@ Guards (GL-1005: a rule a machine can check is a check, not a sentence):
 import argparse, ast, datetime, importlib.util, re, subprocess, sys
 from pathlib import Path
 
+# NO BYTECODE IN THE TREE WE ARE POINTED AT. This script importlib-loads a
+# sibling out of Scripts/, and stock CPython then writes
+# Scripts/__pycache__/<sibling>.cpython-3NN.pyc beside it, which is INSIDE the
+# vault or the repo it was asked to read. A script that writes into the thing
+# it measures is a script whose measurement nobody can trust, and the write is
+# invisible under macOS's /usr/bin/python3, which redirects bytecode to its own
+# cache (Conrad Froehling, 2026-09-16). PYTHONDONTWRITEBYTECODE is read at
+# interpreter STARTUP, so only this assignment reaches a process already
+# running.
+sys.dont_write_bytecode = True
+
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parents[2]
 TEMPLATES = "06 AI Team/AI Team Knowledge/Templates"
