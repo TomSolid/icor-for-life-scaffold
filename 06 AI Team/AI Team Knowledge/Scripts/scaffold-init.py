@@ -1288,6 +1288,14 @@ def generated_on_disk(root):
                 continue
             if f.suffix not in (".md", ".toml", ".json"):
                 continue
+            # `.agents/skills/<name>` belongs to the second loop below, whole.
+            # Where the OS refuses symlinks it is a COPY of the skill folder,
+            # so every SKILL.md inside it carries the generated header and this
+            # loop reported each one as a generated file nobody produces:
+            # `check` then asked to remove the contents of the link it had just
+            # written (Conrad Froehling, 2026-09-16).
+            if f.relative_to(root).as_posix().startswith(".agents/skills/"):
+                continue
             # `_template.md` and any other underscore file is documentation for
             # the shape, not an instance of it. It quotes the generated header
             # verbatim to SHOW what one looks like, which is exactly why it must
@@ -1308,7 +1316,10 @@ def generated_on_disk(root):
         d = root / base
         if d.is_dir():
             for f in sorted(d.iterdir()):
-                if f.is_symlink():
+                # A symlink OR a directory: `link()` writes whichever the OS
+                # allows, and an entry the generator no longer produces has to
+                # be swept either way.
+                if f.is_symlink() or f.is_dir():
                     out.append(f.relative_to(root).as_posix())
     return sorted(set(out))
 
@@ -1325,6 +1336,33 @@ def generated_counts(b, same):
     """
     files = len([r for r in same if r in b.files])
     return files, len(same) - files
+
+
+def copy_is_stale(copy_dir, target_dir):
+    """True when a copied host link no longer matches the folder it stands for.
+
+    Bytes, and the set of relative paths on both sides, because a copy that has
+    the right files with the wrong contents and a copy that is missing a file
+    are the same defect from the member's side: the host reads something the
+    generator did not produce. A copy that holds a symlink of its own is stale
+    on principle rather than followed.
+    """
+    def snapshot(d):
+        out = {}
+        for p in sorted(d.rglob("*")):
+            if p.is_symlink():
+                return None
+            if p.is_file():
+                out[p.relative_to(d).as_posix()] = p.read_bytes()
+        return out
+
+    try:
+        if not target_dir.is_dir():
+            return True
+        here, there = snapshot(copy_dir), snapshot(target_dir)
+    except OSError:
+        return True
+    return here is None or there is None or here != there
 
 
 def diff(root, b):
@@ -1358,6 +1396,20 @@ def diff(root, b):
                 same.append(rel)
             else:
                 update.append(rel)
+        elif p.is_dir():
+            # A COPY IS A HOST LINK TOO, AND IT CAN BE CURRENT.
+            # Where the OS refuses symlinks, `link()` copies the skill folder
+            # instead. This used to read every non-symlink at a link path as
+            # "update", so on Windows `check` was red for ever and `apply`
+            # rewrote the same copies on every run: a generator whose check can
+            # never go green proves nothing at all (Conrad Froehling,
+            # 2026-09-16). A copy whose bytes still match its target is
+            # current; one whose bytes have moved on is an update, which is
+            # exactly what a stale copy needs.
+            if copy_is_stale(root / rel, root / target):
+                update.append(rel)
+            else:
+                same.append(rel)
         elif p.exists():
             update.append(rel)
         else:
@@ -1370,6 +1422,12 @@ def diff(root, b):
         p = root / rel
         if p.is_symlink():
             remove.append((rel, "the skill it links to is no longer generated"))
+            continue
+        if p.is_dir():
+            # A copied host link, on an OS that refuses symlinks. Same verdict
+            # as the symlink above; reading it as a note would raise.
+            remove.append((rel, "the skill it was copied from is no longer "
+                                "generated"))
             continue
         line = header_line_of(noteio.read_note(p)[0]) or ""
         m = re.search(r"from `([^`]+)`", line)
@@ -1398,6 +1456,32 @@ def write(root, rel, text):
     # Windows. write_text() would turn every "\n" into "\r\n" on Windows and
     # the manifest hashes would differ per platform.
     noteio.write_note(p, text)
+
+
+def apply_order(rels, b):
+    """The sequence `apply` writes in, and the sequence `plan` prints.
+
+    FILES BEFORE LINKS, each alphabetical, and one function so the two commands
+    cannot drift apart again.
+
+    `apply` used to walk `sorted(set(create + update))`. "." sorts before "0",
+    so `.agents/skills/<name>` (a link) was always processed before
+    `06 AI Team/AI Team Knowledge/Skills/<name>/SKILL.md` (the file it points
+    at). On macOS and Linux the dangling symlink is filled in a moment later
+    and nothing ever shows. On Windows, for an unprivileged shell with
+    Developer Mode off, os.symlink raises WinError 1314, `link()` falls through
+    to shutil.copytree, and copytree has nothing to copy: FileNotFoundError,
+    traceback, harness half built. An Administrator terminal hid the whole
+    thing, because there the symlink succeeds (Conrad Froehling, Windows 11,
+    2026-09-16).
+
+    `plan` listed the same set in its own order again, so the two commands
+    disagreed about what happens when and the order that mattered was the one
+    nobody printed.
+    """
+    rels = sorted(set(rels))
+    return ([r for r in rels if r not in b.links]
+            + [r for r in rels if r in b.links])
 
 
 def link(root, rel, target):
@@ -1463,7 +1547,7 @@ def do_apply(root, b, out):
     create, update, same, remove, edited = diff(root, b)
     modes = {}
     denied = []
-    for rel in sorted(set(create + update)):
+    for rel in apply_order(create + update, b):
         try:
             if rel in b.files:
                 write(root, rel, b.files[rel])
@@ -1472,6 +1556,17 @@ def do_apply(root, b, out):
         except PermissionError as exc:
             denied.append(rel)
             out(sandbox_note(root, rel, exc))
+            continue
+        except FileNotFoundError as exc:
+            # ENOENT. With files written before links this should no longer
+            # happen, and if it does the member gets a sentence naming the
+            # path rather than a traceback with a half-built harness under it
+            # (Conrad Froehling, 2026-09-16).
+            denied.append(rel)
+            out("MISSING SOURCE writing %s (%s). Nothing here can create it. "
+                "Re-run `plan` and read what it says about that path; if the "
+                "target of a host link is missing, the skill it points at was "
+                "not generated." % (rel, exc))
             continue
         except OSError as exc:
             if getattr(exc, "errno", None) in (1, 13):   # EPERM, EACCES
@@ -1513,6 +1608,16 @@ def do_apply(root, b, out):
     if modes:
         kinds = sorted(set(modes.values()))
         out("apply: .agents/skills entries written as %s" % ", ".join(kinds))
+        if "copy" in kinds:
+            # SAY WHY, not just what. On Windows this is the normal outcome for
+            # an unprivileged shell with Developer Mode off, and a member who
+            # reads "copy" without the reason files a bug (Conrad Froehling,
+            # 2026-09-16). The copy is made AFTER its target is written, so it
+            # is a real copy of a real skill and not an empty folder.
+            out("apply: this OS would not let us make a symlink, so those "
+                "entries are copies of the skill folder. They work the same "
+                "way; they go stale when the skill changes, which is what "
+                "`check` is for, and a re-run refreshes them.")
     return create, update, same, remove, denied
 
 
@@ -1878,11 +1983,17 @@ def do_plan(root, b, out):
     out("plan: %s" % root)
     out("      nothing below has been written")
     out("=" * 47)
-    for rel in create:
-        out("CREATE  %s   <- %s" % (rel, b.sources.get(rel, "?")))
-    for rel in update:
-        mark = "  (HAND-EDITED since it was generated)" if rel in edited else ""
-        out("UPDATE  %s   <- %s%s" % (rel, b.sources.get(rel, "?"), mark))
+    # One order, `apply_order`, so this list IS the sequence apply will walk.
+    # Printed as one run rather than as a CREATE block and an UPDATE block:
+    # grouping the verbs is prettier and it hid the only thing about the order
+    # that matters, which is that every file is written before any link.
+    news = set(create)
+    for rel in apply_order(create + update, b):
+        if rel in news:
+            out("CREATE  %s   <- %s" % (rel, b.sources.get(rel, "?")))
+        else:
+            mark = "  (HAND-EDITED since it was generated)" if rel in edited else ""
+            out("UPDATE  %s   <- %s%s" % (rel, b.sources.get(rel, "?"), mark))
     for rel, why in remove:
         out("REMOVE  %s   (%s)" % (rel, why))
     if act in ("create", "update"):
