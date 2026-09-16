@@ -53,7 +53,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | hire-proposal | owner, title | status (draft/decision-ready/approved), skills (list of skill slugs, or the literal `none, judgement role`; the field `check-hire.py` checks 15 and 18 read) | none: the `proposal.md` in `03 WiP/YYYY-MM-DD-<name>-hire/`, [[SOP-1007-hire-a-new-agent]] row 2 |
 | session-log | date, agents | - | none: `Scripts/new-session-log.py` |
 | sop / workstream / guideline | id, title | skill_name (the skill's folder slug; REQUIRED once skill_triggers is non-empty), skill_summary (one sentence), skill_triggers (list of user phrases; non-empty makes the procedure skill-eligible), skill_prerun (one script invocation, injected before step 1); the four only meaningful on `sop` and `workstream`; wip_folder (text, the standing working folder `03 WiP/Workstreams/<Name>/`, set only when it exists; only meaningful on `workstream`; ruling 2026-09-15) | none |
-| agent-journal | date, agent | - | none |
+| journal-entry | agent_id (the agent's slug), created (ISO datetime), topic (a slug) | updated (ISO datetime), status (durable/superseded), linked_session_logs, related_journal_entries | none: `Scripts/new-agent.py` seeds `Agents/<Name>/Journal/_template.md` |
 | agent-bio | agent, role | - | none |
 | agent | myicor_id (uuid v4, lowercase, immutable), name, role, routing_description (one line, required on every new hire) | shim_reads (list of paths), owns_gates (list of guard ids), brief_waived (why no research brief) | none: `Agents/Agent 01/` |
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) | none: the plugin writes it |

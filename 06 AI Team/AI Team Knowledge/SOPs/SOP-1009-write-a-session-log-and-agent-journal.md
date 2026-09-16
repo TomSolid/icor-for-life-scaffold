@@ -20,7 +20,7 @@ hard rule 9) and whenever the user says "keep this in mind".
    matters), Open threads (what a future session must know).
 3. [JUDGEMENT] Each agent that learned something durable appends a short
    dated entry to its own `Agents/<Name>/Journal/` (one file per
-   insight, `YYYY-MM-DD-<slug>.md`, type agent-journal). Agents re-read
+   insight, `YYYY-MM-DD-<slug>.md`, type journal-entry). Agents re-read
    their journal before starting related work.
 4. Session logs are append-only: never edited after the session, never
    deleted.
