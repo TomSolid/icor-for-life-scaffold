@@ -2228,36 +2228,32 @@ with tempfile.TemporaryDirectory() as td:
                      "Anthropic key was reported as %r"
                      % (r.stderr or "").strip()[:160])
 
-    # 68-69. session-start.sh on a machine with no python3. The wrapper
-    #     exists only for this case: it must say so in one line and exit 0,
-    #     because a missing interpreter must never stop a session starting.
-    checks += 1
-    nopy = tmp / "no-python"
-    nopy.mkdir()
-    env = dict(_o.environ)
-    env["PATH"] = str(nopy)
-    r = sh_run("session-start/missing-python", [HERE / "session-start.sh"],
-               capture_output=True, text=True, env=env, input="{}")
-    if r is None:
-        pass
-    elif r.returncode != 0:
-        fails.append("session-start/missing-python: exit %d, must be 0" % r.returncode)
-    elif "python3" not in r.stdout:
-        fails.append("session-start/missing-python: exited 0 but said nothing about "
-                     "python3, so the ritual silently did not happen")
-    # the clean control: with python3 present it must actually run the three
-    # scripts and name the session.
+    # 68. RETIRED 2026-09-16: `session-start/missing-python`.
+    #     It measured session-start.sh, a POSIX shell wrapper whose only job
+    #     beyond `exec python3` was one plain line when python3 is missing.
+    #     hooks-rules.json no longer names that wrapper: the SessionStart hook
+    #     runs session-start.py directly, in exec form, with no shell in the
+    #     chain, because a shell-form hook on Windows runs through Git Bash
+    #     where it exists and PowerShell where it does not (Conrad Froehling,
+    #     2026-09-16). The missing-interpreter sentence moved to
+    #     `scaffold-init.py doctor`, and the case that watches it is
+    #     `scaffold-init/doctor-dead-interpreter` in the mack b9-hooks block at
+    #     the bottom of this file. The wrapper is still on disk and still
+    #     works; nothing renders it, so nothing here guards it.
+    #
+    # 69. The clean control, now run the way the hook runs it: the .py, by
+    #     interpreter, with no shell anywhere.
     checks += 1
     ss = tmp / "session-start-vault"
     shutil.copytree(ROOT, ss, ignore=fixture_ignore(".git"))
     env = dict(_o.environ)
     env["CLAUDE_PROJECT_DIR"] = str(ss)
     env.pop("ICOR_SESSION_ID", None)
-    r = sh_run("session-start/clean-control",
-               [ss / "06 AI Team/AI Team Knowledge/Scripts/session-start.sh"],
-               capture_output=True, text=True, env=env,
-               input=_j.dumps({"session_id": "red-test-session",
-                               "hook_event_name": "SessionStart"}))
+    r = subprocess.run(
+        [PY, str(ss / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
+        capture_output=True, text=True, env=env,
+        input=_j.dumps({"session_id": "red-test-session",
+                        "hook_event_name": "SessionStart"}))
     if r is None:
         pass
     elif r.returncode != 0:
@@ -4675,11 +4671,18 @@ if _bare9:
                  "to this case and to anyone skimming: %s"
                  % (len(_bare9), "; ".join(l.strip()[:90] for l in _bare9[:3])))
 
+# THE FLOOR WAS FIVE UNTIL 2026-09-16 and is three now, because two of the
+# five stopped needing a shell rather than stopping being guarded: the
+# SessionStart hook no longer runs session-start.sh, so `clean-control` runs
+# the .py by interpreter and `missing-python` retired outright (its job moved
+# to `scaffold-init/doctor-dead-interpreter`). The invariant is the one case
+# 101 measures, that nothing spawns a hardcoded shell path; this floor is the
+# second half of it, that a case which DOES need a shell skips by its own name.
 _names9 = set(re.findall(r"sh_run\(\s*[\"']([^\"']+)[\"']", _b9src))
-if len(_names9) < 5:
+if len(_names9) < 3:
     fails.append("shell/resolved-in-one-place: only %d named case(s) go through "
-                 "sh_run(); the five that spawn a .sh fixture must each skip by "
-                 "their own name where there is no shell: %s"
+                 "sh_run(); every case that spawns a .sh fixture must skip by "
+                 "its own name where there is no shell: %s"
                  % (len(_names9), sorted(_names9)))
 
 # 102. Behavioural: with the resolver finding nothing, the reason is a skip and
@@ -4729,7 +4732,7 @@ with tempfile.TemporaryDirectory() as _b9dtd:
         "red", "import sys\nprint('FAIL write-guard/let-it-through', "
                "file=sys.stderr)\nsys.exit(1)\n")
     _green9 = _b9_runner(
-        "green", "print('SKIP session-start/missing-python: no POSIX shell here "
+        "green", "print('SKIP write-guard/shell-redirect: no POSIX shell here "
                  "(win32), skipped on this platform')\n"
                  "print('OK 1/1 guards went red on bad input')\n")
     checks += 1
@@ -5093,6 +5096,528 @@ with tempfile.TemporaryDirectory() as _s9td:
                      % _drep.get("daily_notes_created"))
 # ===========================================================================
 # ---- END silas b9 ----
+
+
+# ---- BEGIN mack b9-hooks ----
+# ===========================================================================
+# 111-117. THE HOOK COMMAND SHAPE (Vex ruling W7, 2026-09-16; the defect is
+#          Conrad Froehling's, Windows 11, Python 3.12.10, Scaffold 1.26.0).
+#
+# Both Claude hooks used to render as ONE SHELL LINE:
+#
+#     PYTHONSAFEPATH=1 sh "$CLAUDE_PROJECT_DIR/06 AI Team/.../session-start.sh"
+#
+# which is three POSIX assumptions stacked. Claude Code runs a shell-form hook
+# through Git Bash where it exists and PowerShell where it does not, and in
+# PowerShell `VAR=1 cmd` is a syntax error and a bare `$CLAUDE_PROJECT_DIR` is
+# `$null`. A member without Git Bash therefore had no guards at all, and the
+# only evidence of it was a runtime error nobody was shown.
+#
+# WHAT THESE CASES CAN AND CANNOT PROVE. This machine is macOS. Nothing here
+# runs a Windows host or a Windows Claude Code. Each case forces the ONE thing
+# that differs (the platform the render is for, the version the host reports,
+# the flag the guard was launched with) and measures the bytes that come out.
+# That proves the generator emits the shape the ruling asked for and that the
+# guards survive without the flag. It does not prove any of it on a real
+# Windows box, and nothing below says it does.
+#
+# Every case here was watched RED on ea02758 before its fix landed.
+# ===========================================================================
+
+import json as _mj, os as _mo, shutil as _msh
+import importlib.util as _milu
+
+_M_FLOOR_LINE = "update Claude Code to 2.1.139 or newer"
+_M_FAKE_WIN_PY = r"C:\Users\conrad\AppData\Local\Programs\Python\Python312\python.exe"
+
+
+def _m_load_si(path, name):
+    _sp = _milu.spec_from_file_location(name, str(path))
+    _m = _milu.module_from_spec(_sp)
+    sys.modules[name] = _m
+    _sp.loader.exec_module(_m)
+    return _m
+
+
+def _m_render(os_name, executable=None):
+    """The claude-code hooks block this generator would write for a platform.
+
+    Loaded fresh each time under its own module name, because the version probe
+    caches per process and a second case must not read the first one's answer.
+    """
+    _m = _m_load_si(SI, "si_hooks_" + os_name + str(abs(hash(executable or ""))))
+    _m.HOOK_OS_NAME = os_name
+    if executable:
+        _m.HOOK_EXECUTABLE = executable
+    _rules, _err = _m.read_rules(ROOT)
+    if _err:
+        return None, ["read_rules: " + _err], _m
+    _blk, _notes = _m.render_hooks_block(_rules, "claude-code")
+    return _blk, _notes, _m
+
+
+def _m_fixture(path):
+    """`_si_fixture` plus the rule table, which it does not copy.
+
+    Every case below is ABOUT the rendered hooks, and a fixture with no
+    hooks-rules.json renders none at all: the generator says so in a note and
+    goes on, which reads exactly like a hook that was refused on purpose.
+    """
+    _v = _si_fixture(path)
+    _rules = SI.parent / "hooks-rules.json"
+    if not _rules.is_file():
+        fails.append("scaffold-init/fixture-deps: hooks-rules.json is not beside "
+                     "scaffold-init.py, so no hook case here can render anything")
+        return _v
+    _msh.copy2(str(_rules),
+               str(_v / "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json"))
+    return _v
+
+
+def _m_hooks(block):
+    for _entries in (block or {}).values():
+        for _entry in _entries:
+            for _h in _entry.get("hooks") or []:
+                yield _h
+
+
+# ---------------------------------------------------------------------------
+# 111. WINDOWS RENDERS EXEC FORM, WITH AN ABSOLUTE INTERPRETER.
+#
+# `args` is what makes the host spawn the interpreter directly with no shell
+# between them. The interpreter is the ABSOLUTE sys.executable and not a bare
+# name because libuv resolves a bare name against the CURRENT DIRECTORY first,
+# and a synced vault carrying its own `python3` would then be running the
+# guard (Vex F-A, HIGH). Stock Windows Python installs `python.exe` anyway.
+# ---------------------------------------------------------------------------
+if not SI.is_file():
+    skip("scaffold-init/hooks-win32-exec-form", "scaffold-init.py is not in this Scripts folder")
+    skip("scaffold-init/hooks-darwin-exec-form", "scaffold-init.py is not in this Scripts folder")
+else:
+    checks += 1
+    _wblk, _wnotes, _wsi = _m_render("nt", _M_FAKE_WIN_PY)
+    _wblob = _mj.dumps(_wblk, indent=2, ensure_ascii=False)
+    _whooks = list(_m_hooks(_wblk))
+    if not _whooks:
+        fails.append("scaffold-init/hooks-win32-exec-form: nothing was rendered "
+                     "for Windows at all (%s)" % "; ".join(_wnotes)[:300])
+    else:
+        for _h in _whooks:
+            if "args" not in _h:
+                fails.append("scaffold-init/hooks-win32-exec-form: a hook rendered "
+                             "with no `args`, so it is shell form: %r. On Windows "
+                             "that runs through Git Bash where it exists and "
+                             "PowerShell where it does not, and in PowerShell it "
+                             "does not run at all (Conrad Froehling, 2026-09-16)"
+                             % _h)
+                continue
+            if _h.get("command") != _M_FAKE_WIN_PY:
+                fails.append("scaffold-init/hooks-win32-exec-form: the interpreter "
+                             "is %r, not the absolute sys.executable. libuv "
+                             "searches the current directory first for a bare "
+                             "name, so a synced vault carrying its own python3 "
+                             "would be running the guard (Vex F-A)"
+                             % _h.get("command"))
+            _args = _h.get("args") or []
+            if "-I" not in _args or "-X" not in _args or "utf8" not in _args:
+                fails.append("scaffold-init/hooks-win32-exec-form: args %r carry "
+                             "no -I or no -X utf8. -I is the F1 defence "
+                             "PYTHONSAFEPATH was reaching for and is a no-op "
+                             "below Python 3.11; -X utf8 is why an emoji payload "
+                             "does not die in cp1252" % _args)
+            _paths = [_a for _a in _args if _a.endswith(".py")]
+            if not _paths:
+                fails.append("scaffold-init/hooks-win32-exec-form: no guard path "
+                             "in args %r, so the hook runs an interpreter with "
+                             "nothing to run" % _args)
+            for _a in _paths:
+                if not _a.startswith("${CLAUDE_PROJECT_DIR}/"):
+                    fails.append("scaffold-init/hooks-win32-exec-form: the guard "
+                                 "path %r does not start with the BRACED "
+                                 "${CLAUDE_PROJECT_DIR}/. Claude Code substitutes "
+                                 "the braced form; the bare form is a shell "
+                                 "expansion and there is no shell here" % _a)
+        if "PYTHONSAFEPATH" in _wblob:
+            fails.append("scaffold-init/hooks-win32-exec-form: the rendered block "
+                         "still carries PYTHONSAFEPATH, which is a POSIX "
+                         "environment prefix, a no-op below Python 3.11, and a "
+                         "PowerShell syntax error: %s" % _wblob[:300])
+        if "python3" in _wblob:
+            fails.append("scaffold-init/hooks-win32-exec-form: the rendered block "
+                         "names `python3` somewhere. Stock Windows Python "
+                         "installs python.exe and no python3: %s" % _wblob[:300])
+        for _h in _whooks:
+            if str(_h.get("command", "")).strip().split(" ")[0] in ("sh", "/bin/sh", "bash"):
+                fails.append("scaffold-init/hooks-win32-exec-form: the command is a "
+                             "POSIX shell (%r) on a platform that may not have "
+                             "one" % _h.get("command"))
+
+    # -----------------------------------------------------------------------
+    # 112. macOS AND LINUX RENDER THE SAME EXEC FORM WITH A BARE `python3`.
+    #      Same shape, different interpreter, and no unbraced variable anywhere:
+    #      `$CLAUDE_PROJECT_DIR` without braces is not substituted in exec form
+    #      and would reach the guard as four literal words.
+    # -----------------------------------------------------------------------
+    checks += 1
+    _dblk, _dnotes, _dsi = _m_render("posix")
+    _dblob = _mj.dumps(_dblk, indent=2, ensure_ascii=False)
+    _dhooks = list(_m_hooks(_dblk))
+    if not _dhooks:
+        fails.append("scaffold-init/hooks-darwin-exec-form: nothing was rendered "
+                     "for POSIX at all (%s)" % "; ".join(_dnotes)[:300])
+    for _h in _dhooks:
+        if "args" not in _h:
+            fails.append("scaffold-init/hooks-darwin-exec-form: a hook rendered in "
+                         "shell form: %r" % _h)
+            continue
+        if _h.get("command") != "python3":
+            fails.append("scaffold-init/hooks-darwin-exec-form: the interpreter is "
+                         "%r, not the bare `python3` that means what it says on "
+                         "macOS and Linux" % _h.get("command"))
+        _args = _h.get("args") or []
+        if "-I" not in _args or "-X" not in _args or "utf8" not in _args:
+            fails.append("scaffold-init/hooks-darwin-exec-form: args %r carry no "
+                         "-I or no -X utf8" % _args)
+        for _a in [_x for _x in _args if _x.endswith(".py")]:
+            if not _a.startswith("${CLAUDE_PROJECT_DIR}/"):
+                fails.append("scaffold-init/hooks-darwin-exec-form: the guard path "
+                             "%r is not braced" % _a)
+    if re.search(r"\$CLAUDE_PROJECT_DIR(?!\})", _dblob.replace("${CLAUDE_PROJECT_DIR}", "")):
+        fails.append("scaffold-init/hooks-darwin-exec-form: an UNBRACED "
+                     "$CLAUDE_PROJECT_DIR survives in the rendered block: %s"
+                     % _dblob[:300])
+    if "PYTHONSAFEPATH" in _dblob:
+        fails.append("scaffold-init/hooks-darwin-exec-form: the rendered block "
+                     "still carries the PYTHONSAFEPATH prefix, which the flags "
+                     "replaced: %s" % _dblob[:300])
+
+
+# ---------------------------------------------------------------------------
+# 113-114. A CLAUDE CODE BELOW THE EXEC-FORM FLOOR.
+#
+# `args` is read by 2.1.139 and newer. Below that the key is ignored, the hook
+# runs the interpreter with NO arguments, and every guard reviews nothing while
+# reading as registered. POSIX has a fallback (the shell form, carrying the
+# same flags). Windows does not, so the generator refuses to render the key at
+# all and says the sentence with the version in it, leaving every other key in
+# settings.json exactly where the member left it: `permissions.deny` is the
+# never-send-email list and losing it silently is worse than having no hooks.
+# ---------------------------------------------------------------------------
+if _mo.name != "posix":
+    skip("scaffold-init/hooks-below-floor",
+         "the stub `claude` on PATH is a file with a #! line, which this "
+         "platform does not run")
+elif not SI.is_file():
+    skip("scaffold-init/hooks-below-floor", "scaffold-init.py is not in this Scripts folder")
+else:
+    with tempfile.TemporaryDirectory() as _mftd:
+        _mf = Path(_mftd)
+
+        # A `claude` that reports 2.1.138, one patch below the floor.
+        _stubdir = _mf / "bin"
+        _stubdir.mkdir()
+        _stub = _stubdir / "claude"
+        _stub.write_text("#!%s\nprint('2.1.138 (Claude Code)')\n" % PY, encoding="utf-8")
+        _mo.chmod(_stub, 0o755)
+
+        # The driver sets the two module globals and then runs the generator's
+        # own `main`, so the case measures the real command and not a rendering
+        # helper called in isolation.
+        _drv = _mf / "drive.py"
+        _drv.write_text(
+            "import importlib.util, sys\n"
+            "sp = importlib.util.spec_from_file_location('si', sys.argv[1])\n"
+            "si = importlib.util.module_from_spec(sp)\n"
+            "sp.loader.exec_module(si)\n"
+            "si.HOOK_OS_NAME = sys.argv[2]\n"
+            "if sys.argv[3] != '-':\n"
+            "    si.HOOK_EXECUTABLE = sys.argv[3]\n"
+            "sys.exit(si.main(sys.argv[4:]))\n", encoding="utf-8")
+
+        def _m_drive(vault, os_name, executable, *verb, **kw):
+            _e = dict(_mo.environ)
+            _e["PYTHONDONTWRITEBYTECODE"] = "1"
+            _e.update(kw.get("env") or {})
+            return subprocess.run(
+                [PY, str(_drv),
+                 str(Path(vault) / "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py"),
+                 os_name, executable or "-"] + list(verb) + ["--root", str(vault)],
+                capture_output=True, text=True, cwd=str(vault), env=_e)
+
+        _DENY = {"permissions": {"deny": ["mcp__superhuman-gmail__send_message"]}}
+
+        # 113. POSIX falls back to the shell form, WITH the flags.
+        checks += 1
+        _pv = _m_fixture(_mf / "below-posix")
+        (_pv / ".claude").mkdir(parents=True, exist_ok=True)
+        (_pv / ".claude/settings.json").write_text(
+            _mj.dumps(_DENY, indent=2) + "\n", encoding="utf-8")
+        _pr = _m_drive(_pv, "posix", None, "apply",
+                       env={"PATH": str(_stubdir) + ":" + _mo.environ.get("PATH", "")})
+        _pdoc = _mj.loads((_pv / ".claude/settings.json").read_text(encoding="utf-8"))
+        _phooks = [_h for _entries in (_pdoc.get("hooks") or {}).values()
+                   for _entry in _entries for _h in _entry.get("hooks") or []]
+        if not _phooks:
+            fails.append("scaffold-init/hooks-below-floor: with Claude Code 2.1.138 "
+                         "on PATH, POSIX wrote no hooks at all. A shell form "
+                         "carrying the same flags is a working fallback here and "
+                         "must be used rather than leaving the member unguarded: "
+                         "%s" % (_pr.stdout or _pr.stderr or "")[-300:])
+        for _h in _phooks:
+            if "args" in _h:
+                fails.append("scaffold-init/hooks-below-floor: POSIX rendered exec "
+                             "form against a host that ignores `args` (2.1.138), "
+                             "so the guard would run with no path and review "
+                             "nothing: %r" % _h)
+            elif not all(_f in (_h.get("command") or "") for _f in ("-I", "-B", "-X utf8")):
+                fails.append("scaffold-init/hooks-below-floor: the POSIX shell "
+                             "fallback dropped the flags: %r" % _h.get("command"))
+            elif "${CLAUDE_PROJECT_DIR}" not in (_h.get("command") or ""):
+                fails.append("scaffold-init/hooks-below-floor: the POSIX shell "
+                             "fallback did not brace the variable: %r"
+                             % _h.get("command"))
+
+        # 114. WINDOWS REFUSES, IN WORDS, AND THE DENY LIST SURVIVES.
+        checks += 1
+        _wv = _m_fixture(_mf / "below-win")
+        (_wv / ".claude").mkdir(parents=True, exist_ok=True)
+        (_wv / ".claude/settings.json").write_text(
+            _mj.dumps(_DENY, indent=2) + "\n", encoding="utf-8")
+        _wr = _m_drive(_wv, "nt", _M_FAKE_WIN_PY, "apply",
+                       env={"PATH": str(_stubdir) + ":" + _mo.environ.get("PATH", "")})
+        _wdoc = _mj.loads((_wv / ".claude/settings.json").read_text(encoding="utf-8"))
+        if _M_FLOOR_LINE not in (_wr.stdout or "") + (_wr.stderr or ""):
+            fails.append("scaffold-init/hooks-below-floor: on Windows with Claude "
+                         "Code 2.1.138 the generator never printed %r, so a member "
+                         "whose guards were not wired has no idea and no next "
+                         "step: %s" % (_M_FLOOR_LINE,
+                                       (_wr.stdout or _wr.stderr or "")[-400:]))
+        if _wdoc.get("hooks"):
+            fails.append("scaffold-init/hooks-below-floor: on Windows below the "
+                         "floor the generator wrote a `hooks` key anyway (%r). "
+                         "Hooks that read as registered and review nothing are "
+                         "worse than none" % _wdoc.get("hooks"))
+        if (_wdoc.get("permissions") or {}) != _DENY["permissions"]:
+            fails.append("scaffold-init/hooks-below-floor: refusing to render the "
+                         "hooks cost the member their `permissions` key (%r). The "
+                         "generator owns one key in that file and never the rest "
+                         "(Vex, 2026-09-14)" % _wdoc.get("permissions"))
+
+
+# ---------------------------------------------------------------------------
+# 115. THE GUARD DEFENDS ITSELF WITHOUT THE FLAG.
+#
+# A guard is launched from Scripts/, so Python puts Scripts/ at the FRONT of
+# sys.path and a planted `Scripts/json.py` is what `import json` finds, inside
+# the guard, before it has read a byte of its payload. The rendered hook passes
+# `-I`; this case takes the flag away, which is every other way the guard can
+# be launched, and watches whether the planted file still runs.
+#
+# The plant here is a WORKING json shim, so the only thing that differs between
+# red and green is whether arbitrary code ran: an exit code cannot tell you,
+# because the guard fails closed on its own errors and exits 2 either way.
+# ---------------------------------------------------------------------------
+_WG_SRC = HERE / "write-guard.py"
+if not _WG_SRC.is_file():
+    skip("guard/planted-sibling-no-flag", "write-guard.py is not in this Scripts folder")
+else:
+    with tempfile.TemporaryDirectory() as _mptd:
+        _mp = Path(_mptd)
+        _protected = str(_mp / "vault" / "06 AI Team" / "Agents" / "Nolan" / "AGENT.md")
+        _payload = _mj.dumps({"tool_name": "Write", "cwd": str(_mp / "vault"),
+                              "tool_input": {"file_path": _protected,
+                                             "content": "rewritten\n"}})
+
+        def _m_plant(name, with_flag):
+            _d = _mp / name
+            _d.mkdir(parents=True, exist_ok=True)
+            _msh.copy2(str(_WG_SRC), str(_d / "write-guard.py"))
+            _canary = _d / "canary.txt"
+            (_d / "json.py").write_text(
+                "import os, sys, importlib.util\n"
+                "open(%r, 'w').write('the planted sibling ran\\n')\n"
+                "_r = os.path.join(os.path.dirname(os.__file__), 'json', '__init__.py')\n"
+                "_s = importlib.util.spec_from_file_location(\n"
+                "    '_realjson', _r, submodule_search_locations=[os.path.dirname(_r)])\n"
+                "_m = importlib.util.module_from_spec(_s)\n"
+                "sys.modules['_realjson'] = _m\n"
+                "_s.loader.exec_module(_m)\n"
+                "loads = _m.loads\n"
+                "load = _m.load\n"
+                "dumps = _m.dumps\n"
+                "JSONDecodeError = _m.JSONDecodeError\n" % str(_canary),
+                encoding="utf-8")
+            _e = dict(_mo.environ)
+            _e["PYTHONDONTWRITEBYTECODE"] = "1"
+            _e.pop("ICOR_UNLOCK_WRITES", None)
+            _cmd = [PY] + (["-I", "-B", "-X", "utf8"] if with_flag else []) \
+                + [str(_d / "write-guard.py")]
+            _r = subprocess.run(_cmd, input=_payload, capture_output=True,
+                                text=True, env=_e, cwd=str(_d))
+            return _r, _canary
+
+        checks += 1
+        _r, _canary = _m_plant("no-flag", False)
+        if _r.returncode != 2:
+            fails.append("guard/planted-sibling-no-flag: a Write to a protected "
+                         "contract exited %d, not 2: %s"
+                         % (_r.returncode, (_r.stderr or "").strip()[-300:]))
+        if _canary.exists():
+            fails.append("guard/planted-sibling-no-flag: a `json.py` planted beside "
+                         "the guard RAN when the guard was launched without -I. "
+                         "Every guard has to drop its own folder from sys.path as "
+                         "its first statement, because -I is only the shape the "
+                         "hook happens to use today (Vex W7, 2026-09-16)")
+
+        # the control: with the flag, the same plant is inert
+        checks += 1
+        _r2, _canary2 = _m_plant("with-flag", True)
+        if _r2.returncode != 2:
+            fails.append("guard/planted-sibling-no-flag, the -I control: exited %d, "
+                         "not 2: %s" % (_r2.returncode, (_r2.stderr or "").strip()[-300:]))
+        if _canary2.exists():
+            fails.append("guard/planted-sibling-no-flag, the -I control: the plant "
+                         "ran even under -I, so the flag is not doing what the "
+                         "rendered hook relies on it for")
+
+
+# ---------------------------------------------------------------------------
+# 116. AN EMOJI IN THE PAYLOAD IS NOT A REFUSED WRITE.
+#
+# `sys.stdin.read()` decodes in the LOCALE codec. On a German Windows box that
+# is cp1252, and a payload carrying an emoji raised UnicodeDecodeError before
+# the guard had looked at anything. This guard fails CLOSED on its own errors,
+# so that exception was a BLOCKED write, with a decoding traceback attached, on
+# a payload that broke no rule (Vex F-B, HIGH). PYTHONIOENCODING is the only
+# way to reproduce a foreign console codepage on this machine, and it changes
+# exactly the thing that was wrong.
+# ---------------------------------------------------------------------------
+if not _WG_SRC.is_file():
+    skip("write-guard/emoji-payload-cp1252", "write-guard.py is not in this Scripts folder")
+else:
+    with tempfile.TemporaryDirectory() as _metd:
+        _me = Path(_metd)
+        _ebytes = _mj.dumps(
+            {"tool_name": "Write", "cwd": str(_me),
+             "tool_input": {"file_path": str(_me / "03 WiP" / "notes.md"),
+                            "content": "\U0001F4DD noted\n"}},
+            ensure_ascii=False).encode("utf-8")
+        checks += 1
+        _ee = dict(_mo.environ)
+        _ee["PYTHONIOENCODING"] = "cp1252"
+        _ee["PYTHONDONTWRITEBYTECODE"] = "1"
+        _ee.pop("ICOR_UNLOCK_WRITES", None)
+        # No -I on purpose: -I implies -E and would drop PYTHONIOENCODING, which
+        # is the whole of what this case sets up.
+        _er = subprocess.run([PY, str(_WG_SRC)], input=_ebytes,
+                             capture_output=True, env=_ee)
+        _estderr = (_er.stderr or b"").decode("utf-8", "replace")
+        if _er.returncode != 0:
+            fails.append("write-guard/emoji-payload-cp1252: an ordinary write "
+                         "carrying an emoji exited %d under a cp1252 console. The "
+                         "guard reads stdin in the locale codec, so on a German "
+                         "Windows box every note with a check mark in it is a "
+                         "refused write (Vex F-B, 2026-09-16): %s"
+                         % (_er.returncode, _estderr.strip()[-300:]))
+        if "Traceback" in _estderr or "UnicodeDecodeError" in _estderr:
+            fails.append("write-guard/emoji-payload-cp1252: the guard answered with "
+                         "a decoding traceback: %s" % _estderr.strip()[-300:])
+
+
+# ---------------------------------------------------------------------------
+# 117. THE RITUAL'S CHILDREN INHERIT THE ISOLATION.
+#
+# session-start.py spawns check-onboarding, check-quality, expansion-pack and
+# life-snapshot, each of them out of Scripts/, each of them therefore with
+# Scripts/ at the front of its own sys.path. The flags are per process and
+# nothing inherits them: PYTHONSAFEPATH is a no-op below 3.11 and `-I` drops
+# every PYTHON* variable anyway, so the parent has to pass them down by hand.
+# ---------------------------------------------------------------------------
+_SS_SRC = HERE / "session-start.py"
+if not _SS_SRC.is_file():
+    skip("session-start/children-isolated", "session-start.py is not in this Scripts folder")
+else:
+    with tempfile.TemporaryDirectory() as _mctd:
+        _mc = Path(_mctd)
+        _sv = _mc / "vault"
+        _scripts = _sv / "06 AI Team" / "AI Team Knowledge" / "Scripts"
+        _scripts.mkdir(parents=True, exist_ok=True)
+        (_sv / "AGENTS.md").write_text("# fixture vault\n", encoding="utf-8")
+        _msh.copy2(str(_SS_SRC), str(_scripts / "session-start.py"))
+        # The child stands in for check-onboarding.py and reports the one fact
+        # this case is about. The ritual prints its stdout on the onboarding
+        # line, so the answer arrives where a member would read it.
+        (_scripts / "check-onboarding.py").write_text(
+            "import sys\nprint('isolated=%d bytecode=%d utf8=%s'\n"
+            "      % (sys.flags.isolated, sys.flags.dont_write_bytecode,\n"
+            "         sys.flags.utf8_mode))\n", encoding="utf-8")
+        checks += 1
+        _ce = dict(_mo.environ)
+        _ce["CLAUDE_PROJECT_DIR"] = str(_sv)
+        _ce["PYTHONDONTWRITEBYTECODE"] = "1"
+        _ce.pop("ICOR_SESSION_ID", None)
+        _cr = subprocess.run([PY, str(_scripts / "session-start.py")],
+                             capture_output=True, text=True, env=_ce, input="")
+        if "isolated=1" not in (_cr.stdout or ""):
+            fails.append("session-start/children-isolated: a child of the start "
+                         "ritual ran with sys.flags.isolated=0, so Scripts/ is at "
+                         "the front of its sys.path and a planted sibling wins "
+                         "over the standard library inside it. The parent must "
+                         "hand -I -B -X utf8 down to every child (Vex W7): %s"
+                         % (_cr.stdout or _cr.stderr or "").strip()[-300:])
+        elif "utf8=1" not in (_cr.stdout or ""):
+            fails.append("session-start/children-isolated: the child ran isolated "
+                         "but not in UTF-8 mode, so a child printing an emoji "
+                         "still dies in cp1252 on Windows: %s"
+                         % (_cr.stdout or "").strip()[-300:])
+
+
+# ---------------------------------------------------------------------------
+# 118. doctor NAMES A DEAD INTERPRETER, IN WORDS.
+#
+# This is the one job `session-start.sh` did that was not shell work: saying,
+# in a plain line, that the interpreter is not there, so a member whose ritual
+# never ran found out from a sentence rather than from a runtime error. With no
+# shell left in the chain the job moves here, where doctor spawns the
+# interpreter the rendered hooks actually name.
+# ---------------------------------------------------------------------------
+if not SI.is_file():
+    skip("scaffold-init/doctor-dead-interpreter", "scaffold-init.py is not in this Scripts folder")
+else:
+    with tempfile.TemporaryDirectory() as _mdtd:
+        _md = Path(_mdtd)
+        _dead = str(_md / "nowhere" / "python.exe")
+        _dv = _m_fixture(_md / "dead-interp")
+        _ddrv = _md / "drive-doctor.py"
+        _ddrv.write_text(
+            "import importlib.util, sys\n"
+            "sp = importlib.util.spec_from_file_location('si', sys.argv[1])\n"
+            "si = importlib.util.module_from_spec(sp)\n"
+            "sp.loader.exec_module(si)\n"
+            "si.HOOK_OS_NAME = 'nt'\n"
+            "si.HOOK_EXECUTABLE = sys.argv[2]\n"
+            "sys.exit(si.main(sys.argv[3:]))\n", encoding="utf-8")
+        checks += 1
+        _de = dict(_mo.environ)
+        _de["PYTHONDONTWRITEBYTECODE"] = "1"
+        _dr = subprocess.run(
+            [PY, str(_ddrv),
+             str(_dv / "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py"),
+             _dead, "doctor", "--no-tests", "--root", str(_dv)],
+            capture_output=True, text=True, cwd=str(_dv), env=_de)
+        _dout = (_dr.stdout or "") + (_dr.stderr or "")
+        if _dead not in _dout:
+            fails.append("scaffold-init/doctor-dead-interpreter: doctor never named "
+                         "the interpreter the hooks run (%s). A member whose "
+                         "python3 is missing gets no guards and, without this "
+                         "line, no sentence saying so" % _dead)
+        elif not any(_w in _dout for _w in ("did not start", "exited")):
+            fails.append("scaffold-init/doctor-dead-interpreter: doctor named the "
+                         "interpreter but not in words a member can act on: %s"
+                         % _dout[-400:])
+# ===========================================================================
+# ---- END mack b9-hooks ----
+
 
 if fails:
     for f in fails:
