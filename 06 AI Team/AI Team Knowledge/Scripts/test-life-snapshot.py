@@ -69,6 +69,47 @@ def check(name, ok, detail=""):
         print("  FAIL %s: %s" % (name, detail))
 
 
+# ---------------------------------------------------------------------------
+# PLANTING A SYMLINK IS NOT SOMETHING EVERY PLATFORM LETS US DO
+# ---------------------------------------------------------------------------
+#
+# Six cases below plant a symlink in order to prove that life-snapshot.py
+# refuses to follow one. Windows refuses to create one at all for an
+# unprivileged shell with Developer Mode off, which is the default, and the
+# first of those calls raised OSError 1314 and took the whole fixture suite
+# down with it. run-red-tests.py then reported that as a life-snapshot guard
+# failure, which is a red pointing at the wrong thing (Conrad Froehling,
+# 2026-09-16).
+#
+# Where nothing can plant a symlink these cases have nothing to measure, so
+# they skip BY NAME and the run says how many skipped. A skip is never a green:
+# the summary line carries the count either way.
+skipped = []
+_symlink_why = None
+
+
+def can_symlink():
+    """True when this process may create a symlink here. Probed once, for real."""
+    global _symlink_why
+    if _symlink_why is None:
+        with tempfile.TemporaryDirectory() as _d:
+            _t = Path(_d) / "target"
+            _t.write_text("x\n", encoding="utf-8")
+            try:
+                os.symlink(_t, Path(_d) / "link")
+                _symlink_why = ""
+            except (OSError, NotImplementedError, AttributeError) as exc:
+                _symlink_why = ("this platform will not let this process create "
+                                "a symlink (%s), so there is nothing to plant "
+                                "and the case is skipped on this platform" % exc)
+    return not _symlink_why
+
+
+def skip_symlink_case(name):
+    skipped.append(name)
+    print("  SKIP %s: %s" % (name, _symlink_why))
+
+
 def day(offset):
     return (TODAY - datetime.timedelta(days=offset)).isoformat()
 
@@ -586,29 +627,36 @@ with tempfile.TemporaryDirectory() as td:
     outside = TD / "outside"
     outside.mkdir(exist_ok=True)
 
-    V = TD / "symlink-tmp"
-    rooms(V)
-    victim = outside / "victim-tmp.txt"
-    victim.write_text("untouched\n", encoding="utf-8")
-    (V / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
-    os.symlink(victim, V / ".icor-for-life/scripts/snapshot.json.tmp")
-    r = run(V, "--write")
-    check("G: a planted snapshot.json.tmp symlink does not overwrite its target",
-          victim.read_text(encoding="utf-8") == "untouched\n",
-          victim.read_text(encoding="utf-8")[:40])
+    if not can_symlink():
+        skip_symlink_case("G: a planted snapshot.json.tmp symlink does not "
+                          "overwrite its target")
+    else:
+        V = TD / "symlink-tmp"
+        rooms(V)
+        victim = outside / "victim-tmp.txt"
+        victim.write_text("untouched\n", encoding="utf-8")
+        (V / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
+        os.symlink(victim, V / ".icor-for-life/scripts/snapshot.json.tmp")
+        r = run(V, "--write")
+        check("G: a planted snapshot.json.tmp symlink does not overwrite its target",
+              victim.read_text(encoding="utf-8") == "untouched\n",
+              victim.read_text(encoding="utf-8")[:40])
 
-    V = TD / "symlink-dir"
-    rooms(V)
-    elsewhere = outside / "elsewhere"
-    elsewhere.mkdir(exist_ok=True)
-    (V / ".icor-for-life").mkdir(parents=True, exist_ok=True)
-    os.symlink(elsewhere, V / ".icor-for-life/scripts")
-    r = run(V, "--write")
-    check("H: a symlinked scripts/ folder refuses, exit 1",
-          r.returncode == 1, "exit %s: %s" % (r.returncode, r.stderr))
-    check("H: nothing was written outside the vault",
-          not (elsewhere / "snapshot.json").exists(),
-          str(list(elsewhere.iterdir())))
+    if not can_symlink():
+        skip_symlink_case("H: a symlinked scripts/ folder refuses, exit 1")
+    else:
+        V = TD / "symlink-dir"
+        rooms(V)
+        elsewhere = outside / "elsewhere"
+        elsewhere.mkdir(exist_ok=True)
+        (V / ".icor-for-life").mkdir(parents=True, exist_ok=True)
+        os.symlink(elsewhere, V / ".icor-for-life/scripts")
+        r = run(V, "--write")
+        check("H: a symlinked scripts/ folder refuses, exit 1",
+              r.returncode == 1, "exit %s: %s" % (r.returncode, r.stderr))
+        check("H: nothing was written outside the vault",
+              not (elsewhere / "snapshot.json").exists(),
+              str(list(elsewhere.iterdir())))
 
     V = TD / "replace-fails"
     rooms(V)
@@ -649,15 +697,18 @@ with tempfile.TemporaryDirectory() as td:
           "scaffold_version" in [d["source"] for d in rep["degraded"]],
           str(rep["degraded"]))
 
-    V = TD / "version-symlink"
-    rooms(V)
-    target = outside / "some-file.txt"
-    target.write_text("9.9.9\n", encoding="utf-8")
-    (V / ".icor-for-life").mkdir(parents=True, exist_ok=True)
-    os.symlink(target, V / ".icor-for-life/VERSION")
-    rep, _r = snap(V)
-    check("F: a symlinked VERSION is never read",
-          rep["scaffold_version"] == "unknown", str(rep["scaffold_version"]))
+    if not can_symlink():
+        skip_symlink_case("F: a symlinked VERSION is never read")
+    else:
+        V = TD / "version-symlink"
+        rooms(V)
+        target = outside / "some-file.txt"
+        target.write_text("9.9.9\n", encoding="utf-8")
+        (V / ".icor-for-life").mkdir(parents=True, exist_ok=True)
+        os.symlink(target, V / ".icor-for-life/VERSION")
+        rep, _r = snap(V)
+        check("F: a symlinked VERSION is never read",
+              rep["scaffold_version"] == "unknown", str(rep["scaffold_version"]))
 
     # === case group 15: planner-week.py, the writer ======================
     print("planner-week.py")
@@ -812,47 +863,52 @@ with tempfile.TemporaryDirectory() as td:
     # === case group 17: the two LOW follow-ups ===========================
     # Vex F5 and the temp-file leak on the dest-symlink refusal.
     print("symlinked notes and the refusal path")
-    V = TD / "symlink-note"
-    rooms(V)
-    smuggled = outside / "smuggled-goal.md"
-    smuggled.write_text("---\ntype: goal\nname: Text from outside the vault\n"
-                        "status: not-achieved\n---\nbody\n", encoding="utf-8")
-    os.symlink(smuggled, V / "04 Inner World/My Life/Goals/Innocent.md")
-    write(V, "04 Inner World/My Life/Goals/Real.md",
-          "---\ntype: goal\nname: A real goal\nstatus: not-achieved\n---\n")
-    rep, r = snap(V)
-    names = [g["name"] for g in rep["goals"]["open"]]
-    check("F5: a symlinked note in a room is never read",
-          names == ["A real goal"], str(names))
-    check("F5: and its text reaches neither the JSON nor the brief",
-          "outside the vault" not in json.dumps(rep), "it did")
+    if not can_symlink():
+        skip_symlink_case("F5: a symlinked note in a room is never read")
+        skip_symlink_case("F5: a symlinked journal entry is not counted as today's")
+        skip_symlink_case("a symlinked destination refuses, exit 1")
+    else:
+        V = TD / "symlink-note"
+        rooms(V)
+        smuggled = outside / "smuggled-goal.md"
+        smuggled.write_text("---\ntype: goal\nname: Text from outside the vault\n"
+                            "status: not-achieved\n---\nbody\n", encoding="utf-8")
+        os.symlink(smuggled, V / "04 Inner World/My Life/Goals/Innocent.md")
+        write(V, "04 Inner World/My Life/Goals/Real.md",
+              "---\ntype: goal\nname: A real goal\nstatus: not-achieved\n---\n")
+        rep, r = snap(V)
+        names = [g["name"] for g in rep["goals"]["open"]]
+        check("F5: a symlinked note in a room is never read",
+              names == ["A real goal"], str(names))
+        check("F5: and its text reaches neither the JSON nor the brief",
+              "outside the vault" not in json.dumps(rep), "it did")
 
-    V = TD / "symlink-journal"
-    rooms(V)
-    d = TODAY.isoformat()
-    month = V / "04 Inner World/Journal" / d[:4] / d[5:7]
-    month.mkdir(parents=True, exist_ok=True)
-    os.symlink(smuggled, month / ("%s-smuggled.md" % d))
-    rep, r = snap(V)
-    check("F5: a symlinked journal entry is not counted as today's",
-          rep["today"]["journal_entries"] == [],
-          str(rep["today"]["journal_entries"]))
+        V = TD / "symlink-journal"
+        rooms(V)
+        d = TODAY.isoformat()
+        month = V / "04 Inner World/Journal" / d[:4] / d[5:7]
+        month.mkdir(parents=True, exist_ok=True)
+        os.symlink(smuggled, month / ("%s-smuggled.md" % d))
+        rep, r = snap(V)
+        check("F5: a symlinked journal entry is not counted as today's",
+              rep["today"]["journal_entries"] == [],
+              str(rep["today"]["journal_entries"]))
 
-    V = TD / "dest-symlink"
-    rooms(V)
-    victim = outside / "victim-dest.txt"
-    victim.write_text("untouched\n", encoding="utf-8")
-    (V / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
-    os.symlink(victim, V / ".icor-for-life/scripts/snapshot.json")
-    r = run(V, "--write")
-    leftovers = [f.name for f in (V / ".icor-for-life/scripts").iterdir()
-                 if f.name.endswith(".tmp")]
-    check("a symlinked destination refuses, exit 1", r.returncode == 1, r.stderr)
-    check("and the target is untouched",
-          victim.read_text(encoding="utf-8") == "untouched\n",
-          victim.read_text(encoding="utf-8")[:40])
-    check("and the refusal leaves no .tmp behind", leftovers == [],
-          str(leftovers))
+        V = TD / "dest-symlink"
+        rooms(V)
+        victim = outside / "victim-dest.txt"
+        victim.write_text("untouched\n", encoding="utf-8")
+        (V / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
+        os.symlink(victim, V / ".icor-for-life/scripts/snapshot.json")
+        r = run(V, "--write")
+        leftovers = [f.name for f in (V / ".icor-for-life/scripts").iterdir()
+                     if f.name.endswith(".tmp")]
+        check("a symlinked destination refuses, exit 1", r.returncode == 1, r.stderr)
+        check("and the target is untouched",
+              victim.read_text(encoding="utf-8") == "untouched\n",
+              victim.read_text(encoding="utf-8")[:40])
+        check("and the refusal leaves no .tmp behind", leftovers == [],
+              str(leftovers))
 
     if BREAK:
         check("DELIBERATE: a session-log mention must score (it must not)",
@@ -864,5 +920,10 @@ if fails:
     for f in fails:
         print("  " + f, file=sys.stderr)
     sys.exit(1)
-print("OK %d cases held" % checks)
+# The skip count rides on the summary line, never off it: a run that could not
+# plant a symlink proved six fewer things and has to say so where the result is
+# read, not only where it happened.
+print("OK %d cases held%s"
+      % (checks, ", %d skipped (%s)" % (len(skipped), _symlink_why)
+         if skipped else ""))
 sys.exit(0)

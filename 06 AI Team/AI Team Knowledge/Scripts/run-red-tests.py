@@ -4845,6 +4845,42 @@ with tempfile.TemporaryDirectory() as _b9ltd:
     elif not _snap9.is_file():
         fails.append("life-snapshot/no-O_NOFOLLOW: --write exited 0 and wrote no "
                      "snapshot.json")
+    # 107b. AND THE FIXTURE SUITE BEHIND IT SURVIVES A PLATFORM THAT REFUSES
+    #       SYMLINKS. Six cases in test-life-snapshot.py PLANT a symlink in
+    #       order to prove life-snapshot.py will not follow one. Where nothing
+    #       can plant one they have nothing to measure, and they used to die
+    #       with OSError and take the whole fixture suite with them, which
+    #       run-red-tests then reported as a life-snapshot guard failure.
+    _lstest9 = HERE / "test-life-snapshot.py"
+    if not _lstest9.is_file():
+        skip("life-snapshot-fixtures/survive-no-symlink",
+             "test-life-snapshot.py is not in this Scripts folder")
+    else:
+        _nosym9 = _b9l2 / "no_symlink.py"
+        _nosym9.write_text(
+            "import os, runpy, sys\n"
+            "def _refuse(*a, **k):\n"
+            "    e = OSError(1314, 'A required privilege is not held by the client')\n"
+            "    e.winerror = 1314\n"
+            "    raise e\n"
+            "os.symlink = _refuse\n"
+            "sys.argv = sys.argv[1:]\n"
+            "runpy.run_path(sys.argv[0], run_name='__main__')\n", encoding="utf-8")
+        checks += 1
+        _tr9 = subprocess.run([PY, str(_nosym9), str(_lstest9)],
+                              capture_output=True, text=True)
+        if _tr9.returncode != 0:
+            fails.append("life-snapshot-fixtures/survive-no-symlink: the fixture "
+                         "suite exited %d with os.symlink refusing (WinError "
+                         "1314). The cases that plant a symlink must skip by name, "
+                         "not take the suite down (Conrad Froehling, 2026-09-16): "
+                         "%s" % (_tr9.returncode,
+                                 (_tr9.stderr or _tr9.stdout or "").strip()[-400:]))
+        elif "SKIP" not in (_tr9.stdout or ""):
+            fails.append("life-snapshot-fixtures/survive-no-symlink: the suite "
+                         "exited 0 with os.symlink refusing and named no skip, so "
+                         "six cases silently stopped measuring anything")
+
     checks += 1
     _victim9 = _lsv9 / "victim.txt"
     _victim9.write_text("untouched\n", encoding="utf-8")
