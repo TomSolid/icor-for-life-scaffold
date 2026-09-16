@@ -14,7 +14,8 @@ WHAT IT DOES (everything here has exactly one right answer)
   3. Mints `myicor_id` by calling `mint-agent-ids.py`, so one script owns ids.
   4. Writes the bio card `<Name>.md` with `type: agent-bio`.
   5. Creates `Journal/` with `_template.md` and a first entry (the hire
-     itself), so an empty folder is never handed to version control.
+     itself), so an empty folder is never handed to version control. Both
+     carry THIS hire's `agent_id`; neither is copied from a sibling.
   6. Adds the agent-index row.
   7. Prints the steps a person still has to do, in order.
 
@@ -336,11 +337,20 @@ def main():
                                               avatar=avatar_embed))
 
     # 5. the journal
-    jtpl = None
-    for p in sorted(agents.glob("*/Journal/_template.md")):
-        jtpl = p.read_text(encoding="utf-8", errors="replace")
-        break
-    plan_write(d / "Journal" / "_template.md", jtpl or JOURNAL_TEMPLATE)
+    #
+    # The template is rendered from JOURNAL_TEMPLATE with this hire's own
+    # slug in it. Until 2026-09-16 it was COPIED from the first sibling that
+    # had one, `sorted(agents.glob(...))`, so every hire in the public
+    # Scaffold was seeded with `agent_id: charta` and every journal entry
+    # written from it claimed to be Charta's (Brian Carroll, B2-7). A
+    # template carrying another agent's id is worse than no template: it
+    # passes YAML, it passes the eye, and it mislabels the entry.
+    #
+    # `.replace`, never `.format`: the template body carries literal braces
+    # (`# {The insight in one sentence, which IS the title}`) and `.format`
+    # would raise KeyError on them.
+    plan_write(d / "Journal" / "_template.md",
+               JOURNAL_TEMPLATE.replace("<self>", slug))
     plan_write(d / "Journal" / ("%s-%s-hired.md" % (today, slug)),
                FIRST_ENTRY.format(slug=slug, role=role, today=today))
 
