@@ -230,7 +230,14 @@ def ensure(root, week, quiet=False):
     if not ISO_WEEK.match(week):
         sys.exit("FAIL %r is not an ISO week (YYYY-Www)" % week)
     p.parent.mkdir(parents=True, exist_ok=True)
-    noteio.write_note(p, render_new(week, datetime.datetime.utcnow()))
+    # `utcnow()` is deprecated from 3.12 and removed in a later 3.x: it
+    # returns a naive value that CLAIMS to be UTC, which is the whole bug
+    # class. `datetime.UTC` would read better and is 3.11+, and this file
+    # still runs on the 3.9 that ships with macOS. The rendered bytes are
+    # identical: `created_at` is written with an explicit literal Z
+    # (render_new), not with an offset (Brian Carroll, B2-6).
+    noteio.write_note(p, render_new(
+        week, datetime.datetime.now(datetime.timezone.utc)))
     print("OK created -> %s" % p)
     return p, True
 

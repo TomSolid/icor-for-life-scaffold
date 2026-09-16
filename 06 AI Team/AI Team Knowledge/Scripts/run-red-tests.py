@@ -3932,6 +3932,83 @@ with tempfile.TemporaryDirectory() as _mktd:
                          "skipped: %s" % (len(_noise), _noise))
 
 
+    # -----------------------------------------------------------------
+    # 92. NOTHING IN Scripts/ RAISES A DeprecationWarning (B2-6).
+    #
+    # planner-week.py:233 called datetime.datetime.utcnow(), deprecated from
+    # 3.12 and removed in a later 3.x. It is the only one in Scripts/ (full
+    # 3.14 sweep otherwise clean) and the rendered bytes do not change, so
+    # this is a lifespan fix, not a behaviour one.
+    #
+    # Two gates, because one of them cannot see the other's defect, and
+    # saying so is the point:
+    #   92a  the create path is RUN under -W error::DeprecationWarning. A
+    #        call inside a function is invisible to anything that does not
+    #        execute it, which is exactly why this one survived.
+    #   92b  every script in Scripts/ is run with --help under the same
+    #        flag: cheap, no side effects, and it covers import time and
+    #        argparse time across all 35 files. It would NOT have caught
+    #        92a's defect. It catches the next one that lands at the top of
+    #        a file, which is the commoner shape.
+    #
+    # Both are skipped whole on an interpreter that does not deprecate
+    # utcnow (3.9 ships with macOS and is Tom's default), because there the
+    # control below cannot go red and a gate that cannot go red is noise.
+    def _mk_dep(argv):
+        return subprocess.run([PY, "-W", "error::DeprecationWarning"] + argv,
+                              capture_output=True, text=True, input="",
+                              timeout=120,
+                              env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+
+    _probe = _mk / "utcnow-probe.py"
+    _probe.write_text("import datetime\ndatetime.datetime.utcnow()\n",
+                      encoding="utf-8")
+    _pr = _mk_dep([str(_probe)])
+    if _pr.returncode == 0:
+        skip("deprecation-free-scripts",
+             "this python3 does not deprecate datetime.utcnow(), so the gate's "
+             "own control cannot go red here; it runs on 3.12 and newer")
+    else:
+        # 92a. the create path, executed.
+        checks += 1
+        _pw = fixture_vault(_mk, "planner-week-dep")
+        _pwr = _mk_dep([str(_pw / "06 AI Team/AI Team Knowledge/Scripts/planner-week.py"),
+                        "ensure", "--week", "2099-W01", "--root", str(_pw)])
+        if _pwr.returncode != 0:
+            fails.append("deprecation-free-scripts/planner-week-create: creating "
+                         "a week note under -W error::DeprecationWarning exited "
+                         "%d. A deprecated call inside a function is invisible "
+                         "to every check that does not run it (Brian Carroll, "
+                         "B2-6):\n%s"
+                         % (_pwr.returncode, (_pwr.stderr or "").strip()[-400:]))
+
+        # 92b. the sweep: import time and argparse time, all of Scripts/.
+        checks += 1
+        _dirty = []
+        for _s in sorted((HERE).glob("*.py")):
+            _sr = _mk_dep([str(_s), "--help"])
+            if "DeprecationWarning" in (_sr.stderr or ""):
+                _dirty.append("%s: %s" % (_s.name,
+                              (_sr.stderr or "").strip().splitlines()[-1][:120]))
+        if _dirty:
+            fails.append("deprecation-free-scripts/import-and-argparse: %d "
+                         "script(s) raise a DeprecationWarning before they do "
+                         "any work:\n  %s" % (len(_dirty), "\n  ".join(_dirty)))
+
+        # 92c. the control for 92b. A gate nobody has watched go red is a
+        #      gate nobody should cite.
+        checks += 1
+        _planted = _mk / "planted-deprecation.py"
+        _planted.write_text(
+            "import datetime\nSTAMP = datetime.datetime.utcnow()\n"
+            "print('never reached under -W error')\n", encoding="utf-8")
+        _cr = _mk_dep([str(_planted), "--help"])
+        if "DeprecationWarning" not in (_cr.stderr or ""):
+            fails.append("deprecation-free-scripts/control: a module calling "
+                         "datetime.utcnow() at import was swept and came back "
+                         "clean, so 92b above proves nothing:\n%s"
+                         % (_cr.stderr or _cr.stdout or "").strip()[-300:])
+
 # ===========================================================================
 # ---- END mack b8 ----
 
