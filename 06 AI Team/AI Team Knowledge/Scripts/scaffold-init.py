@@ -98,8 +98,9 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 # noteio.py sits beside this script and is loaded by path, not by name, so
-# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
-# the script's own folder from it. A missing noteio.py is a half-upgraded
+# the import needs nothing on sys.path, which is what lets this script run
+# under `-I` with its own folder dropped from it. A missing noteio.py is a
+# half-upgraded
 # Scripts/ folder and says so in one line, because a traceback out of an
 # import teaches the member nothing about what to do next.
 _nio_path = Path(__file__).resolve().parent / "noteio.py"
@@ -849,40 +850,152 @@ g=os.path.join(d,sys.argv[2])
 if not os.path.isfile(g):
     sys.stderr.write("codex hook: no AGENTS.md at or above the session cwd, so "+sys.argv[2]+" did not run and nothing was reviewed\\n")
     raise SystemExit(0)
-raise SystemExit(subprocess.run([sys.argv[1],g],input=b).returncode)
+raise SystemExit(subprocess.run([sys.argv[1],"-I","-B","-X","utf8",g],input=b).returncode)
 """
 
 
-# Every guard command starts here. A guard is launched from Scripts/, so
-# Python puts that folder at the front of sys.path and a stray Scripts/json.py
-# would win over the standard library inside the guard itself. session-start.sh
-# exports this for the start ritual's own subprocess tree (c6243ae), but a hook
-# is launched by the HOST, not by that tree, so it inherits nothing from it and
-# needs the variable on its own line.
+# HOW A GUARD IS LAUNCHED, AND WHY IT IS SPELLED OUT LIKE THIS
+# ------------------------------------------------------------
+# Conrad Froehling, Windows 11, 2026-09-16: the shell form this used to render
+# (`PYTHONSAFEPATH=1 python3 "$CLAUDE_PROJECT_DIR/..."`) is three POSIX
+# assumptions in one line. Claude Code runs a shell-form hook through Git Bash
+# where it exists and PowerShell where it does not, and in PowerShell
+# `VAR=1 cmd` is a syntax error and a bare `$CLAUDE_PROJECT_DIR` is `$null`.
+# A member without Git Bash therefore had no guards at all and nothing said so.
 #
-# The variable and not `python3 -P`: Python before 3.11 ignores the variable
-# and hard-errors on the flag, and an old interpreter must degrade, never stop
-# a guard from running at all.
-GUARD_ENV = "PYTHONSAFEPATH=1 "
+# So both Claude hooks render in EXEC FORM: `command` plus `args`, which the
+# host spawns directly with no shell between it and the interpreter, and which
+# substitutes `${CLAUDE_PROJECT_DIR}` inside an argument. Vex's ruling on the
+# shape, 2026-09-16, and each piece of it earns its place:
+#
+#   * `-I` isolated mode drops the script's own folder from sys.path, which is
+#     the F1 defence the retired `PYTHONSAFEPATH=1` prefix was reaching for.
+#     The variable is a no-op below Python 3.11; `-I` has meant this since 3.4.
+#     Belt and braces: every guard drops that entry itself as its first
+#     statement, so a guard launched some other way is defended too.
+#   * `-B` writes no bytecode, so a guard never drops __pycache__ into the tree
+#     it is guarding.
+#   * `-X utf8` forces UTF-8 mode, so a payload carrying an emoji does not die
+#     in cp1252 on a German Windows box.
+#   * BRACED `${CLAUDE_PROJECT_DIR}`. Claude Code substitutes the braced form;
+#     the bare form is a shell expansion and there is no shell here.
+#
+# THE INTERPRETER. Bare `python3` on macOS and Linux, where it is on PATH and
+# means what it says. On Windows the ABSOLUTE `sys.executable` of whatever
+# interpreter ran `apply`, because stock Windows Python installs `python.exe`
+# and not `python3`, and because libuv resolves a bare name against the CURRENT
+# DIRECTORY first: a synced vault carrying its own `python3` file would then be
+# running the guard (Vex F-A, HIGH). The cost is real and is Tom's accepted
+# trade: upgrade Python on Windows and `apply` has to run again.
+HOOK_OS_NAME = os.name          # forced to "nt" by the red tests
+HOOK_EXECUTABLE = sys.executable
+GUARD_FLAGS = ("-I", "-B", "-X", "utf8")
+
+# Exec form (`args` on a hook) is read by Claude Code 2.1.139 and newer. Below
+# that the key is ignored, the hook runs with no arguments at all, and every
+# guard silently reviews nothing. POSIX falls back to the shell form carrying
+# the same flags; Windows has no safe fallback and refuses to render the key.
+CLAUDE_EXEC_FORM_FLOOR = (2, 1, 139)
+_CLAUDE_VERSION = []            # one probe per process
 
 
-def _guard_command(rule, host, hm):
-    """The one line the host runs. How the project root is found is host data.
+def _hook_is_windows():
+    return HOOK_OS_NAME == "nt"
 
-    Claude Code sets $CLAUDE_PROJECT_DIR and documents it, so its command is a
-    plain interpolation. A host whose table says `project_dir_finder:
-    walk-up-to-AGENTS.md` gets the bootstrap above instead, because it has no
-    such variable and its working directory is wherever the session started.
+
+def claude_code_version(_cache=_CLAUDE_VERSION):
+    """(major, minor, patch) from `claude --version`, or None.
+
+    None means "not answerable here", never "old": `claude` is a CLI a member
+    may not have on PATH at all, and a generator that guessed a version from
+    silence would be guessing about the only thing this decides.
+    """
+    if _cache:
+        return _cache[0]
+    exe = shutil.which("claude")
+    v = None
+    if exe:
+        try:
+            r = subprocess.run([exe, "--version"], capture_output=True,
+                               text=True, timeout=15)
+            m = re.search(r"(\d+)\.(\d+)\.(\d+)",
+                          (r.stdout or "") + " " + (r.stderr or ""))
+            if m:
+                v = tuple(int(x) for x in m.groups())
+        except (OSError, ValueError, subprocess.SubprocessError):
+            v = None
+    _cache.append(v)
+    return v
+
+
+def _guard_path_expr(rule, hm):
+    """The guard's path as the host will read it. Braced, always."""
+    var = hm.get("project_dir_var") or "CLAUDE_PROJECT_DIR"
+    return "${%s}/%s" % (var, rule["guard"])
+
+
+def _guard_hook(rule, host, hm, exec_form=True):
+    """The one hook entry the host runs, minus its timeout.
+
+    Claude Code sets $CLAUDE_PROJECT_DIR and documents it, so its command names
+    the interpreter and hands it the path as an argument. A host whose table
+    says `project_dir_finder: walk-up-to-AGENTS.md` gets the bootstrap above
+    instead, in shell form, because it has no such variable and because its
+    support for `args` is not verified: an unverified key is a hook that may
+    run with no arguments, which is a guard reviewing nothing.
     """
     interp = rule.get("interpreter") or "python3"
+    is_py = interp in ("python", "python3")
+    flags = list(GUARD_FLAGS) if is_py else []
     if hm.get("project_dir_finder") == "walk-up-to-AGENTS.md":
-        # The bootstrap is python3 itself and it spawns the guard as a child,
-        # so one prefix on the front covers both.
-        return GUARD_ENV + "python3 -c '%s' %s \"%s\"" % (_CODEX_BOOTSTRAP, interp, rule["guard"])
-    expr = hm.get("project_dir_expr")
-    if not expr:
-        expr = "$" + (hm.get("project_dir_var") or "CLAUDE_PROJECT_DIR")
-    return GUARD_ENV + '%s "%s/%s"' % (interp, expr, rule["guard"])
+        # The bootstrap is python3 itself and spawns the guard as a child, so
+        # the flags go on both: on the bootstrap here, and on the child inside
+        # _CODEX_BOOTSTRAP.
+        return {"type": "command",
+                "command": "python3 %s -c '%s' %s \"%s\""
+                           % (" ".join(GUARD_FLAGS), _CODEX_BOOTSTRAP, interp,
+                              rule["guard"])}
+    path = _guard_path_expr(rule, hm)
+    if not exec_form:
+        return {"type": "command",
+                "command": " ".join([interp] + flags + ['"%s"' % path])}
+    command = HOOK_EXECUTABLE if (is_py and _hook_is_windows()) else interp
+    return {"type": "command", "command": command, "args": flags + [path]}
+
+
+def claude_hook_form():
+    """-> (exec_form, refusal, note). Decided once, from the host's version.
+
+    `refusal` is a whole message and not a flag, because the only useful thing
+    to hand a member whose Claude Code is too old is the sentence that tells
+    them what to type.
+    """
+    v = claude_code_version()
+    floor = ".".join(str(n) for n in CLAUDE_EXEC_FORM_FLOOR)
+    if v is None:
+        return True, None, (
+            "`claude` is not on PATH here, so its version could not be read. "
+            "The hooks are rendered in exec form, which needs Claude Code %s "
+            "or newer; below that the arguments are ignored and every guard "
+            "runs with no payload path and reviews nothing." % floor)
+    if v >= CLAUDE_EXEC_FORM_FLOOR:
+        return True, None, None
+    got = ".".join(str(n) for n in v)
+    if _hook_is_windows():
+        return False, (
+            "REFUSED to render the `hooks` key: Claude Code %s is below %s, "
+            "the first version that reads a hook's `args`. On Windows there is "
+            "no safe fallback (a shell-form hook runs through Git Bash where "
+            "it exists and PowerShell where it does not, and in PowerShell a "
+            "bare $CLAUDE_PROJECT_DIR is $null), so nothing was written rather "
+            "than wiring up guards that quietly review nothing. update Claude "
+            "Code to %s or newer, then run this again. Every other key in "
+            ".claude/settings.json is untouched." % (got, floor, floor)), None
+    return False, None, (
+        "Claude Code %s is below %s, the first version that reads a hook's "
+        "`args`, so the hooks render in shell form with the same flags. "
+        "Update Claude Code to %s or newer and run this again to get the exec "
+        "form, which needs no shell at all." % (got, floor, floor))
 
 
 def render_hooks_block(rules, host):
@@ -897,6 +1010,18 @@ def render_hooks_block(rules, host):
         return None, ["host_matchers has no entry for %r" % host]
     events = hm.get("events") or {}
     notes = []
+    exec_form = True
+    if host == "claude-code":
+        exec_form, refusal, note = claude_hook_form()
+        if note:
+            notes.append(note)
+        if refusal:
+            # NOT an empty block and NOT a half-rendered one. Returning None
+            # leaves `hooks` out of the build entirely, so settings_diff has
+            # nothing to compare, apply_settings is never called, and every
+            # other key in settings.json (permissions.deny among them) is
+            # exactly where the member left it.
+            return None, notes + [refusal]
     grouped = []  # [(event, matcher, [command...])]
     for rule in rules.get("rules", []):
         ev = events.get(rule["event"])
@@ -913,24 +1038,24 @@ def render_hooks_block(rules, host):
         # A rule may pin its own host matcher string (the private table does).
         if isinstance(rule.get("match"), str):
             matcher = rule["match"]
-        cmd = _guard_command(rule, host, hm)
+        hook = _guard_hook(rule, host, hm, exec_form=exec_form)
         key = (ev, matcher)
         for g in grouped:
             if (g[0], g[1]) == key:
-                if cmd not in g[2]:
-                    g[2].append(cmd)
+                if hook not in g[2]:
+                    g[2].append(hook)
                     g[3].append(rule.get("timeout_seconds"))
                 break
         else:
-            grouped.append([ev, matcher, [cmd], [rule.get("timeout_seconds")]])
+            grouped.append([ev, matcher, [hook], [rule.get("timeout_seconds")]])
     block = {}
-    for ev, matcher, cmds, timeouts in grouped:
+    for ev, matcher, hooks_, timeouts in grouped:
         entry = {}
         if matcher:
             entry["matcher"] = matcher
         hooks = []
-        for cmd, to in zip(cmds, timeouts):
-            h = {"type": "command", "command": cmd}
+        for h, to in zip(hooks_, timeouts):
+            h = dict(h)
             if to:
                 h["timeout"] = to
             hooks.append(h)
@@ -1030,6 +1155,7 @@ class Build(object):
         self.keep = []       # (relpath, reason) hand-written, left alone
         self.notes = []      # plain lines for plan and doctor
         self.problems = []   # red
+        self.hooks_refused = None   # a whole sentence, or None
 
     def add(self, rel, text, source):
         self.files[rel] = text
@@ -1115,6 +1241,10 @@ def build(root):
         b.notes.extend("hooks/claude-code: " + n for n in notes)
         if block is not None:
             b.claude_hooks = block
+        else:
+            for n in notes:
+                if n.startswith("REFUSED"):
+                    b.hooks_refused = n
         txt, notes = render_codex_hooks(rules)
         b.notes.extend("hooks/codex: " + n for n in notes)
         if txt is not None:
@@ -1212,6 +1342,9 @@ def render_settings_readme(root, rules):
     the rendered block live here, next to it.
     """
     block, _ = render_hooks_block(rules, "claude-code")
+    # A refused block (Claude Code below the exec-form floor on Windows) is
+    # recorded as such rather than hashed as an empty document: the sidecar
+    # must never read as "these are the hooks" when there are none.
     blob = json.dumps(block, indent=2, ensure_ascii=False)
     rows = []
     for rule in rules.get("rules", []):
@@ -1233,7 +1366,11 @@ def render_settings_readme(root, rules):
         "`permissions` and every other key you put there are read, kept and",
         "written back untouched.",
         "",
-        "Rendered hooks block content-hash: `%s`" % _hash(blob),
+        ("Rendered hooks block content-hash: `%s`" % _hash(blob)) if block is not None
+        else ("No hooks block is rendered on this machine. Claude Code here is "
+              "below the version that reads a hook's `args`, and on Windows "
+              "there is no safe shell fallback. `scaffold-init.py doctor` "
+              "prints the sentence with the version in it."),
         "",
         "## What is rendered, and whether it blocks",
         "",
@@ -1597,6 +1734,11 @@ def do_apply(root, b, out):
     act, _ = settings_diff(root, b)
     if act in ("create", "update"):
         apply_settings(root, b)
+    if b.hooks_refused:
+        # `plan` and `doctor` print every note; `apply` prints a summary. The
+        # one note a member MUST see from `apply` is the one saying their
+        # guards were not wired, so it is printed here by name.
+        out(b.hooks_refused)
     out("apply: %d created, %d updated, %d already current, %d removed%s"
         % (len(create) - len([r for r in denied if r in create]),
            len(update) - len([r for r in denied if r in update]),
@@ -1802,6 +1944,65 @@ def _red_tests(root, run_tests):
             [summary] + (err or tail)[:6])
 
 
+# THE DEAD-INTERPRETER LINE, WHICH USED TO BE A SHELL SCRIPT
+# ----------------------------------------------------------
+# `session-start.sh` existed for one job that was not shell work: saying, in a
+# plain line, that python3 is not installed, so a member whose session start
+# ritual never ran found out from a sentence instead of from a runtime error.
+# With both hooks rendered in exec form there is no shell in the chain at all,
+# so that job moves HERE, where it is better done anyway: doctor spawns the
+# interpreter the rendered hooks actually name and reports what happened.
+#
+# WHAT THIS DOES NOT PROVE. That the host can spawn it. This process and the
+# host may resolve a bare `python3` differently, and the host may run under a
+# different user or PATH. A pass means this machine can start that interpreter
+# from here; a fail means nobody can, which is the half worth knowing.
+def hook_interpreters(block):
+    """Every distinct interpreter the rendered hooks name, in order."""
+    seen = []
+    for entries in (block or {}).values():
+        for entry in entries:
+            for h in entry.get("hooks") or []:
+                cmd = h.get("command") or ""
+                if "args" not in h:
+                    # shell form: the interpreter is the first word, and a
+                    # quoted path is never the first word of one of ours.
+                    cmd = (cmd.split(" ") or [""])[0]
+                if cmd and cmd not in seen:
+                    seen.append(cmd)
+    return seen
+
+
+def interpreter_report(block):
+    """-> [(command, ok, sentence)] for each interpreter the hooks name."""
+    out = []
+    for cmd in hook_interpreters(block):
+        try:
+            r = subprocess.run([cmd, "-c", "import sys; print(sys.version.split()[0])"],
+                               capture_output=True, text=True, timeout=20)
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            out.append((cmd, False,
+                        "%s is what every hook in .claude/settings.json runs, "
+                        "and it did not start here (%s). Until that path is a "
+                        "working Python 3 the guards are registered and dead: "
+                        "nothing is checked on this machine. Install Python 3, "
+                        "or run `scaffold-init.py apply` again once it is "
+                        "there, so the hooks are re-rendered against the "
+                        "interpreter that exists." % (cmd, exc)))
+            continue
+        if r.returncode != 0:
+            out.append((cmd, False,
+                        "%s is what every hook in .claude/settings.json runs, "
+                        "and it started but exited %d (%s). The guards are "
+                        "registered and dead until that is fixed."
+                        % (cmd, r.returncode,
+                           (r.stderr or "").strip()[:160] or "no message")))
+            continue
+        out.append((cmd, True, "%s answered, Python %s"
+                    % (cmd, (r.stdout or "").strip() or "unknown")))
+    return out
+
+
 def doctor_report(root, b, run_tests=True):
     """Everything doctor knows, worked out once.
 
@@ -1825,6 +2026,7 @@ def doctor_report(root, b, run_tests=True):
     diff(root, b)
 
     tests, tests_lines = _red_tests(root, run_tests)
+    interp_problems = []
     hosts = []
     for host in HOSTS:
         detected = []
@@ -1853,6 +2055,13 @@ def doctor_report(root, b, run_tests=True):
             h["display"].append(("trusted", "not readable from disk. " + h["trusted_note"]))
             h["display"].append(("unsupported",
                                  "nothing. This is the host every mechanism exists on."))
+            if b.hooks_refused:
+                h["display"].append(("interpreter", b.hooks_refused))
+                interp_problems.append(b.hooks_refused)
+            for cmd, ok, line in interpreter_report(getattr(b, "claude_hooks", None)):
+                h["display"].append(("interpreter", line))
+                if not ok:
+                    interp_problems.append(line)
         elif host == "codex":
             n_sh = len([r for r in b.files if r.startswith(".codex/agents/")])
             h["installed"] = ("%d shims (TOML), %d skills via .agents/skills/, "
@@ -1919,7 +2128,11 @@ def doctor_report(root, b, run_tests=True):
         "files": {"generated": len(b.files), "hand_kept": len(b.keep),
                   "orphans": len(b.orphans)},
         "tests": tests,
-        "problems": list(b.problems),
+        # A dead interpreter is a problem of doctor's own finding, not one of
+        # build's: it must reach harness.json and the exit code, and it must
+        # NOT make `apply` refuse to write the skills and shims, which is the
+        # one thing still worth having when the guards cannot run.
+        "problems": list(b.problems) + interp_problems,
         "notes": list(b.notes),
         "hosts": hosts,
         "display": {"tests": tests_lines},

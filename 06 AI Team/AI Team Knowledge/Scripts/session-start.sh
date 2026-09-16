@@ -1,11 +1,22 @@
 #!/bin/sh
-# session-start.sh: the SessionStart hook entry.
+# session-start.sh: NO LONGER THE SessionStart HOOK ENTRY (2026-09-16).
 #
-# It exists for one reason: python3 may not be there. A hook command that
-# cannot run prints a runtime error the user has to decode, and the session
-# start ritual silently does not happen. This wrapper says so in one plain
-# line instead, and always exits 0, because a missing interpreter must never
-# stop a session from starting.
+# hooks-rules.json names `session-start.py` now and the host spawns it
+# directly, in exec form, with no shell in the chain. This file is not
+# rendered into any host config any more. It is kept on disk, unchanged in
+# behaviour, because nothing in this scaffold deletes a file on its own
+# (AGENTS.md hard rule 12) and because running it by hand still works.
+#
+# WHY IT STOPPED BEING THE ENTRY. A shell-form hook runs through Git Bash on
+# Windows where it exists and PowerShell where it does not. In PowerShell
+# `PYTHONSAFEPATH=1 sh "..."` is a syntax error and a bare $CLAUDE_PROJECT_DIR
+# is $null, so on a member's Windows machine without Git Bash the session
+# start ritual never ran and nothing said so (Conrad Froehling, 2026-09-16).
+#
+# It existed for one job beyond `exec python3`: saying, in a plain line, that
+# python3 is not installed. That job moved to `scaffold-init.py doctor`, which
+# spawns the interpreter the rendered hooks actually name and reports a dead
+# one in words.
 #
 # Everything else is session-start.py, next to this file.
 DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
