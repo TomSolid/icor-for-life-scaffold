@@ -276,6 +276,23 @@ def _in_scan(rel):
     return bool(rel.parts) and rel.parts[0] in SCAN_ROOTS
 
 
+def _is_journal(rel):
+    """`06 AI Team/Agents/<Name>/Journal/<entry>.md`, and nothing else.
+
+    An agent journal is written prose with frontmatter and a GL-1002 type,
+    and nothing was checking it: SCAN_ROOTS names three rooms and
+    `06 AI Team` is not one of them, so a journal entry could carry any
+    type at all and this report said ok (Brian Carroll, B2-8).
+
+    The GLOB is in scope, never the room. `06 AI Team` whole is 98 findings
+    on the pristine tree and a broken health line, from three separate
+    questions nobody has ruled on yet; widening to the room to reach the
+    journals would import all of them."""
+    p = rel.parts
+    return (len(p) == 5 and p[0] == "06 AI Team" and p[1] == "Agents"
+            and p[3] == "Journal" and rel.suffix == ".md")
+
+
 def _shorter(a, b):
     """Obsidian's "shortest path when possible": of two notes that answer to
     the same name, the one nearer the top of the vault wins, and a tie is
@@ -400,7 +417,7 @@ def run(root):
                 linked_to.add(tgt)
 
     in_scan = [rel for rel in notes
-               if rel.parts and rel.parts[0] in SCAN_ROOTS
+               if (_in_scan(rel) or _is_journal(rel))
                and rel.name not in SKIP_NAMES]
 
     scratchpad_ages, capture_ages = [], []

@@ -3845,6 +3845,80 @@ with tempfile.TemporaryDirectory() as _mktd:
                              "resolver had nothing to choose BETWEEN and this "
                              "case passed for the wrong reason")
 
+
+    # -----------------------------------------------------------------
+    # 91. AGENT JOURNALS ARE IN SCOPE FOR check-quality (B2-8).
+    #
+    # SCAN_ROOTS names three rooms and `06 AI Team` is not one of them, so a
+    # journal entry could carry any type at all and the report said ok. The
+    # GLOB `06 AI Team/Agents/*/Journal/*.md` is in scope now, never the
+    # room: `06 AI Team` whole is 98 findings on the pristine tree and a
+    # broken health line, from three questions nobody has ruled on.
+    #
+    # Measured on this tree with the glob: 0 findings, which is the number
+    # Silas measured after the GL-1002 rulings of 1.27.0 landed. A non-zero
+    # reading here means a shipped journal drifted, not that this case
+    # broke.
+    _jv = fixture_vault(_mk, "journal-in-scope")
+    _jdir = _jv / "06 AI Team/Agents/Mack/Journal"
+    _jdir.mkdir(parents=True, exist_ok=True)
+    _bad_j = _jdir / "2026-09-16-undeclared-type.md"
+    _bad_j.write_text(
+        "---\ntype: field-notes\nagent_id: mack\ncreated: 2026-09-16\n"
+        "topic: a type GL-1002 does not declare\n---\n\n## What I learned\n",
+        encoding="utf-8")
+    checks += 1
+    _jq = subprocess.run([PY, str(_jv / "06 AI Team/AI Team Knowledge/Scripts/check-quality.py"),
+                          str(_jv), "--json"], capture_output=True, text=True)
+    try:
+        _jrep = json.loads(_jq.stdout) if _jq.returncode == 0 else None
+    except ValueError:
+        _jrep = None
+    if _jrep is None:
+        fails.append("journal-in-scope/undeclared-type: check-quality exited %d "
+                     "or printed no JSON: %s"
+                     % (_jq.returncode, (_jq.stderr or _jq.stdout or "").strip()[:300]))
+    else:
+        _jrel = "06 AI Team/Agents/Mack/Journal/2026-09-16-undeclared-type.md"
+        _hit = [f for f in _jrep.get("findings", [])
+                if f["path"] == _jrel and f["metric"] == "enum_violations"]
+        if not _hit:
+            fails.append("journal-in-scope/undeclared-type: a journal entry "
+                         "carrying `type: field-notes`, which GL-1002 does not "
+                         "declare, produced no enum finding. Agent journals were "
+                         "outside SCAN_ROOTS, so nothing read them at all "
+                         "(Brian Carroll, B2-8). findings: %s"
+                         % sorted({f["path"] for f in _jrep.get("findings", [])}))
+    # 91b. The control, twice over: the glob must not drag the ROOM in, and
+    #      a `_template.md` beside the entry must stay out (SKIP_NAMES).
+    checks += 1
+    _bad_j.write_text(
+        "---\ntype: journal-entry\nagent_id: mack\ncreated: 2026-09-16\n"
+        "topic: a type GL-1002 does declare\n---\n\n## What I learned\n",
+        encoding="utf-8")
+    (_jdir / "_template.md").write_text(
+        "---\ntype: field-notes\nagent_id: mack\n---\n\n## What I learned\n",
+        encoding="utf-8")
+    _jq2 = subprocess.run([PY, str(_jv / "06 AI Team/AI Team Knowledge/Scripts/check-quality.py"),
+                           str(_jv), "--json"], capture_output=True, text=True)
+    try:
+        _jrep2 = json.loads(_jq2.stdout) if _jq2.returncode == 0 else None
+    except ValueError:
+        _jrep2 = None
+    if _jrep2 is None:
+        fails.append("journal-in-scope/glob-not-the-room: check-quality exited "
+                     "%d or printed no JSON: %s"
+                     % (_jq2.returncode, (_jq2.stderr or _jq2.stdout or "").strip()[:300]))
+    else:
+        _noise = sorted({f["path"] for f in _jrep2.get("findings", [])
+                         if f["path"].startswith("06 AI Team/")})
+        if _noise:
+            fails.append("journal-in-scope/glob-not-the-room: with every journal "
+                         "entry declaring a GL-1002 type, %d finding(s) still "
+                         "come out of 06 AI Team/. Either the room was widened "
+                         "instead of the glob, or _template.md stopped being "
+                         "skipped: %s" % (len(_noise), _noise))
+
 # ===========================================================================
 # ---- END mack b8 ----
 
