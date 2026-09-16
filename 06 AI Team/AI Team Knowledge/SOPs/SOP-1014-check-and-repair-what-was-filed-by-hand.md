@@ -48,6 +48,20 @@ the user removes the other one themselves.
      typo, a rename, a missing space): point the link at the note that
      exists.
    Anything in these four without an obvious answer moves to step 4.
+   Two more deterministic repairs, which check-quality.py does not count
+   as findings but a vault upgraded to Scaffold 1.27.0 will be carrying:
+   - a hired agent's `Agents/<Name>/Journal/_template.md` carrying
+     another agent's `agent_id`. Every hire made before 1.27.0 was seeded
+     by copying a sibling's template, so most read `charta`. One call per
+     agent: `Scripts/set-property.py
+     "06 AI Team/Agents/<Name>/Journal/_template.md" agent_id <slug>`.
+     Entries already written are left alone; the template is what the
+     next entry is copied from.
+   - a bare `planner_habit` or `linked_note` on a habit pair. GL-1002
+     wants the full vault path on both: `[[02 Planner/Habits/<name>]]`
+     on the My Life note, `[[04 Inner World/My Life/Habits/<name>]]` on
+     the Planner note. The two notes share a name by design, so a bare
+     `[[<name>]]` is the one shape no reader can resolve on purpose.
 4. [JUDGEMENT] Judgement repairs are questions to the user, one line
    each, batched, never guessed:
    - `notes_missing_link`: "Which Project, Key Element or Topic does
