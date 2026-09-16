@@ -2238,8 +2238,8 @@ with tempfile.TemporaryDirectory() as td:
     #     2026-09-16). The missing-interpreter sentence moved to
     #     `scaffold-init.py doctor`, and the case that watches it is
     #     `scaffold-init/doctor-dead-interpreter` in the mack b9-hooks block at
-    #     the bottom of this file. The wrapper is still on disk and still
-    #     works; nothing renders it, so nothing here guards it.
+    #     the bottom of this file. The wrapper itself was deleted in 1.28.1,
+    #     so there is nothing left here to guard.
     #
     # 69. The clean control, now run the way the hook runs it: the .py, by
     #     interpreter, with no shell anywhere.
