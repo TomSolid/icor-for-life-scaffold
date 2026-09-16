@@ -37,6 +37,7 @@ import datetime
 import json
 import os
 import subprocess
+import threading
 import select
 import sys
 import uuid
@@ -62,6 +63,59 @@ def run(script, *args, budget=BUDGET_S):
     return r, None
 
 
+def _read_stdin_payload(budget=0.2):
+    """The host's hook payload from stdin, or "" when none arrives in time.
+
+    WAIT FOR A PAYLOAD, DO NOT WAIT FOREVER. A hook hands this script its
+    payload and closes the pipe immediately. Anything else that inherits an
+    open stdin (a script, a CI step, a test harness) never closes it, and a
+    bare `stdin.read()` then blocks for as long as that caller lives: one
+    red-test run sat here for ten minutes printing nothing, which reads exactly
+    like a slow suite. A fifth of a second is far longer than a hook needs and
+    short enough that nobody notices.
+
+    TWO WAYS OF WAITING, BECAUSE select() IS NOT PORTABLE. On POSIX,
+    select.select() answers "is there anything there yet" for a pipe. On
+    Windows it answers only for sockets and raises for everything else, and the
+    raise was swallowed into `ready = []`: the payload was never read, an id
+    was minted, and the ritual announced "GUARDS: no host session id received"
+    on a machine whose hooks were working perfectly (Conrad Froehling, Windows
+    11, 2026-09-16). Where select cannot answer, a daemon thread does the
+    blocking read and the budget falls on the join instead, so the behaviour is
+    the same from the outside and a caller that never closes stdin still cannot
+    hang this script. The thread is given a little longer because it has to be
+    scheduled before it can read anything.
+    """
+    try:
+        ready = select.select([sys.stdin], [], [], budget)[0]
+    except (OSError, ValueError, AttributeError):
+        return _read_stdin_in_a_thread(max(budget, 0.5))
+    if not ready:
+        return ""
+    try:
+        return sys.stdin.read() or ""
+    except (OSError, ValueError):
+        return ""
+
+
+def _read_stdin_in_a_thread(budget):
+    box = []
+
+    def _read():
+        try:
+            box.append(sys.stdin.read() or "")
+        except (OSError, ValueError):
+            box.append("")
+
+    t = threading.Thread(target=_read, daemon=True)
+    t.start()
+    t.join(budget)
+    # A daemon thread still reading when the budget runs out is abandoned, and
+    # the interpreter does not wait for it on the way out. That is the whole
+    # point: stdin held open by somebody else must not hold a session shut.
+    return box[0] if box else ""
+
+
 def record_session():
     """Write which session this is, for checkpoint.py to bind a receipt to.
 
@@ -73,23 +127,13 @@ def record_session():
     sid = os.environ.get("ICOR_SESSION_ID") or ""
     source = "ICOR_SESSION_ID"
     if not sid and not sys.stdin.isatty():
-        # WAIT FOR A PAYLOAD, DO NOT WAIT FOREVER. A hook hands this script its
-        # payload and closes the pipe immediately. Anything else that inherits
-        # an open stdin (a script, a CI step, a test harness) never closes it,
-        # and a bare `stdin.read()` then blocks for as long as that caller
-        # lives: one red-test run sat here for ten minutes printing nothing,
-        # which reads exactly like a slow suite. A fifth of a second is far
-        # longer than a hook needs and short enough that nobody notices.
-        try:
-            ready = select.select([sys.stdin], [], [], 0.2)[0]
-        except (OSError, ValueError):
-            ready = []
-        if ready:
+        text = _read_stdin_payload()
+        if text:
             try:
-                payload = json.loads(sys.stdin.read() or "{}")
+                payload = json.loads(text or "{}")
                 sid = str(payload.get("session_id") or "")
                 source = "host hook payload"
-            except (ValueError, OSError):
+            except ValueError:
                 sid = ""
     if not sid:
         sid = "local-" + uuid.uuid4().hex[:12]
