@@ -86,6 +86,17 @@ import subprocess
 import sys
 from pathlib import Path
 
+# NO BYTECODE IN THE TREE WE ARE POINTED AT. This script importlib-loads a
+# sibling out of Scripts/, and stock CPython then writes
+# Scripts/__pycache__/<sibling>.cpython-3NN.pyc beside it, which is INSIDE the
+# vault or the repo it was asked to read. A script that writes into the thing
+# it measures is a script whose measurement nobody can trust, and the write is
+# invisible under macOS's /usr/bin/python3, which redirects bytecode to its own
+# cache (Conrad Froehling, 2026-09-16). PYTHONDONTWRITEBYTECODE is read at
+# interpreter STARTUP, so only this assignment reaches a process already
+# running.
+sys.dont_write_bytecode = True
+
 # noteio.py sits beside this script and is loaded by path, not by name, so
 # the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
 # the script's own folder from it. A missing noteio.py is a half-upgraded
@@ -1769,6 +1780,22 @@ def _red_tests(root, run_tests):
                  or l.startswith("FAST-SKIP ") or l.startswith("FAST RUN")]
         return ({"status": "ok", "summary": summary, "skips": skips},
                 [summary] + [l[:160] for l in skips])
+    # A RED AND A CRASH ARE NOT THE SAME NEWS, AND THEY USED TO READ THE SAME.
+    # A suite that goes red names the case on a `FAIL <guard>/<case>` line. A
+    # suite that could not run at all here prints a traceback and no FAIL line:
+    # no POSIX shell to spawn a .sh fixture with, an interpreter that is not
+    # there, an import that failed. Calling that "RED, the suite found
+    # something" blames a guard for the platform, which is what every Windows
+    # member saw (Conrad Froehling, 2026-09-16). The two need different words
+    # because they need different actions: a red is a defect in this folder, a
+    # crash is a machine that cannot run the proof.
+    findings = [l for l in err + tail if l.startswith("FAIL ")]
+    if not findings:
+        summary = ("could not run the suite here, exit %d. It reported no FAIL "
+                   "line at all, so this is the suite crashing on this machine "
+                   "and NOT a guard going red." % r.returncode)
+        return ({"status": "error", "summary": summary, "skips": []},
+                [summary] + (err or tail)[:6])
     summary = ("RED, exit %d. The suite found something; this is not a green."
                % r.returncode)
     return ({"status": "red", "summary": summary, "skips": []},

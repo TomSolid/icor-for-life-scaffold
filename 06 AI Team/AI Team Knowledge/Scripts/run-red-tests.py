@@ -2236,9 +2236,11 @@ with tempfile.TemporaryDirectory() as td:
     nopy.mkdir()
     env = dict(_o.environ)
     env["PATH"] = str(nopy)
-    r = subprocess.run(["/bin/sh", str(HERE / "session-start.sh")],
-                       capture_output=True, text=True, env=env, input="{}")
-    if r.returncode != 0:
+    r = sh_run("session-start/missing-python", [HERE / "session-start.sh"],
+               capture_output=True, text=True, env=env, input="{}")
+    if r is None:
+        pass
+    elif r.returncode != 0:
         fails.append("session-start/missing-python: exit %d, must be 0" % r.returncode)
     elif "python3" not in r.stdout:
         fails.append("session-start/missing-python: exited 0 but said nothing about "
@@ -2251,11 +2253,14 @@ with tempfile.TemporaryDirectory() as td:
     env = dict(_o.environ)
     env["CLAUDE_PROJECT_DIR"] = str(ss)
     env.pop("ICOR_SESSION_ID", None)
-    r = subprocess.run(["/bin/sh", str(ss / "06 AI Team/AI Team Knowledge/Scripts/session-start.sh")],
-                       capture_output=True, text=True, env=env,
-                       input=_j.dumps({"session_id": "red-test-session",
-                                       "hook_event_name": "SessionStart"}))
-    if r.returncode != 0:
+    r = sh_run("session-start/clean-control",
+               [ss / "06 AI Team/AI Team Knowledge/Scripts/session-start.sh"],
+               capture_output=True, text=True, env=env,
+               input=_j.dumps({"session_id": "red-test-session",
+                               "hook_event_name": "SessionStart"}))
+    if r is None:
+        pass
+    elif r.returncode != 0:
         fails.append("session-start/clean-control: exit %d (%s)"
                      % (r.returncode, (r.stderr or "").strip()[:200]))
     else:
@@ -2531,8 +2536,10 @@ with tempfile.TemporaryDirectory() as td:
         checks += 1
         env = dict(_o.environ)
         env["ICOR_RED_RUNNER"] = str(stub)
-        r = subprocess.run(["/bin/sh", str(RG), str(ROOT)], capture_output=True,
-                           text=True, env=env)
+        r = sh_run("release-gate/%s" % name, [RG, ROOT], capture_output=True,
+                   text=True, env=env)
+        if r is None:
+            continue
         if r.returncode != expect:
             fails.append("release-gate/%s: exit %d, expected %d" % (name, r.returncode, expect))
     # and the gate must actually be wired into the build. A structural check,
@@ -2607,6 +2614,10 @@ with tempfile.TemporaryDirectory() as td:
         skip("zip-staged-tree/*", "zip-staged-tree.sh is not here")
     elif shutil.which("zip") is None:
         skip("zip-staged-tree/*", "the zip command is not installed, so nothing was proven")
+    elif sh_skip_reason():
+        # Whole group, not case by case: every case here runs the .sh builder,
+        # and the comparisons below read the zips it did not write.
+        skip("zip-staged-tree/*", sh_skip_reason())
     else:
         import hashlib as _hl
 
@@ -2626,8 +2637,11 @@ with tempfile.TemporaryDirectory() as td:
             checks += 1
             env = dict(os.environ)
             env.update(env_extra)
-            r = subprocess.run(["/bin/sh", str(ZS), str(_zt), str(out), "1757894400"],
-                               capture_output=True, text=True, env=env)
+            r = sh_run("zip-staged-tree/%s" % (name or "build"),
+                       [ZS, _zt, out, "1757894400"],
+                       capture_output=True, text=True, env=env)
+            if r is None:
+                return None
             if r.returncode != expect:
                 fails.append("zip-staged-tree/%s: exit %d, expected %d: %s"
                              % (name, r.returncode, expect,
@@ -2883,9 +2897,11 @@ else:
         checks += 1
         import os as _os2
         _env = {k: v for k, v in _os2.environ.items() if k != "CLAUDE_PROJECT_DIR"}
-        _r = subprocess.run(["/bin/sh", "-c",
-                             _cmd.replace("${CLAUDE_PROJECT_DIR}", str(ROOT))],
-                            capture_output=True, text=True, env=_env, cwd="/")
+        _r = sh_run("skill-prerun/runs-without-the-variable",
+                    ["-c", _cmd.replace("${CLAUDE_PROJECT_DIR}", str(ROOT))],
+                    capture_output=True, text=True, env=_env, cwd="/")
+        if _r is None:
+            continue
         if _r.returncode != 0:
             fails.append("skill-prerun/runs-without-the-variable: %s exits %d from a "
                          "foreign cwd with CLAUDE_PROJECT_DIR unset: %s"
