@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.26.0",
-  "built": "2026-09-15T18:52:32Z",
-  "commit": "153903a",
+  "version": "1.27.0",
+  "built": "2026-09-16T11:20:52Z",
+  "commit": "1ff835e",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -374,7 +374,7 @@
     },
     {
       "path": "02 Planner/README.md",
-      "sha256": "d183ba831efa7727822799ded82e843cdd1ffa60a6700e3cc236d58e8c6a8274",
+      "sha256": "5fb20e07e74db9b87fff69ebdc0412a163c225c294ba41d2d307b0414ad5bbb4",
       "kind": "doc",
       "example": false
     },
@@ -692,7 +692,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "a30df724d92fecab6e166227736347efe912e350e5952fdf7a7573fb4893cb2d",
+      "sha256": "0222a1a6d6b51f443e0bb6d24a83f31d5812aa49225eecf1e554930e8956c4c7",
       "kind": "guideline",
       "example": false
     },
@@ -806,7 +806,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1009-write-a-session-log-and-agent-journal.md",
-      "sha256": "61b38bd8b860a4c64be7fc8d74d7d8d62e3b0fd9cdd3ac4dbfcc461d00594019",
+      "sha256": "9b2c492cdceb93c4f51c3705b639bc94886f04eeeea5876bea94637e59bc1ef6",
       "kind": "sop",
       "example": false
     },
@@ -836,7 +836,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1014-check-and-repair-what-was-filed-by-hand.md",
-      "sha256": "e9800b5ef3aa37ab065b745213dedcf57fc51bed2214877a9d045df008758dbe",
+      "sha256": "bfc2c3221cf0cde3aafc16b35138703fa859dc0e936d5a1db340516095469301",
       "kind": "sop",
       "example": false
     },
@@ -896,13 +896,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-quality.py",
-      "sha256": "fa63fed89a1615432f0de755af53a41333b31294a4502e42f8d244f1a5d82e2c",
+      "sha256": "61b14541733b7a43f12c334820e6769601340f31f3161c0865c33f213120be70",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "ae9063463c6c5674d2dd0f77e6f5bc1241b586697de46f93dfa93c74ccb33e0c",
+      "sha256": "4d71abf16acb6d7fddd1659c23eaa5a7112ed4c99e7f21138f851ce89a37b993",
       "kind": "script",
       "example": false
     },
@@ -956,7 +956,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "5b5f026c33907739e283819bf901b2201f4228db1d93d68ebf01ce39324c7a60",
+      "sha256": "dd401ba13e3d5bd5d4f60daffc0bb556705b69875af753ff2e7ca87ba7a92560",
       "kind": "script",
       "example": false
     },
@@ -968,7 +968,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-entity.py",
-      "sha256": "c989378e0cf3ccc315e114f280957d0d738510a1b5e3f9938aa620bde9a2e031",
+      "sha256": "aaf7a6ab579f6571d92a8814216fc26b6e29bec38d1ff2adc9038add6f2cf433",
       "kind": "script",
       "example": false
     },
@@ -1010,13 +1010,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/planner-week.py",
-      "sha256": "a5e20e24443cce5c22f5126deb764305b00bef7df14aaefce534bbb352958414",
+      "sha256": "9dc4d0526f9c031777477ffc2307d5d5b7bd517b46090b6596ba2a9d40ff24bf",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "9c0f1fecf28f542270617e5e9e8e70094cdc1ef6e29dafa085ee1461871805a9",
+      "sha256": "2e66b214220ad2de90ce203b96a3e63a5a1b8fae0500faf341a9a8f90711d898",
       "kind": "script",
       "example": false
     },
@@ -1644,6 +1644,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.27.0",
+      "date": "2026-09-16",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.26.0",
       "date": "2026-09-15",

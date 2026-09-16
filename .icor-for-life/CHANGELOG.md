@@ -15,6 +15,83 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.27.0 (2026-09-16)
+
+A release cut from one member's bug reports and from the two schema rulings
+behind them. Eight defects in the scripts, five of them in the release suite
+itself, and the rows in GL-1002 that finally declare what every version of
+this Scaffold has actually shipped.
+
+Reported by community member Brian Carroll, 2026-09-16.
+
+Minor bump: GL-1002 changes rows that every note in the vault is checked
+against, one of them a placeholder row that named a type no file uses and one
+a type that was carried but never declared. Nothing is removed, moved or
+renamed, and every existing note stays valid as it is, so this is neither a
+major nor a patch.
+
+### Fixed
+
+- **`checkpoint.py`**: the cutoff for "tasks touched" is now when the session
+  started (`.icor-for-life/scripts/session.json`), not the name of the newest
+  session log. WS-1005 writes the report before the log, so the log's name
+  belonged to the previous session: a task closed earlier in the same session
+  vanished, and a task filed after the log was listed again by the next one.
+  The log name stays as the fallback where no session start hook ran. Reported
+  by Brian Carroll.
+- **`check-quality.py`**: a bare `[[wikilink]]` now resolves to a candidate
+  inside the scanned rooms before one outside them. A habit and its
+  planner-habit note share a name by design, and the shorter `02 Planner/`
+  path always won, so the member's own habit note was reported as an orphan.
+  Reported by Brian Carroll.
+- **`check-quality.py`**: agent journals (`06 AI Team/Agents/*/Journal/*.md`)
+  are read; the glob is in scope, never the whole room. 0 findings on the
+  shipped tree. Reported by Brian Carroll.
+- **`planner-week.py`**: the week note's `created_at` uses an aware UTC `now()`
+  instead of the deprecated `datetime.utcnow()`. Two new gates run the create
+  path, and every script's `--help`, under `-W error::DeprecationWarning`.
+  Reported by Brian Carroll.
+
+### Guidelines
+
+- **GL-1002**: the agent-journal row becomes `journal-entry`, with `agent_id`,
+  `created` and `topic` required, matching every journal file the Scaffold has
+  ever shipped.
+- **GL-1002**: `agent-soul` is declared, the type Larry's `SOUL.md` has carried
+  since 2026-08-28.
+- **GL-1002 and `02 Planner/README.md`**: a habit and its planner-habit note
+  link to each other by full vault path, because the two notes share a name by
+  design. `new-entity.py` writes `planner_habit` qualified.
+- **`new-agent.py`**: a hire's journal template carries its own `agent_id`
+  instead of the first sibling's, which in this Scaffold was always charta.
+- **SOP-1014**: two deterministic repairs for a vault upgrading into this
+  release, one per stale journal template and one per bare habit link.
+
+### Tests
+
+- **`run-red-tests.py`**: the size-cap case builds its fixture instead of
+  copying the vault, and dates its planted goal; with six or more open goals it
+  went red on a member for whom the cap was working. Reported by Brian Carroll.
+- **`run-red-tests.py`**: fixtures no longer copy `05 Assets`, `03 WiP` or
+  `07 Databases`; thirty vault copies carried the member's binaries into one
+  temporary directory, which made the suite unrunnable on a large vault. On a
+  tree with 600 MB of assets the suite goes from 2:13 to 1:23. Reported by
+  Brian Carroll.
+- **`run-red-tests.py`**: red tests for three 1.24.0 fixes that shipped without
+  one (a stamp summary with YAML metacharacters parsed back, `new-task.py move
+  --to open`, `new-entity.py --set` on a defaulted and a commented field).
+  Reported by Brian Carroll.
+- **`run-red-tests.py`**: the four log-name checkpoint cases stop inheriting
+  the live `session.json` from the vault they copy. Reported by Brian Carroll.
+
+### Changed
+
+- **Planner 0.14.1 inside.**
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
 ## 1.26.0 (2026-09-15)
 
 A Workstream is not a Project, and the vault now says so in three places:
