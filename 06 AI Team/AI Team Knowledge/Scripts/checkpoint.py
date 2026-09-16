@@ -3,8 +3,10 @@
 
 Answers, from the files alone, the questions a checkpoint asks:
 
-  1. Which tasks moved this session?  Every task file changed since the
-     last session log, in all four states: Tasks/open/, Tasks/in-progress/,
+  1. Which tasks moved this session?  Every task file changed since this
+     session STARTED (`.icor-for-life/scripts/session.json`), falling back
+     to the last session log's own name where no session start hook ran,
+     in all four states: Tasks/open/, Tasks/in-progress/,
      and the date-nested Tasks/done/YYYY/MM/ and Tasks/cancelled/YYYY/MM/.
      A task closed earlier in the same session lives in done/ by the time
      the checkpoint runs, and until 2026-09-07 it was invisible here (the
@@ -101,6 +103,8 @@ K = ROOT / "06 AI Team" / "AI Team Knowledge"
 TASKS = K / "Tasks"
 LOGS = K / "Session Logs"
 WIP = ROOT / "03 WiP"
+MACHINE = ROOT / ".icor-for-life" / "scripts"
+RECEIPTS = MACHINE / "receipts"
 # The standing trees of 03 WiP/README.md. Never candidates themselves; the
 # scan steps into them and reports the dated runs and project folders inside.
 STANDING = ("Workstreams", "Projects")
@@ -109,6 +113,18 @@ now = datetime.datetime.combine(today, datetime.time(23, 59))
 
 def mtime(p: Path) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(p.stat().st_mtime)
+
+
+def mtime_aware(p: Path) -> datetime.datetime:
+    """The same instant, carrying the machine's own offset.
+
+    `fromtimestamp()` with no argument returns LOCAL WALL TIME with no
+    tzinfo on it, and `.astimezone()` on a naive value attaches the local
+    zone rather than converting, which is exactly what is wanted here: the
+    number is already local. Only the cutoff comparison needs this; `now`
+    and every age in days below stay naive and stay comparable to mtime().
+    """
+    return datetime.datetime.fromtimestamp(p.stat().st_mtime).astimezone()
 
 def newest_under(folder: Path):
     best = None
@@ -147,6 +163,59 @@ last_log = max(logs, key=log_time) if logs else None
 last_log_time = log_time(last_log) if last_log else datetime.datetime.min
 todays = [p for p in logs if p.name.startswith(today.isoformat())]
 
+# --- 1b. the cutoff: when THIS session started ----------------------------
+# The log's own name is the right cutoff for a report written after the log,
+# and the wrong one for the report a checkpoint writes BEFORE it (WS-1005
+# runs the report first, then writes the log). Read in that order the log
+# name is still the PREVIOUS session's, so work shipped earlier today was
+# listed twice: once in the report that preceded the log and again in the
+# next session's. Worse in the other direction: once the log exists, a task
+# closed earlier in the same session but before the log's own minute sits
+# BEHIND the cutoff and disappears from the session that shipped it.
+#
+# A session knows when it started. session-start.py writes it to
+# .icor-for-life/scripts/session.json as `started`, UTC, with a trailing Z,
+# and the receipt half of this script already reads that file. The log name
+# stays as the fallback, for a runtime with no session start hook.
+#
+# Two traps, both of which this handles rather than documents:
+#   - `fromisoformat` did not accept a trailing `Z` until Python 3.11, and
+#     3.9 is what ships on this machine. The Z is converted, not parsed.
+#   - `started` is UTC-aware and mtime() is naive local. Comparing the two
+#     raises TypeError on some paths and silently compares wall clocks on
+#     none of them, so the comparison is made in aware time on both sides
+#     (mtime_aware) and every OTHER use of mtime() is left alone.
+# Reported by Brian Carroll (B2-2).
+def _parse_started(raw):
+    s = str(raw or "").strip()
+    if not s:
+        return None
+    if s[-1] in "Zz":
+        s = s[:-1] + "+00:00"
+    try:
+        d = datetime.datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    return d if d.tzinfo is not None else d.replace(tzinfo=datetime.timezone.utc)
+
+
+def session_started():
+    sf = MACHINE / "session.json"
+    if not sf.is_file():
+        return None
+    try:
+        return _parse_started(json.loads(sf.read_text(encoding="utf-8")).get("started"))
+    except (ValueError, OSError):
+        return None
+
+
+_started = session_started()
+cutoff = _started if _started is not None else (
+    last_log_time.astimezone() if last_log else
+    datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+cutoff_source = "session.json started" if _started is not None else (
+    "last session log name" if last_log else "no cutoff (nothing to compare against)")
+
 # --- 2. tasks touched since the last log ----------------------------------
 # open/ and in-progress/ are flat; done/ and cancelled/ nest by YYYY/MM/
 # (hard rule 6), so those two are walked recursively. Only open and
@@ -164,7 +233,7 @@ for state in STATES:
     for f in sorted(d.glob("*.md") if live else d.rglob("*.md")):
         if live:
             task_texts.append(f.read_text(errors="ignore"))
-        if mtime(f) > last_log_time:
+        if mtime_aware(f) > cutoff:
             touched.append({"state": state, "file": f.name,
                             "path": f.relative_to(TASKS).as_posix()})
             touched_by_state[state] += 1
@@ -231,8 +300,13 @@ report = {
     "today": today.isoformat(),
     "last_session_log": str(last_log.relative_to(ROOT)) if last_log else None,
     "session_log_today": bool(todays),
+    # The key keeps its 1.14.0 name so an existing reader does not break,
+    # but the cutoff is the session's start when there is one; `cutoff` and
+    # `cutoff_source` say which of the two answered.
     "tasks_touched_since_last_log": touched,
     "tasks_touched_by_state": touched_by_state,
+    "cutoff": cutoff.isoformat() if last_log or _started else None,
+    "cutoff_source": cutoff_source,
     "wip": wip,
     "window_days": a.window,
     "date_mentions_unlinked": dates_unlinked,
@@ -245,6 +319,7 @@ else:
     print(f"  last session log : {report['last_session_log'] or 'none yet'}")
     print(f"  log for today    : {'yes' if report['session_log_today'] else 'NO'}")
     print(f"  date links       : {'unknown (link-dates-to-daily-notes.py did not answer)' if dates_unlinked is None else str(dates_unlinked) + ' mention(s) unlinked'}")
+    print(f"  cutoff           : {report['cutoff'] or 'none'} ({cutoff_source})")
     print(f"  tasks touched    : {len(touched)}"
           + (" (" + ", ".join(f"{s} {n}" for s, n in touched_by_state.items() if n) + ")" if touched else ""))
     for t in touched:
@@ -262,9 +337,7 @@ else:
 # still parse, and that is exactly what makes a silent version drift
 # dangerous.
 RECEIPT_SCHEMA = 1
-VALIDATOR_VERSION = "checkpoint.py/2026-09-14"
-MACHINE = ROOT / ".icor-for-life" / "scripts"
-RECEIPTS = MACHINE / "receipts"
+VALIDATOR_VERSION = "checkpoint.py/2026-09-16"
 
 
 def sha256_of(path: Path) -> str:

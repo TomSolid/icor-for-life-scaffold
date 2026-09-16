@@ -3639,6 +3639,149 @@ else:
                      "flag worked" % _typo.returncode)
 
 
+# ---- BEGIN mack b8 ----
+# ===========================================================================
+# 89-95. BRIAN CARROLL ROUND TWO, the code half (B2-2, B2-3, B2-4, B2-6,
+#        B2-8). Own block, own edges, beside Silas's and for the same
+#        reason: two people editing the middle of this file at once is a
+#        rebase nobody needs.
+#
+# Every case here was watched RED on ea663ac before its fix landed. Which
+# red, per case, is named in the comment above it.
+with tempfile.TemporaryDirectory() as _mktd:
+    _mk = Path(_mktd)
+    import datetime as _mkdt
+    try:
+        import zoneinfo as _mkzi
+    except ImportError:                                   # pragma: no cover
+        _mkzi = None
+
+    # -----------------------------------------------------------------
+    # 89. THE CHECKPOINT CUTOFF IS THE SESSION, NOT THE LOG (B2-2).
+    #
+    # WS-1005 runs the report BEFORE it writes the session log, so at report
+    # time the newest log is the PREVIOUS session's and the cutoff taken
+    # from its name is hours too early or a whole session too late
+    # depending on which way round you read it. Brian reproduced both ends:
+    # a task closed after the session started but before the log was
+    # written vanished from the session that shipped it, and a task filed
+    # after the log was still listed by the NEXT session.
+    #
+    # The cutoff is `started` from .icor-for-life/scripts/session.json now,
+    # with the log name as the fallback for a runtime with no session start
+    # hook. Two traps this case exists to pin:
+    #   - Python 3.9's fromisoformat rejects the trailing Z that
+    #     session-start.py writes, so the parse is done by hand.
+    #   - `started` is UTC-aware and mtime() is naive local, so the compare
+    #     is made aware on both sides.
+    # The zones are pinned rather than inherited: run in UTC, a naive-local
+    # compare and an aware one agree, and the case would prove nothing.
+    # America/Chicago is Brian's. Asia/Tokyo is east of UTC and has no DST,
+    # so it catches a sign error the western zone hides.
+    if _mkzi is None:
+        skip("checkpoint-cutoff", "zoneinfo is not importable under this python3")
+    else:
+        _S = _mkdt.datetime(2026, 9, 15, 12, 0, tzinfo=_mkdt.timezone.utc)
+        _LOG_AT = _S + _mkdt.timedelta(hours=3)      # the log's own minute
+        _CLOSED_AT = _S + _mkdt.timedelta(hours=1)   # closed after start, before the log
+        _S2 = _S + _mkdt.timedelta(hours=6)          # the next session starts
+        _FILED_AT = _S + _mkdt.timedelta(hours=4)    # filed after the log, before it
+
+        def _mk_touch(p, when):
+            ts = when.timestamp()
+            os.utime(p, (ts, ts))
+
+        def _mk_started(v, when):
+            (v / ".icor-for-life/scripts").mkdir(parents=True, exist_ok=True)
+            (v / ".icor-for-life/scripts/session.json").write_text(json.dumps({
+                "schema": 1, "session_id": "red-test",
+                "started": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "id_source": "red test",
+            }, indent=2) + "\n", encoding="utf-8")
+
+        def _mk_listed(v, zone):
+            r = subprocess.run([PY, str(v / "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py"),
+                                str(v), "--json"],
+                               capture_output=True, text=True,
+                               env={**os.environ, "TZ": zone})
+            if r.returncode != 0:
+                return None, r
+            try:
+                rep = json.loads(r.stdout)
+            except ValueError:
+                return None, r
+            return {e["file"] for e in rep["tasks_touched_since_last_log"]}, r
+
+        for _zone in ("America/Chicago", "Asia/Tokyo"):
+            _tz = _mkzi.ZoneInfo(_zone)
+            _v = fixture_vault(_mk, "cutoff-" + _zone.replace("/", "-"))
+            _tasks = _v / "06 AI Team/AI Team Knowledge/Tasks"
+            # Everything the scaffold already ships is pushed well behind the
+            # window, so the two files this case plants are the only ones
+            # whose timing is in question.
+            for _old in _tasks.rglob("*.md"):
+                _mk_touch(_old, _S - _mkdt.timedelta(days=10))
+            # The session log, named for its LOCAL minute in the pinned zone
+            # (GL-1004), which is the whole point: its name and the UTC
+            # `started` are two different clocks.
+            _loc = _LOG_AT.astimezone(_tz)
+            _ldir = _v / ("06 AI Team/AI Team Knowledge/Session Logs/%04d/%02d"
+                          % (_loc.year, _loc.month))
+            _ldir.mkdir(parents=True, exist_ok=True)
+            _lf = _ldir / (_loc.strftime("%Y-%m-%d-%H-%M") + "_mack_cutoff.md")
+            _lf.write_text("# log\n", encoding="utf-8")
+            _mk_touch(_lf, _LOG_AT)
+
+            # a. closed after the session started, before the log was written
+            _done = _tasks / "done/2026/09"
+            _done.mkdir(parents=True, exist_ok=True)
+            _closed = _done / "2026-09-15-closed-before-the-log.md"
+            _closed.write_text("---\ntype: task\nstatus: done\n---\n\n# closed\n",
+                               encoding="utf-8")
+            _mk_touch(_closed, _CLOSED_AT)
+            _mk_started(_v, _S)
+            checks += 1
+            _seen, _r = _mk_listed(_v, _zone)
+            if _seen is None:
+                fails.append("checkpoint-cutoff/closed-before-the-log (%s): "
+                             "checkpoint exited %d or printed no JSON: %s"
+                             % (_zone, _r.returncode,
+                                (_r.stderr or _r.stdout or "").strip()[:300]))
+            elif _closed.name not in _seen:
+                fails.append("checkpoint-cutoff/closed-before-the-log (%s): a "
+                             "task closed an hour after this session started "
+                             "and two hours before the log was written is not "
+                             "listed. The cutoff came from the log's name, so "
+                             "the session that shipped the task cannot see it "
+                             "(Brian Carroll, B2-2). listed: %s"
+                             % (_zone, sorted(_seen)))
+
+            # b. filed after the log, read by the NEXT session
+            _open = _tasks / "open"
+            _open.mkdir(parents=True, exist_ok=True)
+            _filed = _open / "2026-09-15-filed-after-the-log.md"
+            _filed.write_text("---\ntype: task\nstatus: open\n---\n\n# filed\n",
+                              encoding="utf-8")
+            _mk_touch(_filed, _FILED_AT)
+            _mk_started(_v, _S2)
+            checks += 1
+            _seen2, _r2 = _mk_listed(_v, _zone)
+            if _seen2 is None:
+                fails.append("checkpoint-cutoff/filed-after-the-log (%s): "
+                             "checkpoint exited %d or printed no JSON: %s"
+                             % (_zone, _r2.returncode,
+                                (_r2.stderr or _r2.stdout or "").strip()[:300]))
+            elif _filed.name in _seen2:
+                fails.append("checkpoint-cutoff/filed-after-the-log (%s): a task "
+                             "filed during the PREVIOUS session, after its log "
+                             "was written, is listed as touched by this one. "
+                             "The cutoff is this session's start, not the last "
+                             "log's name (Brian Carroll, B2-2). listed: %s"
+                             % (_zone, sorted(_seen2)))
+# ===========================================================================
+# ---- END mack b8 ----
+
+
 # ---- BEGIN silas b8 ----
 # ===========================================================================
 # 87-88. THE TWO SCHEMA RULINGS OF 1.27.0 (Brian Carroll round two).
