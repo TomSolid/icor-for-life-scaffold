@@ -226,11 +226,20 @@ def bring_obsidian_config(v):
 # and exit 1 on a suite whose whole job is to be trustworthy when it fires.
 #
 # The machinery still comes from ROOT, because the machinery IS what is under
-# test: 06 AI Team/, .obsidian/, the root entry files, 05 Assets/. What does
-# NOT come along is the member's own writing. The four content rooms are
-# rebuilt empty from validate-scaffold.py's own REQUIRED list, and every note
-# a case needs is then seeded here, from Templates/, so the counts a case
-# asserts are counts this file put there.
+# test: 06 AI Team/, .obsidian/, the root entry files. What does NOT come
+# along is the member's own writing. The four content rooms are rebuilt empty
+# from validate-scaffold.py's own REQUIRED list, and every note a case needs
+# is then seeded here, from Templates/, so the counts a case asserts are
+# counts this file put there.
+#
+# `05 Assets/` used to be on that list of machinery. It is not machinery, it
+# is the member's binaries, and naming it here made a straight copy of it
+# look deliberate (Brian Carroll, B2-5). Nothing in this suite reads a member
+# asset: the capture cases write their own. Tom's vault is 174 GB of assets
+# and 111 GB of 03 WiP, this file copies ROOT thirty times into ONE temporary
+# directory that is not cleaned between cases, and the peak is about ten
+# terabytes. A member with a large vault cannot run the suite at all, which
+# means the guards cannot run either.
 import ast as _ast
 
 _VS_SRC = (HERE / "validate-scaffold.py").read_text(encoding="utf-8")
@@ -239,10 +248,42 @@ REQUIRED_FOLDERS = _ast.literal_eval(_m.group(1)) if _m else []
 CONTENT_ROOMS = ("04 Inner World", "00 Daily Scratchpad", "01 Inbox", "03 WiP")
 
 
+# The rooms whose FILES never reach a fixture. The FOLDERS do: validate-
+# scaffold.py's REQUIRED list names 05 Assets/Images, /Audio and /Documents,
+# so a copy that skipped the room whole would fail every validate case for a
+# reason that has nothing to do with the guard under test.
+HEAVY_ROOMS = ("05 Assets", "03 WiP", "07 Databases")
+_ROOT_RES = ROOT.resolve()
+
+
+def fixture_ignore(*names):
+    """`copytree(ignore=...)` that keeps the skeleton and drops the bulk.
+
+    `names` are the exact entry names the call already dropped (".git",
+    ".obsidian", "__pycache__"), kept so every existing fixture keeps the
+    shape its case was written against. The addition is HEAVY_ROOMS: inside
+    one of those rooms every FILE is dropped and every directory is kept.
+    """
+    drop = set(names)
+
+    def _ignore(src, entries):
+        out = {n for n in entries if n in drop}
+        src_p = Path(src)
+        try:
+            rel = src_p.resolve().relative_to(_ROOT_RES)
+        except ValueError:
+            return out
+        if rel.parts and rel.parts[0] in HEAVY_ROOMS:
+            out |= {n for n in entries if (src_p / n).is_file()}
+        return out
+
+    return _ignore
+
+
 def fixture_vault(tmp, name):
     """A scaffold with the member's own notes left behind."""
     v = tmp / name
-    shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+    shutil.copytree(ROOT, v, ignore=fixture_ignore(".git", "__pycache__"))
     for room in CONTENT_ROOMS:
         shutil.rmtree(v / room, ignore_errors=True)
     for rel in REQUIRED_FOLDERS:
@@ -273,7 +314,7 @@ with tempfile.TemporaryDirectory() as td:
     tmp = Path(td)
     # Portable entry chain: check the exact intended failure, not an unrelated red.
     entry_fixture = tmp / "entry-chain"
-    shutil.copytree(ROOT, entry_fixture, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, entry_fixture, ignore=fixture_ignore(".git"))
     originals = {name: (entry_fixture / name).read_text() for name in
                  ("AGENTS.md", "CLAUDE.md", "AGENT.md", "ADAPTER-PROMPT.md")}
     for name, replacement, expected in (
@@ -297,14 +338,14 @@ with tempfile.TemporaryDirectory() as td:
     expect_fail("validate-scaffold/empty-root", [str(HERE / "validate-scaffold.py"), str(tmp)])
     # 2. validate-scaffold must reject an ICOR stage folder name
     bad = tmp / "bad-scaffold"
-    shutil.copytree(ROOT, bad, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad, ignore=fixture_ignore(".obsidian"))
     (bad / "Control").mkdir()
     expect_fail("validate-scaffold/stage-name", [str(HERE / "validate-scaffold.py"), str(bad)])
     # 1b. checkpoint --assert-logged must refuse a vault with no session log
     #     for today, and must say so as a FAIL line rather than a traceback.
     #     A copy of ROOT with today's logs removed is the bad vault.
     nolog = tmp / "no-log-today"
-    shutil.copytree(ROOT, nolog, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, nolog, ignore=fixture_ignore(".obsidian"))
     # Every checkpoint case on this fixture (1b to 1e) is about the LOG-NAME
     # cutoff, which is the fallback since 2026-09-16: the cutoff is this
     # session's `started` when there is a session.json and the log's name
@@ -376,7 +417,7 @@ with tempfile.TemporaryDirectory() as td:
     # 1c3. validate-scaffold must refuse a vault without the two standing
     #      trees, the same way it refuses one without `03 WiP/_archive`.
     notree = tmp / "no-standing-tree"
-    shutil.copytree(ROOT, notree, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, notree, ignore=fixture_ignore(".obsidian"))
     shutil.rmtree(notree / "03 WiP" / "Projects")
     expect_fail("validate-scaffold/missing-standing-tree", [str(HERE / "validate-scaffold.py"), str(notree)])
     # 1d. checkpoint must see a task that already shipped. A task closed
@@ -439,7 +480,7 @@ with tempfile.TemporaryDirectory() as td:
 
     # 2b. validate-scaffold must reject an agent folder without its bio
     bad2 = tmp / "bad-scaffold-2"
-    shutil.copytree(ROOT, bad2, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad2, ignore=fixture_ignore(".obsidian"))
     (bad2 / "06 AI Team/Agents/Penn/Penn.md").unlink()
     expect_fail("validate-scaffold/missing-agent-bio", [str(HERE / "validate-scaffold.py"), str(bad2)])
     # 2i-2l. validate-scaffold check 6 (file-tree styling) must READ a rule
@@ -465,7 +506,7 @@ with tempfile.TemporaryDirectory() as td:
            ""])
     def styled_vault(name, css=theme_css, rogue=True):
         v = tmp / name
-        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        shutil.copytree(ROOT, v, ignore=fixture_ignore(".obsidian"))
         bring_obsidian_config(v)
         if css is not None:
             th = v / ".obsidian/themes/ICOR for Life - INKLINE"
@@ -529,7 +570,7 @@ with tempfile.TemporaryDirectory() as td:
     #     traceback.
     def agent_copy(name, agent, edit):
         c = tmp / name
-        shutil.copytree(ROOT, c, ignore=shutil.ignore_patterns(".obsidian"))
+        shutil.copytree(ROOT, c, ignore=fixture_ignore(".obsidian"))
         p = c / "06 AI Team/Agents" / agent / "AGENT.md"
         p.write_text(edit(p.read_text(encoding="utf-8")), encoding="utf-8")
         return c
@@ -551,7 +592,7 @@ with tempfile.TemporaryDirectory() as td:
     #     the file on disk must be byte-identical afterwards (a refusal that
     #     wrote anyway would be the worst of both).
     b_conflict = tmp / "bad-agent-id-conflict"
-    shutil.copytree(ROOT, b_conflict, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, b_conflict, ignore=fixture_ignore(".obsidian"))
     conflict_map = tmp / "conflict-map.json"
     conflict_map.write_text('{"Penn": "11111111-1111-4111-8111-111111111111"}')
     penn_c = b_conflict / "06 AI Team/Agents/Penn/AGENT.md"
@@ -978,13 +1019,13 @@ with tempfile.TemporaryDirectory() as td:
                  "--command", "npx", "--url", "https://example.com/mcp"])
     # 19. validate-scaffold must reject a project without a goal link
     bad3 = tmp / "bad-scaffold-3"
-    shutil.copytree(ROOT, bad3, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad3, ignore=fixture_ignore(".obsidian"))
     (bad3 / "04 Inner World/My Life/Projects/rogue.md").write_text(
         "---\ntype: project\nstatus: active\n---\n# Rogue\n")
     expect_fail("validate-scaffold/project-without-goal", [str(HERE / "validate-scaffold.py"), str(bad3)])
     # 20. validate-scaffold must reject a goal with a foreign status
     bad4 = tmp / "bad-scaffold-4"
-    shutil.copytree(ROOT, bad4, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad4, ignore=fixture_ignore(".obsidian"))
     (bad4 / "04 Inner World/My Life/Goals/rogue-goal.md").write_text(
         "---\ntype: goal\nstatus: someday\n---\n# Rogue goal\n")
     expect_fail("validate-scaffold/goal-bad-status", [str(HERE / "validate-scaffold.py"), str(bad4)])
@@ -995,7 +1036,7 @@ with tempfile.TemporaryDirectory() as td:
     #     passes so the reds are about the note and not the folder.
     def note_vault(name, front):
         v = tmp / name
-        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        shutil.copytree(ROOT, v, ignore=fixture_ignore(".obsidian"))
         bring_obsidian_config(v)
         (v / "04 Inner World/Notes/probe-note.md").write_text(f"---\n{front}---\n# Probe\n")
         return v
@@ -1028,7 +1069,7 @@ with tempfile.TemporaryDirectory() as td:
     #     setting. Control: the shipped file passes.
     def daily_vault(name, cfg):
         v = tmp / name
-        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".obsidian"))
+        shutil.copytree(ROOT, v, ignore=fixture_ignore(".obsidian"))
         bring_obsidian_config(v)
         (v / ".obsidian/daily-notes.json").write_text(_json.dumps(cfg))
         return v
@@ -1062,7 +1103,7 @@ with tempfile.TemporaryDirectory() as td:
                 [str(HERE / "new-base.py"), "person"])
     # 23. new-base must refuse a registry column GL-1002 does not declare
     bad5 = tmp / "bad-scaffold-5"
-    shutil.copytree(ROOT, bad5, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad5, ignore=fixture_ignore(".obsidian"))
     gl = bad5 / "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md"
     gl.write_text(gl.read_text().replace(", last_contact, next_action |", " |"))
     (bad5 / "04 Inner World/Contacts/People/People.base").unlink()
@@ -1070,14 +1111,14 @@ with tempfile.TemporaryDirectory() as td:
                 [str(HERE / "new-base.py"), "person", "--root", str(bad5)])
     # 24. check-bases must reject a .base that is not valid YAML
     bad6 = tmp / "bad-scaffold-6"
-    shutil.copytree(ROOT, bad6, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad6, ignore=fixture_ignore(".obsidian"))
     (bad6 / "04 Inner World/Notes/Documents.base").write_text(
         "views:\n  - type: table\n   bad indent: [unclosed\n")
     expect_fail("check-bases/invalid-yaml",
                 [str(HERE / "check-bases.py"), str(bad6)])
     # 25. check-bases must reject a column GL-1002 does not declare
     bad7 = tmp / "bad-scaffold-7"
-    shutil.copytree(ROOT, bad7, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad7, ignore=fixture_ignore(".obsidian"))
     pb = bad7 / "04 Inner World/Contacts/People/People.base"
     pb.write_text(pb.read_text().replace(
         "  note.role:\n    displayName: Role",
@@ -1087,14 +1128,14 @@ with tempfile.TemporaryDirectory() as td:
     # 26. check-bases must reject two bases claiming one collection
     #     (the exact defect found live in a sibling vault)
     bad8 = tmp / "bad-scaffold-8"
-    shutil.copytree(ROOT, bad8, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad8, ignore=fixture_ignore(".obsidian"))
     src_base = (bad8 / "04 Inner World/Contacts/People/People.base").read_text()
     (bad8 / "04 Inner World/Contacts/People 2.base").write_text(src_base)
     expect_fail("check-bases/duplicate-collection",
                 [str(HERE / "check-bases.py"), str(bad8)])
     # 27. check-bases must reject a base with no views
     bad9 = tmp / "bad-scaffold-9"
-    shutil.copytree(ROOT, bad9, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad9, ignore=fixture_ignore(".obsidian"))
     (bad9 / "04 Inner World/Notes/Documents.base").write_text(
         "filters:\n  and:\n    - file.ext == \"md\"\n")
     expect_fail("check-bases/no-views",
@@ -1106,7 +1147,7 @@ with tempfile.TemporaryDirectory() as td:
     #     control that the shipped two-base folder passes, or the reds
     #     are about the folder and prove nothing about the type.
     bad10 = tmp / "bad-scaffold-10"
-    shutil.copytree(ROOT, bad10, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad10, ignore=fixture_ignore(".obsidian"))
     nb = bad10 / "04 Inner World/Notes/Notes.base"
     (nb.parent / "Notes 2.base").write_text(nb.read_text())
     r = expect_fail("check-bases/duplicate-type-in-folder",
@@ -1115,7 +1156,7 @@ with tempfile.TemporaryDirectory() as td:
     if r.returncode != 0 and "(type note)" not in (r.stderr or ""):
         fails.append("check-bases/duplicate-type-in-folder: went red, but not for the duplicated type")
     bad11 = tmp / "bad-scaffold-11"
-    shutil.copytree(ROOT, bad11, ignore=shutil.ignore_patterns(".obsidian"))
+    shutil.copytree(ROOT, bad11, ignore=fixture_ignore(".obsidian"))
     (bad11 / "04 Inner World/Notes/All.base").write_text(
         'filters:\n  and:\n    - file.inFolder("04 Inner World/Notes")\n'
         '    - file.ext == "md"\nviews:\n  - type: table\n    name: All\n')
@@ -1552,16 +1593,16 @@ with tempfile.TemporaryDirectory() as td:
     #     points at the folder and types.json calls every list a list.
     vs = HERE / "validate-scaffold.py"
     tpl_bad = tmp / "templates-elsewhere"
-    shutil.copytree(ROOT, tpl_bad, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, tpl_bad, ignore=fixture_ignore(".git"))
     (tpl_bad / ".obsidian/templates.json").write_text('{"folder": "03 WiP"}\n')
     expect_fail("validate-scaffold/templates-json-elsewhere", [str(vs), str(tpl_bad)])
     tpl_gone = tmp / "template-missing"
-    shutil.copytree(ROOT, tpl_gone, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, tpl_gone, ignore=fixture_ignore(".git"))
     (tpl_gone / "06 AI Team/AI Team Knowledge/Templates/note.md").unlink()
     expect_fail("validate-scaffold/template-named-by-gl1002-missing", [str(vs), str(tpl_gone)])
     def types_vault(name, **edits):
         v = tmp / name
-        shutil.copytree(ROOT, v, ignore=shutil.ignore_patterns(".git"))
+        shutil.copytree(ROOT, v, ignore=fixture_ignore(".git"))
         path = v / ".obsidian/types.json"
         cfg = _json.loads(path.read_text(encoding="utf-8"))
         cfg["types"].update(edits)
@@ -1587,7 +1628,7 @@ with tempfile.TemporaryDirectory() as td:
     expect_fail("validate-scaffold/types-json-aliases-as-multitext",
                 [str(vs), str(types_vault("types-aliases", aliases="multitext"))])
     ty_gone = tmp / "types-missing"
-    shutil.copytree(ROOT, ty_gone, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, ty_gone, ignore=fixture_ignore(".git"))
     (ty_gone / ".obsidian/types.json").unlink()
     expect_fail("validate-scaffold/types-json-missing", [str(vs), str(ty_gone)])
 
@@ -1605,12 +1646,12 @@ with tempfile.TemporaryDirectory() as td:
         fails.append("link-dates-to-daily-notes/fixture-suite: " + (r.stderr or "").strip())
     expect_fail("link-dates-to-daily-notes/suite-can-go-red", [str(suite), "--break-me"])
     no_cfg = tmp / "dates-no-config"
-    shutil.copytree(ROOT, no_cfg, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, no_cfg, ignore=fixture_ignore(".git"))
     (no_cfg / ".obsidian/daily-notes.json").unlink()
     expect_refusal("link-dates-to-daily-notes/fix-without-daily-notes-json",
                    [str(linker), str(no_cfg), "--fix"])
     bad_fmt = tmp / "dates-bad-format"
-    shutil.copytree(ROOT, bad_fmt, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, bad_fmt, ignore=fixture_ignore(".git"))
     (bad_fmt / ".obsidian/daily-notes.json").write_text(
         '{"folder": "00 Daily Scratchpad", "format": "DD-MM-YYYY"}\n', encoding="utf-8")
     expect_refusal("link-dates-to-daily-notes/format-cannot-back-the-link",
@@ -2151,7 +2192,7 @@ with tempfile.TemporaryDirectory() as td:
     # scripts and name the session.
     checks += 1
     ss = tmp / "session-start-vault"
-    shutil.copytree(ROOT, ss, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, ss, ignore=fixture_ignore(".git"))
     env = dict(_o.environ)
     env["CLAUDE_PROJECT_DIR"] = str(ss)
     env.pop("ICOR_SESSION_ID", None)
@@ -2186,7 +2227,7 @@ with tempfile.TemporaryDirectory() as td:
     #     id. Run it with NO payload, which is exactly the hooks-off shape.
     checks += 1
     ss2 = tmp / "session-start-noid"
-    shutil.copytree(ROOT, ss2, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, ss2, ignore=fixture_ignore(".git"))
     env = dict(_o.environ)
     env["CLAUDE_PROJECT_DIR"] = str(ss2)
     env.pop("ICOR_SESSION_ID", None)
@@ -2258,7 +2299,7 @@ with tempfile.TemporaryDirectory() as td:
         #      ritual says "not run" rather than listing goals from memory.
         checks += 1
         _lsv = tmp / "life-snapshot-missing"
-        shutil.copytree(ROOT, _lsv, ignore=shutil.ignore_patterns(".git"))
+        shutil.copytree(ROOT, _lsv, ignore=fixture_ignore(".git"))
         _lssnap = _lsv / ".icor-for-life/scripts/snapshot.json"
         if _lssnap.is_file():
             _lssnap.unlink()
@@ -2338,7 +2379,7 @@ with tempfile.TemporaryDirectory() as td:
     #     morning log closed an afternoon session that wrote nothing.
     CP = HERE / "checkpoint.py"
     rv = tmp / "receipt-vault"
-    shutil.copytree(ROOT, rv, ignore=shutil.ignore_patterns(".git"))
+    shutil.copytree(ROOT, rv, ignore=fixture_ignore(".git"))
     mach = rv / ".icor-for-life/scripts"
     mach.mkdir(parents=True, exist_ok=True)
     for stale in (mach / "receipts").glob("*.json") if (mach / "receipts").is_dir() else []:
@@ -2609,6 +2650,65 @@ with tempfile.TemporaryDirectory() as td:
 
 
 
+
+    # -----------------------------------------------------------------
+    # 86b. NO MEMBER ASSET REACHED A FIXTURE (Brian Carroll, B2-5).
+    #
+    # Runs last inside this temporary directory, on purpose: it looks at
+    # what the thirty ROOT copies above actually produced rather than at
+    # what fixture_ignore() promises. The check is by PATH, against the
+    # files ROOT really holds under HEAVY_ROOMS, so a file a case wrote
+    # itself (capture_vault writes its own binaries) is not confused with
+    # one that was copied in.
+    #
+    # WHAT THIS DOES NOT PROVE: that the suite is fast. It proves the bulk
+    # is not being carried. On the scaffold repo the two numbers are the
+    # same handful of megabytes either way; on a member's vault they are
+    # 285 GB per copy.
+    _heavy_root = sorted(
+        q.relative_to(ROOT).as_posix()
+        for room in HEAVY_ROOMS if (ROOT / room).is_dir()
+        for q in (ROOT / room).rglob("*") if q.is_file())
+    checks += 1
+    if not _heavy_root:
+        fails.append("fixture-assets/none-copied: ROOT holds no file under %s, "
+                     "so this case has nothing to detect and cannot fail. "
+                     "Either the rooms moved or the repo lost its examples."
+                     % ", ".join(HEAVY_ROOMS))
+    else:
+        # The six `manifest-*` fixtures are `git clone`s, not copies: the
+        # manifest hashes every TRACKED file and the clone has to carry the
+        # tracked tree or the clean control fails on a good tree. They also
+        # only exist where ROOT is a git repo, which a member's vault is
+        # not, so they are skipped there anyway (git_skip_reason).
+        _carried = []
+        for _fx in sorted(tmp.iterdir()):
+            if not _fx.is_dir() or _fx.name.startswith("manifest-"):
+                continue
+            for _rel in _heavy_root:
+                if (_fx / _rel).is_file():
+                    _carried.append("%s/%s" % (_fx.name, _rel))
+        if _carried:
+            fails.append("fixture-assets/none-copied: %d of ROOT's own files "
+                         "under %s were copied into a fixture. Nothing in this "
+                         "suite reads a member asset, and a vault with a real "
+                         "05 Assets/ cannot run the suite at all (Brian "
+                         "Carroll, B2-5). First few: %s"
+                         % (len(_carried), ", ".join(HEAVY_ROOMS),
+                            ", ".join(_carried[:6])))
+        # and the skeleton survived: validate-scaffold.py REQUIRES these.
+        checks += 1
+        _missing = [d for d in ("05 Assets/Images", "05 Assets/Audio",
+                                "05 Assets/Documents", "03 WiP/_archive",
+                                "03 WiP/Workstreams", "03 WiP/Projects",
+                                "07 Databases")
+                    if not (nolog / d).is_dir()]
+        if _missing:
+            fails.append("fixture-assets/skeleton-survives: the ignore callable "
+                         "dropped %s from a fixture. The FILES go, the FOLDERS "
+                         "stay: validate-scaffold.py's REQUIRED list names them "
+                         "and every validate case would go red for the wrong "
+                         "reason." % ", ".join(_missing))
 # ===========================================================================
 # 84. THE SUITE MUST SURVIVE ITS OWN RELEASE (pilot A finding F6, pilot B F4).
 #
