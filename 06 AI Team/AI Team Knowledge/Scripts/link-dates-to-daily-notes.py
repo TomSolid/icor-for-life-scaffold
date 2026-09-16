@@ -62,10 +62,11 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 # noteio.py sits beside this script and is loaded by path, not by name, so
-# the import needs nothing on sys.path: PYTHONSAFEPATH=1 deliberately drops
-# the script's own folder from it. A missing noteio.py is a half-upgraded
-# Scripts/ folder and says so in one line, because a traceback out of an
-# import teaches the member nothing about what to do next.
+# the import needs nothing on sys.path, which is what lets this script run
+# under the `-I -B -X utf8` the rendered hooks carry, with its own folder
+# dropped from sys.path. A missing noteio.py is a half-upgraded Scripts/
+# folder and says so in one line, because a traceback out of an import
+# teaches the member nothing about what to do next.
 _nio_path = Path(__file__).resolve().parent / "noteio.py"
 if not _nio_path.is_file():
     raise SystemExit("FAIL noteio.py is missing from %s. Scripts/ is half "
