@@ -44,6 +44,17 @@ import sys
 import time
 from pathlib import Path
 
+# NO BYTECODE IN THE TREE WE ARE POINTED AT. This script importlib-loads a
+# sibling out of Scripts/, and stock CPython then writes
+# Scripts/__pycache__/<sibling>.cpython-3NN.pyc beside it, which is INSIDE the
+# vault or the repo it was asked to read. A script that writes into the thing
+# it measures is a script whose measurement nobody can trust, and the write is
+# invisible under macOS's /usr/bin/python3, which redirects bytecode to its own
+# cache (Conrad Froehling, 2026-09-16). PYTHONDONTWRITEBYTECODE is read at
+# interpreter STARTUP, so only this assignment reaches a process already
+# running.
+sys.dont_write_bytecode = True
+
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parents[2]
 
@@ -1183,8 +1194,19 @@ def main():
                 sys.exit("FAIL %s is a symlink; nothing was written" % dest)
             if tmp.is_symlink() or tmp.exists():
                 tmp.unlink()
+            # os.O_NOFOLLOW DOES NOT EXIST ON WINDOWS, and naming it unguarded
+            # raised AttributeError before a byte was written: every Windows
+            # session start lost its snapshot (Conrad Froehling, 2026-09-16).
+            # Where the flag is missing it contributes 0, and the protection it
+            # stands for is still there: `dest.is_symlink()` and the
+            # `tmp.is_symlink()` unlink above both refuse a planted link before
+            # this line runs, and O_EXCL refuses to open anything that already
+            # exists, symlink included. What is lost with the flag is only the
+            # atomicity of that refusal, on the platform that has no symlinks
+            # to plant in the first place without the same privilege this whole
+            # report is about.
             fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL
-                         | os.O_NOFOLLOW, 0o644)
+                         | getattr(os, "O_NOFOLLOW", 0), 0o644)
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write(payload + "\n")
             os.replace(tmp, dest)
