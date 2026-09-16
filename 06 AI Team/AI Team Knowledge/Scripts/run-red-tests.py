@@ -4009,6 +4009,174 @@ with tempfile.TemporaryDirectory() as _mktd:
                          "clean, so 92b above proves nothing:\n%s"
                          % (_cr.stderr or _cr.stdout or "").strip()[-300:])
 
+
+    # -----------------------------------------------------------------
+    # 93-95. THE THREE FIXES OF 1.24.0 THAT SHIPPED WITHOUT A RED TEST
+    #        (B2-4). Brian went looking for the cases behind three
+    #        changelog lines and found none of them:
+    #
+    #   T16-19  every stamp case passed `--summary x` and only a substring
+    #           check looked at the result; nothing ever parsed the YAML
+    #           back, which is the only thing the fix was about.
+    #   T16-13  no case called `new-task.py move` at all.
+    #   T16-10  the clean control filled `note_type`, the ONE field in
+    #           note.md that was already bare, so it passed unchanged on the
+    #           old code. The defect was the defaulted and commented fields.
+    #
+    # A fix with no case is a claim. These three were watched red against
+    # the 1.23.1 scripts before they landed here.
+
+    # 93. A STAMP SUMMARY WITH YAML METACHARACTERS PARSES BACK (T16-19).
+    _sv = fixture_vault(_mk, "stamp-yaml")
+    _sn = _sv / "00 Daily Scratchpad/2026/09/2026-09-16.md"
+    _sn.parent.mkdir(parents=True, exist_ok=True)
+    _sn.write_text("---\ntype: scratchpad\ndate: 2026-09-16\n---\n\nnotes\n",
+                   encoding="utf-8")
+    _SUMMARY = 'Said "no": path C:\\Users\\tom, ratio 3:1'
+    _INTO = '[[Notes/A "quoted" note]]'
+    checks += 1
+    _sr = subprocess.run([PY, str(_sv / "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py"),
+                          str(_sn), "--summary", _SUMMARY, "--into", _INTO],
+                         capture_output=True, text=True)
+    if _sr.returncode != 0:
+        fails.append("stamp-yaml/metacharacters-survive: stamping exited %d: %s"
+                     % (_sr.returncode, (_sr.stderr or _sr.stdout or "").strip()[:300]))
+    else:
+        _stext = _sn.read_text(encoding="utf-8")
+        _sfm = _stext[4:_stext.index("\n---\n", 3)] if _stext.startswith("---\n") else ""
+        # Two readers. json.loads runs everywhere and proves the scalar is a
+        # correctly escaped double-quoted string, which is what the fix
+        # writes. PyYAML, where it is installed, proves the whole block is
+        # still YAML: a broken quote does not stop at its own line.
+        _sm = re.search(r'(?m)^processed_summary:\s*(.+)$', _sfm)
+        _got = None
+        if _sm:
+            try:
+                _got = json.loads(_sm.group(1).strip())
+            except ValueError:
+                _got = None
+        if _got != _SUMMARY:
+            fails.append("stamp-yaml/metacharacters-survive: processed_summary "
+                         "read back as %r, not %r. A summary carrying a quote, "
+                         "a colon or a backslash was pasted raw between two "
+                         "quotes and the script printed OK over a broken block "
+                         "(Brian Carroll, T16-19). frontmatter:\n%s"
+                         % (_got, _SUMMARY, _sfm))
+        else:
+            try:
+                import yaml as _yaml
+            except ImportError:
+                _yaml = None
+            if _yaml is None:
+                skip("stamp-yaml/pyyaml-agrees",
+                     "PyYAML is not installed under this python3; the scalar is "
+                     "still checked with json.loads, which is the same grammar")
+            else:
+                checks += 1
+                try:
+                    _doc = _yaml.safe_load(_sfm)
+                except Exception as _e:                       # noqa: BLE001
+                    _doc = None
+                    fails.append("stamp-yaml/pyyaml-agrees: the stamped "
+                                 "frontmatter is not YAML any more (%s):\n%s"
+                                 % (_e, _sfm))
+                if isinstance(_doc, dict):
+                    if _doc.get("processed_summary") != _SUMMARY:
+                        fails.append("stamp-yaml/pyyaml-agrees: PyYAML read "
+                                     "processed_summary as %r, not %r"
+                                     % (_doc.get("processed_summary"), _SUMMARY))
+                    if _doc.get("processed_into") != [_INTO]:
+                        fails.append("stamp-yaml/pyyaml-agrees: PyYAML read "
+                                     "processed_into as %r, not %r"
+                                     % (_doc.get("processed_into"), [_INTO]))
+
+    # 94. `new-task.py move --to open` (T16-13). The argument parser used to
+    #     list every state but `open`, so a task parked out of in-progress
+    #     had no way back and the member moved the file by hand.
+    _tv = fixture_vault(_mk, "task-move-open")
+    _tdone = _tv / "06 AI Team/AI Team Knowledge/Tasks/done/2026/09"
+    _tdone.mkdir(parents=True, exist_ok=True)
+    _tfile = _tdone / "2026-09-16-000-parked-probe.md"
+    _tfile.write_text("---\ntype: task\nstatus: done\nassignee: Mack\n"
+                      "created: 2026-09-16\nrelated: []\n---\n\n# parked probe\n",
+                      encoding="utf-8")
+    checks += 1
+    _tr = subprocess.run([PY, str(_tv / "06 AI Team/AI Team Knowledge/Scripts/new-task.py"),
+                          "move", str(_tfile), "--to", "open"],
+                         capture_output=True, text=True)
+    _landed = _tv / "06 AI Team/AI Team Knowledge/Tasks/open/2026-09-16-000-parked-probe.md"
+    if _tr.returncode != 0:
+        fails.append("new-task/move-to-open: exit %d. `move --to open` is how a "
+                     "task comes back out of in-progress when the work is "
+                     "parked (Brian Carroll, T16-13): %s"
+                     % (_tr.returncode, (_tr.stderr or _tr.stdout or "").strip()[:300]))
+    elif not _landed.is_file():
+        fails.append("new-task/move-to-open: the command reported success and "
+                     "no file arrived at Tasks/open/%s" % _tfile.name)
+    elif _tfile.is_file():
+        fails.append("new-task/move-to-open: the task is in open/ AND still in "
+                     "done/; a move is not a copy")
+    elif "status: open" not in _landed.read_text(encoding="utf-8"):
+        fails.append("new-task/move-to-open: the file moved to open/ still "
+                     "carries its old status:\n%s"
+                     % _landed.read_text(encoding="utf-8")[:200])
+
+    # 95. `--set` REACHES A DEFAULTED AND A COMMENTED FIELD, AND THE
+    #     note_type PRUNE RUNS (T16-10 / T15-B). Three assertions on one
+    #     note, because they are one change: `tags` is written as a LIST
+    #     (`tags: pkm` is a string where every reader expects a sequence),
+    #     `source_url` sits behind a trailing comment and was unreachable,
+    #     and note.md carries the union of every note_type's keys so a
+    #     reference note arrived with four meeting fields on it.
+    _nv = fixture_vault(_mk, "entity-set")
+    (_nv / "04 Inner World/My Life/Topics/ZZ Probe Topic.md").write_text(
+        "---\ntype: topic\ncreated: 2026-09-16\nrelated_topics: []\ntags: []\n"
+        "---\n\n# ZZ Probe Topic\n", encoding="utf-8")
+    checks += 1
+    _nr = subprocess.run([PY, str(_nv / "06 AI Team/AI Team Knowledge/Scripts/new-entity.py"),
+                          "note", "ZZ Probe Reference", "--root", str(_nv),
+                          "--link", "[[ZZ Probe Topic]]",
+                          "--set", "note_type=reference",
+                          "--set", "tags=pkm",
+                          "--set", "source_url=https://example.test/x"],
+                         capture_output=True, text=True)
+    _nnote = _nv / "04 Inner World/Notes/ZZ Probe Reference.md"
+    if _nr.returncode != 0:
+        fails.append("new-entity/set-reaches-defaulted-and-commented: exit %d: %s"
+                     % (_nr.returncode, (_nr.stderr or _nr.stdout or "").strip()[:300]))
+    elif not _nnote.is_file():
+        fails.append("new-entity/set-reaches-defaulted-and-commented: no note "
+                     "was written")
+    else:
+        _ntext = _nnote.read_text(encoding="utf-8")
+        if not re.search(r'(?m)^tags:\s*\["pkm"\]\s*$', _ntext):
+            fails.append("new-entity/set-reaches-defaulted-and-commented: `--set "
+                         "tags=pkm` did not land as a list. A field whose "
+                         "template default is [] is a sequence, and `tags: pkm` "
+                         "is a string every reader has to guess at (Ian "
+                         "Slattery, T15-B):\n%s" % _ntext[:400])
+        if not re.search(r'(?m)^source_url:\s*https://example\.test/x\s*$', _ntext):
+            fails.append("new-entity/set-reaches-defaulted-and-commented: "
+                         "`--set source_url=` did not fill the line. It sits "
+                         "behind a trailing `# reference only` comment, which "
+                         "the old pattern could not match, so seven of note.md's "
+                         "fields were unreachable (Brian Carroll, T16-10):\n%s"
+                         % _ntext[:400])
+        _left = [k for k in ("transcript", "transcribed_by", "ai_summary",
+                             "audio_retained", "idea_status")
+                 if re.search(r'(?m)^%s:' % k, _ntext)]
+        if _left:
+            fails.append("new-entity/set-reaches-defaulted-and-commented: a "
+                         "reference note arrived carrying %s. note.md holds the "
+                         "union of every note_type's keys and the prune must "
+                         "drop the ones that cannot mean anything here "
+                         "(GL-1002):\n%s" % (", ".join(_left), _ntext[:400]))
+        if not re.search(r'(?m)^consumed:', _ntext):
+            fails.append("new-entity/set-reaches-defaulted-and-commented: the "
+                         "prune took `consumed` off a REFERENCE note, which is "
+                         "the one note_type it belongs to. A prune that removes "
+                         "the field the note needs is worse than no prune")
+
 # ===========================================================================
 # ---- END mack b8 ----
 
