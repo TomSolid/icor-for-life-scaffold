@@ -261,7 +261,12 @@ def blob(node, out=None):
 
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+# NO sys.path.insert HERE. new-base.py is loaded BY PATH on the next four
+# lines, so nothing about this import needs Scripts/ on sys.path; the insert
+# was dead code that put Scripts/ at the FRONT of it, which is exactly the F1
+# hole every guard in this folder now closes on its first statement. A planted
+# `Scripts/json.py` would have won over the standard library from here on
+# (Vex F-F, 2026-09-16).
 import importlib.util
 _spec = importlib.util.spec_from_file_location("new_base", HERE / "new-base.py")
 new_base = importlib.util.module_from_spec(_spec)

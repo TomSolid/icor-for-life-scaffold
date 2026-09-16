@@ -33,13 +33,34 @@ WHAT THIS DOES NOT PROVE
   does not implement SessionStart, none of this happens and the prose
   ritual in AGENTS.md is the only thing left.
 """
+# THE FIRST STATEMENTS IN THIS FILE, AND THEY HAVE TO BE (Vex ruling, W7,
+# 2026-09-16). A guard is launched from Scripts/, so Python puts Scripts/ at
+# the FRONT of sys.path and a `Scripts/json.py` would then be what `import
+# json` finds, inside the guard, before it has read a byte. The rendered hook
+# passes `-I`, which drops that entry; this stanza is the belt to that brace,
+# for a guard launched some other way (by hand, by a member's own wrapper, by
+# a host whose hook config is older than this file). It has to run BEFORE the
+# first stdlib import or it is defending a door already walked through.
+#
+# `dont_write_bytecode` is here for the same reason it is in every other
+# script in this folder: a guard that drops __pycache__ into the tree it is
+# guarding changes what it measures (Conrad Froehling, 2026-09-16).
+import sys, os                                                   # noqa: E401
+sys.dont_write_bytecode = True
+# realpath on BOTH sides, because they are not spelled the same. Python 3.11
+# and newer resolve sys.path[0] (`/private/tmp/x` on macOS) while __file__ is
+# the path as typed (`/tmp/x`), and comparing the two with abspath alone
+# silently never matched: the entry stayed, and this stanza defended nothing.
+if sys.path:
+    _first = os.path.realpath(sys.path[0] or os.getcwd())
+    if _first == os.path.dirname(os.path.realpath(__file__)):
+        del sys.path[0]
+
 import datetime
 import json
-import os
 import subprocess
 import threading
 import select
-import sys
 import uuid
 from pathlib import Path
 
@@ -54,7 +75,14 @@ def run(script, *args, budget=BUDGET_S):
     if not path.is_file():
         return None, "%s is not in Scripts/" % script
     try:
-        r = subprocess.run([sys.executable, str(path), *args],
+        # THE SAME FLAGS THE HOOK GAVE US, HANDED DOWN. `-I` drops Scripts/
+        # from the child's sys.path (F1, one layer per process), `-B` keeps
+        # bytecode out of the member's tree, and `-X utf8` means a child
+        # printing an emoji does not die in cp1252 on Windows. An inherited
+        # environment variable could not do this job: PYTHONSAFEPATH is a
+        # no-op below Python 3.11 and none of the three survives `-I` anyway.
+        r = subprocess.run([sys.executable, "-I", "-B", "-X", "utf8",
+                            str(path), *args],
                            capture_output=True, text=True, timeout=budget)
     except subprocess.TimeoutExpired:
         return None, "%s did not finish in %ds; it was not run to the end" % (script, budget)
@@ -92,8 +120,22 @@ def _read_stdin_payload(budget=0.2):
         return _read_stdin_in_a_thread(max(budget, 0.5))
     if not ready:
         return ""
+    return _read_stdin_text()
+
+
+def _read_stdin_text():
+    """Bytes, then UTF-8 with replacement. NOT the locale codec.
+
+    Same defect as write-guard.py's (Vex F-B, 2026-09-16): a hook payload
+    carrying an emoji raises UnicodeDecodeError under cp1252, and here that
+    meant the session id was lost and the ritual announced that the guards
+    were off on a machine whose hooks were working.
+    """
     try:
-        return sys.stdin.read() or ""
+        buf = getattr(sys.stdin, "buffer", None)
+        if buf is None:
+            return sys.stdin.read() or ""
+        return buf.read().decode("utf-8", "replace") or ""
     except (OSError, ValueError):
         return ""
 
@@ -102,10 +144,7 @@ def _read_stdin_in_a_thread(budget):
     box = []
 
     def _read():
-        try:
-            box.append(sys.stdin.read() or "")
-        except (OSError, ValueError):
-            box.append("")
+        box.append(_read_stdin_text())
 
     t = threading.Thread(target=_read, daemon=True)
     t.start()

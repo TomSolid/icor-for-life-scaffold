@@ -83,11 +83,32 @@ a script cannot close a door the host holds open. The budget pattern is
 the private vault's `decision-must-land.js` (SCAN_BUDGET_MS), tightened to
 2 seconds because this runs on every single write.
 """
+# THE FIRST STATEMENTS IN THIS FILE, AND THEY HAVE TO BE (Vex ruling, W7,
+# 2026-09-16). A guard is launched from Scripts/, so Python puts Scripts/ at
+# the FRONT of sys.path and a `Scripts/json.py` would then be what `import
+# json` finds, inside the guard, before it has read a byte. The rendered hook
+# passes `-I`, which drops that entry; this stanza is the belt to that brace,
+# for a guard launched some other way (by hand, by a member's own wrapper, by
+# a host whose hook config is older than this file). It has to run BEFORE the
+# first stdlib import or it is defending a door already walked through.
+#
+# `dont_write_bytecode` is here for the same reason it is in every other
+# script in this folder: a guard that drops __pycache__ into the tree it is
+# guarding changes what it measures (Conrad Froehling, 2026-09-16).
+import sys, os                                                   # noqa: E401
+sys.dont_write_bytecode = True
+# realpath on BOTH sides, because they are not spelled the same. Python 3.11
+# and newer resolve sys.path[0] (`/private/tmp/x` on macOS) while __file__ is
+# the path as typed (`/tmp/x`), and comparing the two with abspath alone
+# silently never matched: the entry stayed, and this stanza defended nothing.
+if sys.path:
+    _first = os.path.realpath(sys.path[0] or os.getcwd())
+    if _first == os.path.dirname(os.path.realpath(__file__)):
+        del sys.path[0]
+
 import calendar
 import json
-import os
 import re
-import sys
 import time
 
 BUDGET_S = 2.0            # wall clock; exceeding it is neither pass nor block
@@ -839,8 +860,27 @@ def _env_file(rel):
     return base == ".env" or base.startswith(".env.")
 
 
+def read_stdin_text():
+    """The hook payload, decoded as UTF-8 whatever the console codepage is.
+
+    `sys.stdin.read()` decodes in the LOCALE codec. On a German Windows box
+    that is cp1252, and a payload carrying an emoji (a session log, a reply
+    draft, any note with a check mark in it) raised UnicodeDecodeError before
+    this guard had looked at anything. This guard fails CLOSED on its own
+    errors, so that exception was a refused write with a decoding traceback
+    attached, on a payload that was never against a rule (Vex F-B, HIGH,
+    2026-09-16). Read the bytes and decode them ourselves, replacing what will
+    not decode: a byte we cannot read is not a reason to refuse a write, and
+    the rules below match on shapes that survive replacement.
+    """
+    buf = getattr(sys.stdin, "buffer", None)
+    if buf is None:            # a test harness handing us a text stream
+        return sys.stdin.read()
+    return buf.read().decode("utf-8", "replace")
+
+
 def main():
-    raw = sys.stdin.read()
+    raw = read_stdin_text()
     if not raw.strip():
         return 0
     payload = json.loads(raw)
