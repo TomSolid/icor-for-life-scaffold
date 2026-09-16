@@ -102,6 +102,14 @@ LINK_FIELDS = {
 }
 # Fields that hold ONE wikilink rather than a list (GL-1002).
 SINGLE_FIELDS = {"goal", "planner_habit"}
+# Fields whose wikilink is written FULL-PATH-QUALIFIED,
+# `[[02 Planner/Habits/Morning walk]]`, rather than as the bare note name
+# (GL-1002 rows `habit` and `planner-habit`, ruling 2026-09-16). A habit and
+# its planner-habit note carry the SAME name by design, one in
+# `02 Planner/Habits/` and one in `04 Inner World/My Life/Habits/`, so a bare
+# `[[Morning walk]]` cannot say which of the two it means: Obsidian resolves
+# it by proximity and every other reader has to guess (Brian Carroll, B2-3).
+QUALIFIED_FIELDS = {"planner_habit"}
 # The link rule per type: at least one link must land in one of these
 # fields, or the note has no reason to exist (GL-1007, GL-1002).
 LINK_RULE = {
@@ -389,7 +397,13 @@ def main():
             fail("a %s cannot link to a %s; %s links to: %s"
                  % (a.type, ttype or "note with no type", a.type,
                     ", ".join(sorted(allowed)) or "nothing"))
-        by_field.setdefault(allowed[ttype], []).append(target.stem)
+        field = allowed[ttype]
+        # `.as_posix()`, not str(): a wikilink is forward-slashed on every
+        # platform, and a Windows member would otherwise get backslashes
+        # inside the brackets and a dangling link.
+        by_field.setdefault(field, []).append(
+            target.relative_to(root).with_suffix("").as_posix()
+            if field in QUALIFIED_FIELDS else target.stem)
 
     rule = LINK_RULE.get(a.type)
     if rule and not any(f in by_field for f in rule):

@@ -47,7 +47,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | key-element | - | people, goals | `[[Templates/key-element]]` |
 | topic | - | related_topics | `[[Templates/topic]]` |
 | project | status (active/done/paused/dropped), goal (wikilink, MANDATORY) | start_date, end_date, external_links, key_elements, focus_rank (1, 2 or 3; absent means not in focus, at most three projects carry it), workstreams (wikilink list to the Workstream notes the project runs through; ruling 2026-09-15) | `[[Templates/project]]` |
-| habit | - | name, status (active/paused/abandoned), planner_habit (wikilink to the `planner-habit` note) | `[[Templates/habit]]` |
+| habit | - | name, status (active/paused/abandoned), planner_habit (FULL-PATH wikilink to the `planner-habit` note, `[[02 Planner/Habits/X]]`) | `[[Templates/habit]]` |
 | task | status (open/in-progress/done/cancelled), assignee | related, due | none: `Scripts/new-task.py` |
 | progress-report | status (live/closed), updated (ISO datetime) | plan | none: `Scripts/new-progress-report.py` |
 | hire-proposal | owner, title | status (draft/decision-ready/approved), skills (list of skill slugs, or the literal `none, judgement role`; the field `check-hire.py` checks 15 and 18 read) | none: the `proposal.md` in `03 WiP/YYYY-MM-DD-<name>-hire/`, [[SOP-1007-hire-a-new-agent]] row 2 |
@@ -60,7 +60,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) | none: the plugin writes it |
 | planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal (pins the item to the week; label: pinned, never goal), linked_note (one wikilink to a project note, plan-owned), synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due | none: the plugin writes it |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) | none: the plugin writes it |
-| planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (wikilink to the My Life habit note), created_at (ISO datetime) | none: the plugin writes it |
+| planner-habit | name, cadence (daily/weekdays/weekly/monthly), status (active/paused/archived) | cadence_days (mon..sun codes, weekly), month_day (1-28, monthly), started_on (ISO date), linked_note (FULL-PATH wikilink to the My Life habit note, `[[04 Inner World/My Life/Habits/X]]`), created_at (ISO datetime) | none: the plugin writes it |
 | planner-week | week (ISO week, YYYY-Www, matching the filename) | created_at (ISO datetime) | none: `Scripts/planner-week.py` |
 
 ## Journal: the ICOR four (ruling 2026-09-06)
@@ -570,7 +570,7 @@ via `planner_habit`.
 type: habit
 name: Morning walk                # optional; the filename is the name when absent
 status: active                    # active | paused | abandoned
-planner_habit: "[[morning-walk]]" # optional, wikilink to the planner-habit note
+planner_habit: "[[02 Planner/Habits/Morning walk]]"   # optional, full path
 tags: []
 ```
 
@@ -580,6 +580,11 @@ tags: []
   `abandoned` here while its planner-habit note still shows `active` for
   a day or two until tracking is turned off too.
 - `planner_habit` is optional and points forward to the tracking note.
+  **It carries the full vault path, never a bare `[[Morning walk]]`**: the
+  two notes share a name by design, one in `02 Planner/Habits/` and one in
+  `04 Inner World/My Life/Habits/`, so a bare link cannot say which of the
+  two it means and Obsidian resolves it by proximity rather than by intent
+  (ruling 2026-09-16). The same rule holds for `linked_note` pointing back.
   Ruling: this is not a violation of a one-way-linking rule, because this
   scaffold states none; [[SOP-1004-create-or-update-a-my-life-entity|SOP-1004]]
   step 7 already directs agents to cross-link both directions wherever the
@@ -609,7 +614,7 @@ cadence_days: [sun, wed]            # optional, weekly cadence: mon..sun codes
 month_day: 15                       # optional, monthly cadence: 1..28
 status: active                      # active | paused | archived
 started_on: 2026-04-01              # optional, ISO date
-linked_note: "[[Morning walk]]"     # optional, wikilink to the My Life habit note
+linked_note: "[[04 Inner World/My Life/Habits/Morning walk]]"  # optional, full path
 created_at: 2026-09-06T09:00:00Z    # optional, ISO datetime
 tags: []
 ```
@@ -626,8 +631,11 @@ tags: []
   above on purpose: archiving here stops the habit from rendering on the
   board; it does not touch the My Life note or its own `status`.
 - `started_on` is the ISO date tracking began. `linked_note` is the
-  wikilink back to the My Life habit note when the Habits room is also in
-  use; a Planner-only habit (no meaning note yet) leaves it off.
+  FULL-PATH wikilink back to the My Life habit note when the Habits room is
+  also in use, `[[04 Inner World/My Life/Habits/Morning walk]]`, for the
+  same reason `planner_habit` is qualified above: the two notes share a
+  name by design and a bare link cannot say which one it means. A
+  Planner-only habit (no meaning note yet) leaves it off.
   `created_at` is this note's own creation timestamp.
 - **The import writes a `planner-habit` note FROM an existing My Life
   habit note.** It moves `cadence`, `cadence_days` and `started_on` off

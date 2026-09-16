@@ -70,7 +70,9 @@ paragraph names; it never touches a My Life note's frontmatter or body.
 A habit MAY also have a meaning note in `04 Inner World/My Life/Habits/`
 (`type: habit`, narrative only: why it matters, what it looks like, the
 reflection). The Planner note's `linked_note` points at that note when one
-exists; the My Life note's own `planner_habit` points back. Importing an
+exists; the My Life note's own `planner_habit` points back. Both links
+carry the full vault path, because the two notes share a name by design.
+Importing an
 existing My Life habit into the Planner (the HABITS tab's import) moves
 `cadence`, `cadence_days`, `started_on` and the log off the My Life note
 and onto the new Planner note, so the schedule and the log live in exactly
