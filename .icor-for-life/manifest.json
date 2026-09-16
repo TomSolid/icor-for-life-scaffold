@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.28.0",
-  "built": "2026-09-16T13:20:08Z",
-  "commit": "4660ae6",
+  "version": "1.28.1",
+  "built": "2026-09-16T14:15:38Z",
+  "commit": "b02e856",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -860,13 +860,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "71517edafa3a2b732d795b1d8c78fcbf43d68f544edfe10739815445ae623fef",
+      "sha256": "fbaacb3250b12d66e63de254df0d51d1783a2d4d1064fbd98dcce8c5bb2d9a95",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/add-mcp-server.py",
-      "sha256": "a1de1dfb2e6b3b8ce929100ea0ad826b8b429d5fe92ccbc1e40bed003d9d66c2",
+      "sha256": "ca72a4bb475ac674ada8d13aa3be537e0d852571b730f58a0f20bd0aea629e8a",
       "kind": "script",
       "example": false
     },
@@ -920,7 +920,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
-      "sha256": "c4d7335e5a2e7646f926696063101423bddb4f14c9d1bb72c238aaed97a363c0",
+      "sha256": "f771c6542668ba1131441d4bdf6251b694fd11a3b0c3eae3eb958fc00752e566",
       "kind": "script",
       "example": false
     },
@@ -944,25 +944,25 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/link-dates-to-daily-notes.py",
-      "sha256": "da7cce9ff4bb5ad56e38c9e2c01783f65a72d8c36ef672bfd95f19eaa93307be",
+      "sha256": "0b9042d8e9329e55536489ae959e5afded4d3c42aaf714c94b754e0bcc94cde5",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py",
-      "sha256": "95203ff438c0d044fa4ff577dc336a847cc3508a3a6cc4e85c872e43bbd2e813",
+      "sha256": "b2d1062504b303bb21538c46b56f2996711899f8e90bb8c58616ecfd87cc679b",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "bf1ace0bc4b19965ee9e9a43dc9c23676c762b4ae0cdc5bed6bd2073719fb574",
+      "sha256": "1faa20915b1ed4408518f3163920e5ba411da4d0399ac291d72a03a392db7a5c",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "c6bfc4cf35110a34676e8e044a83a9354c3eb191699501eee7bcd544db11c47c",
+      "sha256": "912ba62eb23d197ca8374b4e30be354aec22f41d604d92a19533f3ef76e6ccd5",
       "kind": "script",
       "example": false
     },
@@ -974,25 +974,25 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-journal-entry.py",
-      "sha256": "df3418a2d949bbbd2a12000cbe4ebae2667beca3104da8435786f797f6ad6341",
+      "sha256": "40426fc646950e416a3c1183b2dae85c8dffe404792fa2577251d2b1da1ec282",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-progress-report.py",
-      "sha256": "58835ce42af22b2a001e28afebd38415f6e3a55874e9c3774db561bc2045465c",
+      "sha256": "11bb888440d062bb7d3d2096070f5584ef8d78e2d08df7f35c6419fa34139c15",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-session-log.py",
-      "sha256": "d2c5ba500a832e5b929ee86951cb47436fad9c9be799201aeb3c99dcb81fb381",
+      "sha256": "18b559b4fc639a1c74388f0ca60699d57940ae9662bad182f6498ee4fd4d51fc",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-task.py",
-      "sha256": "4877a69ed9d4b520a58f7d3909342aa7b93550d26162fecc1309d4306b568dcd",
+      "sha256": "3ce8a1149432da31ffd3abdbc99d066e21b8f0ac1f9ecc078c1f0b3c812c89f9",
       "kind": "script",
       "example": false
     },
@@ -1016,7 +1016,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "8a75f731ab240624a3e4155bc5fc9cb6207799ffb68c500235e01082bef36037",
+      "sha256": "920fe0f0a23cf3b4b8ae5680335e7dffdbba6e9c3bae5ec394f84933a164eb98",
       "kind": "script",
       "example": false
     },
@@ -1029,12 +1029,6 @@
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
       "sha256": "d8ff39dd0e920814d193d78ef17f74a314a758492e8f33bfc56cd1bdf9032d28",
-      "kind": "script",
-      "example": false
-    },
-    {
-      "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
-      "sha256": "53662f33e267249e900d3ee2f70fad01126535aaea8a644a05c4280ba1ec0216",
       "kind": "script",
       "example": false
     },
@@ -1052,7 +1046,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
-      "sha256": "593090ab31327242cfb78ca7cf837749a729d2066013da9dc3a5497b71e3cc32",
+      "sha256": "0b42f7fc614d982d8473e5df25123bda6f337769b4ffef0d27bc0d3f22053305",
       "kind": "script",
       "example": false
     },
@@ -1644,6 +1638,19 @@
     }
   ],
   "history": [
+    {
+      "version": "1.28.1",
+      "date": "2026-09-16",
+      "removed": [
+        {
+          "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
+          "sha256": "53662f33e267249e900d3ee2f70fad01126535aaea8a644a05c4280ba1ec0216",
+          "note": "is deleted. Nothing has rendered it since 1.28.0, when the SessionStart hook began spawning session-start.py directly, and its one non-shell job, the plain line when the interpreter is missing, is now scaffold-init.py doctor."
+        }
+      ],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.28.0",
       "date": "2026-09-16",

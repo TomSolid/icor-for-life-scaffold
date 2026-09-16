@@ -15,6 +15,34 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.28.1 (2026-09-16)
+
+The wrapper that 1.28.0 stopped rendering is now gone from the tree, and the
+ten script comments that still explained the retired environment prefix now
+name the flags the rendered hooks actually carry.
+
+Patch bump: one file is removed and everything else that changed is comment
+text. Nothing a note, skill, hook or script points at moves, no field changes
+meaning, and a vault that already runs 1.28.0 behaves exactly the same after
+this update.
+
+### Removed
+
+- `06 AI Team/AI Team Knowledge/Scripts/session-start.sh` is deleted. Nothing has rendered it since 1.28.0, when the SessionStart hook began spawning session-start.py directly, and its one non-shell job, the plain line when the interpreter is missing, is now scaffold-init.py doctor.
+
+  If you updated by hand and still have this file, delete it. Nothing reads it,
+  nothing renders it, and a second entry point nobody maintains is how the
+  Windows ritual failure got in.
+
+### Changed
+
+- Ten script comments that still explained sys.path isolation through the
+  retired PYTHONSAFEPATH=1 prefix now name the -I -B -X utf8 flags the rendered
+  hooks carry. Comment text only, no behaviour change. The remaining mentions
+  of the variable are load-bearing: run-red-tests.py asserts the rendered
+  blocks do not carry it, and scaffold-init.py and session-start.py explain in
+  past tense why it could not do this job.
+
 ## 1.28.0 (2026-09-16)
 
 The release that makes this Scaffold run on Windows. Seven defects stood
