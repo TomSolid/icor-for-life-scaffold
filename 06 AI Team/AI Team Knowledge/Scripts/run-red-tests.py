@@ -305,6 +305,18 @@ with tempfile.TemporaryDirectory() as td:
     #     A copy of ROOT with today's logs removed is the bad vault.
     nolog = tmp / "no-log-today"
     shutil.copytree(ROOT, nolog, ignore=shutil.ignore_patterns(".obsidian"))
+    # Every checkpoint case on this fixture (1b to 1e) is about the LOG-NAME
+    # cutoff, which is the fallback since 2026-09-16: the cutoff is this
+    # session's `started` when there is a session.json and the log's name
+    # when there is not. A copy of ROOT brings ROOT's own live session.json
+    # along, whose `started` is whenever this machine last ran the session
+    # ritual, so leaving it here would make these cases measure the clock
+    # instead of the code, and 1e went red on a run that changed nothing but
+    # planner-week.py. Removing it is what puts them back on the fallback
+    # they were written for. The session.json path has its own cases (89).
+    _nolog_sj = nolog / ".icor-for-life/scripts/session.json"
+    if _nolog_sj.is_file():
+        _nolog_sj.unlink()
     import datetime as _dt
     _today = _dt.date.today().isoformat()
     for p in (nolog / "06 AI Team/AI Team Knowledge/Session Logs").glob(f"*/*/{_today}*.md"):
@@ -3918,6 +3930,7 @@ with tempfile.TemporaryDirectory() as _mktd:
                          "come out of 06 AI Team/. Either the room was widened "
                          "instead of the glob, or _template.md stopped being "
                          "skipped: %s" % (len(_noise), _noise))
+
 
 # ===========================================================================
 # ---- END mack b8 ----
