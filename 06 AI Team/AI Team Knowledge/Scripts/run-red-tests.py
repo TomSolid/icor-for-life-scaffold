@@ -3618,6 +3618,95 @@ else:
                      "flag worked" % _typo.returncode)
 
 
+# ---- BEGIN silas b8 ----
+# ===========================================================================
+# 87-88. THE TWO SCHEMA RULINGS OF 1.27.0 (Brian Carroll round two).
+#
+# Own block, own edges, at the end of the file on purpose: Mack is editing
+# this same file for B2-1, B2-4 and B2-5, and two people writing into the
+# middle of it at once is a rebase nobody needs.
+#
+# Both were watched RED on 12b0612 (the 1.26.0 tag) before their fix landed:
+#   87  a hire named Quill got `agent_id: charta`
+#   88  new-entity.py wrote `planner_habit: "[[Morning walk]]"`
+#
+# WHAT THESE DO NOT PROVE: that existing vaults are repaired. Neither fix
+# migrates anything already on disk; SOP-1014 step 3 carries the two
+# deterministic repairs for a vault upgrading into 1.27.0.
+with tempfile.TemporaryDirectory() as _b8td:
+    _b8 = Path(_b8td)
+
+    # 87. A HIRE'S JOURNAL TEMPLATE CARRIES ITS OWN SLUG.
+    #
+    # new-agent.py step 5 used to seed `Journal/_template.md` by copying the
+    # first sibling that had one, which in this repo is always Charta. Every
+    # hire was handed `agent_id: charta` and every entry written from that
+    # template claimed to be Charta's. It passes YAML and it passes the eye,
+    # so nothing but a test looks at it.
+    _hv = fixture_vault(_b8, "b8-hire")
+    checks += 1
+    _r = subprocess.run([PY, str(_hv / "06 AI Team/AI Team Knowledge/Scripts/new-agent.py"),
+                         "Quill", "--slug", "quill", "--role", "Book Writer",
+                         "--root", str(_hv)], capture_output=True, text=True)
+    _tpl = _hv / "06 AI Team/Agents/Quill/Journal/_template.md"
+    if _r.returncode != 0:
+        fails.append("new-agent/hire-template-owns-its-slug: the hire itself was "
+                     "refused (exit %d): %s"
+                     % (_r.returncode, (_r.stderr or _r.stdout or "").strip()[:300]))
+    elif not _tpl.is_file():
+        fails.append("new-agent/hire-template-owns-its-slug: no "
+                     "Agents/Quill/Journal/_template.md was written")
+    else:
+        _m = re.search(r"(?m)^agent_id:\s*(\S+)", _tpl.read_text(encoding="utf-8"))
+        _got = _m.group(1) if _m else None
+        if _got != "quill":
+            fails.append("new-agent/hire-template-owns-its-slug: Quill's journal "
+                         "template reads agent_id: %r, not 'quill'. A template "
+                         "carrying another agent's id mislabels every entry copied "
+                         "from it (Brian Carroll, B2-7)" % _got)
+
+    # 88. new-entity.py WRITES planner_habit PATH-QUALIFIED.
+    #
+    # A habit and its planner-habit note carry the SAME name by design, one in
+    # 02 Planner/Habits/ and one in 04 Inner World/My Life/Habits/. A bare
+    # [[Morning walk]] cannot say which of the two it means, so GL-1002 wants
+    # the full vault path on both sides of the pair (ruling 2026-09-16).
+    #
+    # The fixture plants only the Planner half, so the link resolves to exactly
+    # one note and this case measures the SHAPE of what is written, never the
+    # resolver's tie-break.
+    _ev = fixture_vault(_b8, "b8-habit")
+    _ph = _ev / "02 Planner/Habits"
+    _ph.mkdir(parents=True, exist_ok=True)
+    (_ph / "Morning walk.md").write_text(
+        "---\ntype: planner-habit\nname: Morning walk\ncadence: daily\n"
+        "status: active\ncreated: 2026-09-16\ntags: []\n---\n\n## Log\n",
+        encoding="utf-8")
+    checks += 1
+    _r2 = subprocess.run([PY, str(_ev / "06 AI Team/AI Team Knowledge/Scripts/new-entity.py"),
+                          "habit", "Morning walk", "--link", "[[Morning walk]]",
+                          "--root", str(_ev)], capture_output=True, text=True)
+    _note = _ev / "04 Inner World/My Life/Habits/Morning walk.md"
+    if _r2.returncode != 0:
+        fails.append("new-entity/planner-habit-link-is-qualified: creating the "
+                     "habit was refused (exit %d): %s"
+                     % (_r2.returncode, (_r2.stderr or _r2.stdout or "").strip()[:300]))
+    elif not _note.is_file():
+        fails.append("new-entity/planner-habit-link-is-qualified: no habit note "
+                     "was written")
+    else:
+        _m2 = re.search(r'(?m)^planner_habit:\s*"?\[\[([^\]]+)\]\]"?',
+                        _note.read_text(encoding="utf-8"))
+        _got2 = _m2.group(1) if _m2 else None
+        if _got2 != "02 Planner/Habits/Morning walk":
+            fails.append("new-entity/planner-habit-link-is-qualified: wrote "
+                         "planner_habit [[%s]], not [[02 Planner/Habits/Morning "
+                         "walk]]. A bare link names two notes and resolves to "
+                         "whichever one is nearer (Brian Carroll, B2-3)" % _got2)
+# ===========================================================================
+# ---- END silas b8 ----
+
+
 if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)
