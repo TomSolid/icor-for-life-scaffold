@@ -4938,6 +4938,162 @@ else:
 # ===========================================================================
 # ---- END mack b9 ----
 
+
+# ---- BEGIN silas b9 ----
+# ===========================================================================
+# 108-110. THE TWO ANOMALIES SILAS CLOSED ON 2026-09-16.
+#
+# Own block, beside silas b8 and never inside anyone else's, for the same
+# reason b8 gave: two people writing into the middle of this file at once is
+# a rebase nobody needs.
+#
+# All three were watched RED on 3527f08 before their fix landed:
+#   108  GL-1002 row 55 declared neither `owner` nor `uses`
+#   109  check-quality.py read the backslash of `\|` as part of the target
+#   110  link-dates-to-daily-notes.py did not see `\|` as an alias at all
+#
+# WHAT THESE DO NOT PROVE: that `06 AI Team` is in check-quality.py's
+# SCAN_ROOTS. It is not, deliberately, and widening it is a separate ruling.
+# Case 109 therefore plants its fixture in `04 Inner World`, a room the
+# report already reads.
+with tempfile.TemporaryDirectory() as _s9td:
+    _s9 = Path(_s9td)
+
+    # 108. GL-1002 DECLARES THE FIELDS EVERY SHIPPED PROCEDURE CARRIES.
+    #
+    # Every one of the 17 shipped SOPs and 5 of the 6 Workstreams write
+    # `owner` and `uses`, and 3 Guidelines write `uses`. The guideline
+    # declared neither, so the one reader that answers "is this field
+    # invented" called 47 of them invented and the metric read `broken` on a
+    # pristine tree. The guideline was wrong about the files, not the files
+    # about the guideline.
+    #
+    # Read through new-base.py's parser on purpose: that parser IS the
+    # contract, and a test that re-read the markdown itself would be a second
+    # copy of the table that drifts from it (GL-1005).
+    checks += 1
+    import importlib.util as _s9ilu
+    _nbspec = _s9ilu.spec_from_file_location("_s9_new_base", HERE / "new-base.py")
+    _nb = _s9ilu.module_from_spec(_nbspec)
+    _nbspec.loader.exec_module(_nb)
+    _declared = _nb.gl002_fields(ROOT)
+    _missing = sorted(
+        "%s.%s" % (_t, _f)
+        for _t in ("sop", "workstream", "guideline")
+        for _f in ("owner", "uses")
+        if _f not in _declared.get(_t, set()))
+    if _missing:
+        fails.append("gl-1002/row-55-declares-owner-and-uses: GL-1002 does not "
+                     "declare %s. Every shipped SOP and Workstream writes both "
+                     "fields, so a row that omits them makes check-quality.py "
+                     "report 47 invented fields against a pristine tree "
+                     "(Silas, 2026-09-16)" % ", ".join(_missing))
+    # The same row must NOT have gained a required field on the way: making
+    # `owner` required would fail all 11 Guidelines, which carry none, and
+    # that is a ruling nobody has made.
+    checks += 1
+    _req = _nb.gl002_required(ROOT)
+    _over = sorted(set(_req.get("guideline", set())) - {"id", "title"})
+    if _over:
+        fails.append("gl-1002/row-55-required-set-is-unchanged: GL-1002 now "
+                     "requires %s of a guideline. No shipped Guideline carries "
+                     "any of them, so this turns a green tree red (Silas, "
+                     "2026-09-16)" % ", ".join(_over))
+
+    # 109. AN ESCAPED-PIPE ALIAS IS AN ALIAS, NOT PART OF THE TARGET.
+    #
+    # Inside a markdown table a raw `|` ends the cell, so a table link has to
+    # write `[[Note\|Alias]]`, which Obsidian renders exactly like the bare
+    # form. check-quality.py split on the bare pipe alone and kept the
+    # backslash glued to the target, so all 17 rows of SOPs/INDEX.md read as
+    # links to notes that do not exist. Steven Koegler reported this same
+    # reader defect against the old myPKA validator on 2026-09-01.
+    #
+    # Both halves in one fixture on purpose: a reader that stopped flagging
+    # everything would pass a test that only checked the first half.
+    _lv = fixture_vault(_s9, "s9-escaped-pipe")
+    _notes = _lv / "04 Inner World/Notes"
+    _notes.mkdir(parents=True, exist_ok=True)
+    (_notes / "Target Note.md").write_text(
+        "---\ntype: note\nnote_type: reference\ncreated: 2026-09-16\n"
+        "topics: []\nprojects: []\nkey_elements: []\ntags: []\n---\n\n"
+        "# Target Note\n", encoding="utf-8")
+    (_notes / "Link Table.md").write_text(
+        "---\ntype: note\nnote_type: reference\ncreated: 2026-09-16\n"
+        "topics: []\nprojects: []\nkey_elements: []\ntags: []\n---\n\n"
+        "# Link Table\n\n"
+        "| Note | Why |\n| --- | --- |\n"
+        "| [[Target Note\\|Target]] | it exists |\n"
+        "| [[Ghost Note\\|Ghost]] | it does not |\n",
+        encoding="utf-8")
+    checks += 1
+    _rq = subprocess.run([PY, str(HERE / "check-quality.py"), str(_lv), "--json"],
+                         capture_output=True, text=True)
+    try:
+        _rep = json.loads(_rq.stdout)
+    except ValueError:
+        _rep = None
+    if _rep is None:
+        fails.append("check-quality/escaped-pipe-alias: no JSON report came "
+                     "back (exit %d): %s"
+                     % (_rq.returncode, (_rq.stderr or _rq.stdout or "").strip()[:300]))
+    else:
+        _dang = [f["message"] for f in _rep["findings"]
+                 if f["metric"] == "dangling_links"]
+        _false = [m for m in _dang if "Target Note" in m]
+        _true = [m for m in _dang if "Ghost Note" in m]
+        if _false:
+            fails.append("check-quality/escaped-pipe-alias: [[Target "
+                         "Note\\|Target]] was reported dangling although the "
+                         "note is right there. The backslash is the table's "
+                         "escape, never part of the name (Steven Koegler, "
+                         "2026-09-01): %s" % _false[0])
+        if not _true:
+            fails.append("check-quality/escaped-pipe-alias: [[Ghost "
+                         "Note\\|Ghost]] was NOT reported dangling. Accepting "
+                         "the escaped pipe must change what the target IS, "
+                         "never whether it has to resolve (Silas, 2026-09-16)")
+
+    # 110. THE DAILY-NOTE LINKER READS THE SAME ESCAPE.
+    #
+    # Same defect, second reader. DAILY_LINK admitted only the bare pipe, so a
+    # date linked from inside a table was invisible to already_linked(), and
+    # the one promise that function carries (a link is only worth writing
+    # while it lands somewhere) silently stopped being checked for every such
+    # row. The mask upstream hides the date from the unlinked-mention scan
+    # too, so nothing else in the script notices.
+    _dv = fixture_vault(_s9, "s9-daily-escape")
+    _dnotes = _dv / "04 Inner World/Notes"
+    _dnotes.mkdir(parents=True, exist_ok=True)
+    (_dnotes / "Dated Table.md").write_text(
+        "---\ntype: note\nnote_type: meeting\ncreated: 2026-09-16\n"
+        "topics: []\nprojects: []\nkey_elements: []\ntags: []\n---\n\n"
+        "# Dated Table\n\n"
+        "| When | What |\n| --- | --- |\n"
+        "| [[2026-09-11\\|11 Sep]] | the kickoff |\n",
+        encoding="utf-8")
+    checks += 1
+    _rd = subprocess.run([PY, str(HERE / "link-dates-to-daily-notes.py"),
+                          str(_dv), "--check", "--json"],
+                         capture_output=True, text=True)
+    try:
+        _drep = json.loads(_rd.stdout)
+    except ValueError:
+        _drep = None
+    if _drep is None:
+        fails.append("link-dates/escaped-pipe-alias: no JSON report came back "
+                     "(exit %d): %s"
+                     % (_rd.returncode, (_rd.stderr or _rd.stdout or "").strip()[:300]))
+    elif _drep.get("daily_notes_created") != 1:
+        fails.append("link-dates/escaped-pipe-alias: the linker reported %r "
+                     "missing daily notes, not 1. [[2026-09-11\\|11 Sep]] in a "
+                     "table is a link to a daily note that is not on disk, and "
+                     "a reader that only knows the bare pipe never sees it "
+                     "(Steven Koegler, 2026-09-01)"
+                     % _drep.get("daily_notes_created"))
+# ===========================================================================
+# ---- END silas b9 ----
+
 if fails:
     for f in fails:
         print(f"FAIL {f}", file=sys.stderr)
