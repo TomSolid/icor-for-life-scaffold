@@ -2279,11 +2279,32 @@ with tempfile.TemporaryDirectory() as td:
         #      Measured on the private vault before the cap: 5,000,809 bytes.
         #      This ritual never opens snapshot.json (it reads the child's
         #      stdout), so the character cap is the only surface here.
+        #      The fixture is built by fixture_vault(), not by copying ROOT,
+        #      and the planted goal carries a target_date. Until 2026-09-16
+        #      this case copied ROOT raw and planted the goal UNDATED, and
+        #      goals sort dated-first (life-snapshot.py:740) while the brief
+        #      prints only the first six (:1054). The scaffold repo ships two
+        #      goals, so the seventh line was the planted one and the case
+        #      passed. Tom's vault has thirteen: the planted goal fell off the
+        #      end of the brief, nothing was oversized, nothing was cut, and
+        #      the case went red on a member for whom the cap was working
+        #      perfectly (Brian Carroll, B2-1).
         checks += 1
-        _capv = tmp / "life-snapshot-cap"
-        shutil.copytree(ROOT, _capv, ignore=shutil.ignore_patterns(".git"))
-        (_capv / "04 Inner World/My Life/Goals/oversized-title.md").write_text(
-            "---\ntype: goal\nname: " + "Y" * 20000 + "\nstatus: active\n---\n",
+        _capv = fixture_vault(tmp, "life-snapshot-cap")
+        _capg = _capv / "04 Inner World/My Life/Goals"
+        _capg.mkdir(parents=True, exist_ok=True)
+        # The negative control, and the whole point of the rewrite: six plain
+        # undated goals stand in front of the planted one in every way EXCEPT
+        # the sort, so a future change that drops the target_date from the
+        # plant, or that stops sorting dated goals first, shows up here as a
+        # red rather than as a case that quietly stops measuring the cap.
+        for _i in range(6):
+            (_capg / ("ordinary-goal-%d.md" % _i)).write_text(
+                "---\ntype: goal\nname: Ordinary goal %d\nstatus: active\n---\n" % _i,
+                encoding="utf-8")
+        (_capg / "oversized-title.md").write_text(
+            "---\ntype: goal\nname: " + "Y" * 20000
+            + "\nstatus: active\ntarget_date: 2099-01-01\n---\n",
             encoding="utf-8")
         _cr = subprocess.run([PY, str(_capv / "06 AI Team/AI Team Knowledge/Scripts/session-start.py")],
                              capture_output=True, text=True,
