@@ -15,6 +15,97 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.28.0 (2026-09-16)
+
+The release that makes this Scaffold run on Windows. Seven defects stood
+between a Windows member and a working harness, from an apply that died
+halfway through to a red-test suite that could not start its first case, and
+the hook lines themselves now render in a form Windows can execute without
+Git Bash. Beside them, the bytecode and sys.path hardening across twenty
+scripts, and the GL-1002 row that ends 47 false findings.
+
+Reported by community member Conrad Fröhling, 2026-09-16.
+
+Minor bump: GL-1002 row 55 changes, declaring the owner and uses that every
+shipped SOP and Workstream already carries, and the rendered hook config
+changes shape (exec form) for every member who runs scaffold-init.py apply,
+which is a harness contract change. Nothing is removed, moved or renamed, and
+every existing note stays valid as it is, so this is neither a major nor a
+patch.
+
+### Windows
+
+- scaffold-init.py apply wrote host links before the skill files they point
+  at, so on Windows without the symlink privilege the copy fallback had
+  nothing to copy and apply died mid-harness. Files now come first, plan and
+  apply share one order, a copy can satisfy check, and the summary says why
+  the entries are copies.
+- run-red-tests.py spawned /bin/sh in five places, which Windows cannot
+  start, killing the suite before its first case. The shell is resolved once
+  from PATH and the cases skip by name where there is none.
+- scaffold-init.py doctor called every non-zero exit from the suite "RED", so
+  a suite that could not run at all was reported as a guard letting bad input
+  through. A crash and a red now read differently.
+- session-start.py used select.select() on stdin, which Windows answers for
+  sockets only, so the host's session id was never read and the ritual
+  wrongly announced that the guards were off. A thread with the same timeout
+  covers that platform.
+- life-snapshot.py --write named os.O_NOFOLLOW unguarded and raised
+  AttributeError on Windows before writing anything. The flag is optional
+  now; the symlink refusals and O_EXCL still carry the protection.
+- test-life-snapshot.py planted symlinks in six cases without checking
+  whether the platform allows it. Those six skip by name, and the skip count
+  rides on the summary line.
+- Hook commands render in exec form (command plus args) with -I -B -X utf8
+  and a braced ${CLAUDE_PROJECT_DIR}, so the guards run on Windows without
+  Git Bash, where Claude Code falls back to PowerShell. The interpreter is a
+  bare python3 on macOS and Linux and the absolute path to python.exe on
+  Windows, so a synced folder carrying its own python cannot supply the
+  guard; a Windows Python upgrade needs apply once more, and doctor says so.
+  Below Claude Code 2.1.139, POSIX falls back to a shell form carrying the
+  same flags and Windows refuses to render the hooks key and names the
+  version to install. Run scaffold-init.py apply once after this update so
+  the new hook lines land.
+- The session start ritual is spawned directly as session-start.py and hands
+  -I -B -X utf8 to every child; scaffold-init.py doctor names a dead
+  interpreter in words. session-start.sh is no longer rendered and will be
+  removed in a later release.
+
+### Fixed
+
+- Twenty scripts that load a sibling by path dropped __pycache__ into
+  whatever tree they were pointed at, including a member's vault. All twenty
+  now set sys.dont_write_bytecode. (Conrad Fröhling)
+- Every guard drops its own folder from sys.path as its first statement, so a
+  planted Scripts/json.py is inert however the guard was launched. (Vex)
+- write-guard.py reads its payload as bytes and decodes UTF-8, so a note
+  carrying an emoji is no longer a refused write on a Windows console. (Vex)
+- check-bases.py no longer inserts its own folder at the front of sys.path
+  for an import done by path. (Vex)
+- check-quality.py and link-dates-to-daily-notes.py accept an escaped pipe as
+  the alias separator, so the 17 table links in SOPs/INDEX.md no longer read
+  as pointing at notes that do not exist. (Silas; the same reader bug Steven
+  Koegler reported in the old myPKA validator)
+
+### Guidelines
+
+- GL-1002 row 55 declares owner and uses, the two fields every shipped SOP
+  and Workstream already carries, ending 47 false invented-field findings.
+  (Silas)
+
+### Tests
+
+Nine Windows red cases, three GL-1002 and alias cases, seven hook-shape
+cases; the suite is 429 under Python 3.12 and 434 under 3.9 on a clean tree.
+
+### Changed
+
+- **Planner 0.14.2 inside.**
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
 ## 1.27.0 (2026-09-16)
 
 A release cut from one member's bug reports and from the two schema rulings

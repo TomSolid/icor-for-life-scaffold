@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.27.0",
-  "built": "2026-09-16T11:20:52Z",
-  "commit": "1ff835e",
+  "version": "1.28.0",
+  "built": "2026-09-16T13:20:08Z",
+  "commit": "4660ae6",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -104,13 +104,13 @@
     },
     {
       "path": ".claude/settings.README.md",
-      "sha256": "6cb909e572db97a73aef49c8b9e9cd8f2b7701349fc23decf39d22697dff807a",
+      "sha256": "cacd7f2deb2c3e9e93cdbee199195ea2adc423e9e70a5f6a5ed1a97787adb088",
       "kind": "claude",
       "example": false
     },
     {
       "path": ".claude/settings.json",
-      "sha256": "ba48d72e88a2b478a11d8ce33287208ab36f954e89e203ee420ce8c4aa762c1a",
+      "sha256": "d2e30f08c42af9ff022df3122b16fe6ef55667de771d1ace7a127981722b9942",
       "kind": "claude",
       "example": false
     },
@@ -194,7 +194,7 @@
     },
     {
       "path": ".codex/hooks.json",
-      "sha256": "18102b89149c9db5f84f3a21576bccd97cdbe5d798c173eef8924cc1d339e504",
+      "sha256": "f5c0654737024a899f828cfce4643c94c0760bb89fe84acda85d2014dc732763",
       "kind": "doc",
       "example": false
     },
@@ -692,7 +692,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "0222a1a6d6b51f443e0bb6d24a83f31d5812aa49225eecf1e554930e8956c4c7",
+      "sha256": "e4344422d9006b1edba6cf929fd657bc3ffaa2b1876c592f90ff57235dabde7c",
       "kind": "guideline",
       "example": false
     },
@@ -860,13 +860,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/README.md",
-      "sha256": "65980442adb622fdbc0aedf457de39c860f369bfa9d88769a572f7c85a6b90ff",
+      "sha256": "71517edafa3a2b732d795b1d8c78fcbf43d68f544edfe10739815445ae623fef",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/add-mcp-server.py",
-      "sha256": "b2a9a3bbc24297fa3e338b030bdc7d8f0f171a6b33f002a09edd88e6991eec55",
+      "sha256": "a1de1dfb2e6b3b8ce929100ea0ad826b8b429d5fe92ccbc1e40bed003d9d66c2",
       "kind": "script",
       "example": false
     },
@@ -878,7 +878,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-bases.py",
-      "sha256": "97ff160e9504010ffaa5b965f78bf650de760bb35f0f991d6435e81f843f4753",
+      "sha256": "bd3571dcb8fe219285afb10d7f22e4a4528a313756a8d0d58edd2560c2ce7fda",
       "kind": "script",
       "example": false
     },
@@ -896,7 +896,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-quality.py",
-      "sha256": "61b14541733b7a43f12c334820e6769601340f31f3161c0865c33f213120be70",
+      "sha256": "a67959f48a3515973f8b06084140b9bcfc72a53e0bb670e1b8c956a2bd11ca80",
       "kind": "script",
       "example": false
     },
@@ -914,13 +914,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/find-entity.py",
-      "sha256": "b5f8257251cea278cf0c5af53c7b4a86383d4d58c2d810bc3a887821218412fe",
+      "sha256": "a5525cc83234b85e1aaaf323ccdaa4b4747a2c1e9c59a99b0613e82fcfc99ebc",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/hooks-rules.json",
-      "sha256": "166569fa9a461374d3d6c08938e2f9a4375ccdd109757945a150c3806253d9ce",
+      "sha256": "c4d7335e5a2e7646f926696063101423bddb4f14c9d1bb72c238aaed97a363c0",
       "kind": "script",
       "example": false
     },
@@ -938,61 +938,61 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py",
-      "sha256": "fb7bb2056f36a820ccf0aefac2bc715d315d0d1bcbff0db948f7d8aa047eb8af",
+      "sha256": "30f1359388dedc59e404a33aa5013f04d71f6706aa7f4e5017a825d3f3b0ea84",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/link-dates-to-daily-notes.py",
-      "sha256": "f423bfa69f8a9a7f911c434d23250b41636cfad903ed6cb18057be7254810fcb",
+      "sha256": "da7cce9ff4bb5ad56e38c9e2c01783f65a72d8c36ef672bfd95f19eaa93307be",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/mint-agent-ids.py",
-      "sha256": "603d79a857ac606919e56c8312262d8c4c22b2429f0827c8c4f4c49cb5576dd0",
+      "sha256": "95203ff438c0d044fa4ff577dc336a847cc3508a3a6cc4e85c872e43bbd2e813",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "dd401ba13e3d5bd5d4f60daffc0bb556705b69875af753ff2e7ca87ba7a92560",
+      "sha256": "bf1ace0bc4b19965ee9e9a43dc9c23676c762b4ae0cdc5bed6bd2073719fb574",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-base.py",
-      "sha256": "0a7b96c1492035648649b01bbfd20c96cb8703ee34af4e57d438609fc3947596",
+      "sha256": "c6bfc4cf35110a34676e8e044a83a9354c3eb191699501eee7bcd544db11c47c",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-entity.py",
-      "sha256": "aaf7a6ab579f6571d92a8814216fc26b6e29bec38d1ff2adc9038add6f2cf433",
+      "sha256": "316e3b1844c975819f95ec984cd777f73ec87857c0921cc7328d529612989fb3",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-journal-entry.py",
-      "sha256": "6af69465cefc5e06bde2a774d7815bf8d733017f0ee3ee143759e7d36fdd03d9",
+      "sha256": "df3418a2d949bbbd2a12000cbe4ebae2667beca3104da8435786f797f6ad6341",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-progress-report.py",
-      "sha256": "4bcd5a22e70998308fa8154eb27b08775e3446828c01e8af0f6678242fc77623",
+      "sha256": "58835ce42af22b2a001e28afebd38415f6e3a55874e9c3774db561bc2045465c",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-session-log.py",
-      "sha256": "93af1bdee352ed30e9fdedd729d11ea6dd648fb33ddeeeec01df9382ba4cd4bc",
+      "sha256": "d2c5ba500a832e5b929ee86951cb47436fad9c9be799201aeb3c99dcb81fb381",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-task.py",
-      "sha256": "a46c47f8c5933da2ee579ba4e3084d19d964af229fb4804348bf3fcd3c05396e",
+      "sha256": "4877a69ed9d4b520a58f7d3909342aa7b93550d26162fecc1309d4306b568dcd",
       "kind": "script",
       "example": false
     },
@@ -1010,37 +1010,37 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/planner-week.py",
-      "sha256": "9dc4d0526f9c031777477ffc2307d5d5b7bd517b46090b6596ba2a9d40ff24bf",
+      "sha256": "f7a460c151ce8bb2f710a8a08c9c2b56ee07c33677465fa09beb0f1fbb7e1c04",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "2e66b214220ad2de90ce203b96a3e63a5a1b8fae0500faf341a9a8f90711d898",
+      "sha256": "8a75f731ab240624a3e4155bc5fc9cb6207799ffb68c500235e01082bef36037",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py",
-      "sha256": "75818cd27538bb1d9023e4aba7731b8e3720ca1ed8fb1d79ec11925b09e82333",
+      "sha256": "135843a06271ecac8698b34df01aa8dca6ac3adf4047278c9055e0bc705865ac",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.py",
-      "sha256": "5c1cda4333a5c89de4f499d4a27882f9f73bc1fb3b8db64c0a28359172500fe3",
+      "sha256": "d8ff39dd0e920814d193d78ef17f74a314a758492e8f33bfc56cd1bdf9032d28",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/session-start.sh",
-      "sha256": "65b1b194b02cf0d8f0ab332698a5fd875df2e546ee872bbf4257395f27079d76",
+      "sha256": "53662f33e267249e900d3ee2f70fad01126535aaea8a644a05c4280ba1ec0216",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/set-property.py",
-      "sha256": "99401e02a3d24bead4eb90b1400bea90ba0018712326e97399f23b8c079dd8c4",
+      "sha256": "d334e383240743b3187a6603f5c896f572ca4b0e91bfc3d7d7da6a5a7a130220",
       "kind": "script",
       "example": false
     },
@@ -1052,7 +1052,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py",
-      "sha256": "bfbaf5f0a3a76195cdd2fd99f752205980b7d1152e54f55e8fa10552576a1d36",
+      "sha256": "593090ab31327242cfb78ca7cf837749a729d2066013da9dc3a5497b71e3cc32",
       "kind": "script",
       "example": false
     },
@@ -1064,7 +1064,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-life-snapshot.py",
-      "sha256": "fbe4a2d72a875d4d1052418709f9d089d496fc2f77c112f16f9c82d650f8f9f3",
+      "sha256": "f055c0def6abe27ad8823c456f659a15ba1fdd9ef4e5b5ad82c101ebfc6b7300",
       "kind": "script",
       "example": false
     },
@@ -1076,13 +1076,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "66a68eeda029af81b8c907453a00ee27db5b63b8d95f66175ad3fbb8c33c25a9",
+      "sha256": "de9f9401eaa25c559f82e593dbbeecffcdf6e0658f8f3466c7845975ec8e2bf9",
       "kind": "script",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/write-guard.py",
-      "sha256": "ce80ef36f4d5e63f248d965a9c3a98a79f49bb9a21225e0e75a971abd866f2b2",
+      "sha256": "a654459a6746095eb78120bccb689d5de0d3a98bc3f0182a1542d741d261e9f3",
       "kind": "script",
       "example": false
     },
@@ -1644,6 +1644,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.28.0",
+      "date": "2026-09-16",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.27.0",
       "date": "2026-09-16",
