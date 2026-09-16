@@ -3778,6 +3778,73 @@ with tempfile.TemporaryDirectory() as _mktd:
                              "The cutoff is this session's start, not the last "
                              "log's name (Brian Carroll, B2-2). listed: %s"
                              % (_zone, sorted(_seen2)))
+
+    # -----------------------------------------------------------------
+    # 90. A BARE LINK RESOLVES INSIDE THE ROOMS THIS REPORT READS (B2-3).
+    #
+    # A habit and its planner-habit note carry the SAME name by design, one
+    # in `02 Planner/Habits/` (three segments) and one in `04 Inner World/
+    # My Life/Habits/` (four). The 1.24.0 resolver sorted candidates by
+    # depth, so a bare `[[X]]` anywhere in the vault always credited its
+    # backlink to the Planner copy, which is outside SCAN_ROOTS and is
+    # never reported on. The member's own habit note then read as an orphan
+    # with a link to it sitting in plain sight in a topic note.
+    #
+    # The shape is the reported one: a BARE link, written in prose. Silas's
+    # ruling path-qualifies the two FIELDS of a habit pair, and case 88
+    # above proves new-entity.py writes them qualified; neither reaches a
+    # link a member typed into a paragraph.
+    #
+    # WHAT THIS DOES NOT PROVE: that the Planner copy is reported on. It is
+    # not, and that is by design; SCAN_ROOTS is unchanged.
+    _rv = fixture_vault(_mk, "resolver-scan-roots")
+    (_rv / "02 Planner/Habits").mkdir(parents=True, exist_ok=True)
+    (_rv / "02 Planner/Habits/ZZ Probe Habit.md").write_text(
+        "---\ntype: planner-habit\nname: ZZ Probe Habit\ncadence: daily\n"
+        "status: active\ncreated: 2026-09-16\ntags: []\n---\n\n## Log\n",
+        encoding="utf-8")
+    (_rv / "04 Inner World/My Life/Habits/ZZ Probe Habit.md").write_text(
+        "---\ntype: habit\ncreated: 2026-09-16\nname: ZZ Probe Habit\n"
+        "status: active\nplanner_habit: \ntags: []\n---\n\n# ZZ Probe Habit\n",
+        encoding="utf-8")
+    (_rv / "04 Inner World/My Life/Topics/ZZ Probe Topic.md").write_text(
+        "---\ntype: topic\ncreated: 2026-09-16\nrelated_topics: []\ntags: []\n"
+        "---\n\n# ZZ Probe Topic\n\nI keep this up with [[ZZ Probe Habit]].\n",
+        encoding="utf-8")
+    checks += 1
+    _rq = subprocess.run([PY, str(_rv / "06 AI Team/AI Team Knowledge/Scripts/check-quality.py"),
+                          str(_rv), "--json"], capture_output=True, text=True)
+    if _rq.returncode != 0:
+        fails.append("resolver-prefers-scan-roots/bare-link: check-quality "
+                     "exited %d: %s" % (_rq.returncode,
+                                        (_rq.stderr or _rq.stdout or "").strip()[:300]))
+    else:
+        try:
+            _rep = json.loads(_rq.stdout)
+        except ValueError:
+            _rep = None
+        if _rep is None:
+            fails.append("resolver-prefers-scan-roots/bare-link: check-quality "
+                         "--json printed something that is not JSON:\n%s"
+                         % _rq.stdout[-300:])
+        else:
+            _orph = {f["path"] for f in _rep.get("findings", [])
+                     if f["metric"] == "orphans"}
+            _target = "04 Inner World/My Life/Habits/ZZ Probe Habit.md"
+            if _target in _orph:
+                fails.append("resolver-prefers-scan-roots/bare-link: the habit "
+                             "note is reported as an orphan although a topic "
+                             "links to it by name. The bare link resolved to "
+                             "the shorter `02 Planner/Habits/` copy, which this "
+                             "report never reads, so the backlink was credited "
+                             "to a note nobody looks at (Brian Carroll, B2-3). "
+                             "orphans: %s" % sorted(_orph))
+            elif not (_rv / "02 Planner/Habits/ZZ Probe Habit.md").is_file():
+                fails.append("resolver-prefers-scan-roots/bare-link: the Planner "
+                             "half of the pair is gone from the fixture, so the "
+                             "resolver had nothing to choose BETWEEN and this "
+                             "case passed for the wrong reason")
+
 # ===========================================================================
 # ---- END mack b8 ----
 

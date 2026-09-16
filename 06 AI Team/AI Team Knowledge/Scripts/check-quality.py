@@ -271,14 +271,33 @@ def collect(root):
     return files, notes
 
 
+def _in_scan(rel):
+    """True while this path lives in a room this report reads."""
+    return bool(rel.parts) and rel.parts[0] in SCAN_ROOTS
+
+
 def _shorter(a, b):
     """Obsidian's "shortest path when possible": of two notes that answer to
     the same name, the one nearer the top of the vault wins, and a tie is
-    broken on the path string so the answer never depends on walk order."""
+    broken on the path string so the answer never depends on walk order.
+
+    With one rule in front of depth (Brian Carroll, B2-3): a candidate
+    inside SCAN_ROOTS beats one outside it. A habit and its planner-habit
+    note carry the SAME name by design, one in `02 Planner/Habits/` (three
+    segments) and one in `04 Inner World/My Life/Habits/` (four). Depth
+    alone therefore always picked the Planner copy, every bare `[[X]]` in
+    the vault credited its backlink to a note this report does not read,
+    and the member's own habit note was reported as an orphan while a link
+    to it sat in plain sight. Path-qualified FIELDS fix the fields; they
+    cannot fix a bare link written in prose, which is what was reported.
+
+    This is not a departure from Obsidian's rule so much as a reading of
+    it: of two notes that answer to the same name, this report prefers the
+    one it is actually reporting on."""
     if a is None:
         return b
-    return min((a, b), key=lambda r: (len(r.parts), len(r.as_posix()),
-                                      r.as_posix()))
+    return min((a, b), key=lambda r: (not _in_scan(r), len(r.parts),
+                                      len(r.as_posix()), r.as_posix()))
 
 
 def resolver(files, notes=None):
