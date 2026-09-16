@@ -3469,9 +3469,29 @@ else:
         _sv = _si_fixture(_t / "sandbox")
         _si(_sv, "apply")                       # first apply writes everything
         _tgt = Path(_sv) / ".codex"
-        if not _tgt.is_dir() or _os3.geteuid() == 0:
-            _si_skip("no .codex/ was generated, or this runs as root, so a "
-                     "refused write cannot be produced here")
+        # WHY THIS ASKS TWICE. os.geteuid does not exist on Windows, and
+        # naming it bare took the whole generator group down with
+        # AttributeError before any case ran (Conrad Froehling, 2026-09-16).
+        # Where it does exist, root is not refused by a read-only folder. And
+        # on Windows even the chmod below would not produce the refusal: chmod
+        # there toggles a read-only BIT and a directory still accepts a write,
+        # so the case would go red for the platform and not for the guard,
+        # which is worse than not running.
+        # The call and its guard on ONE line, which is the convention
+        # windows/no-bare-posix-os-call checks for: a guard on the line above
+        # is invisible to a reader skimming and to the case that enforces this.
+        _uid = _os3.geteuid() if hasattr(_os3, "geteuid") else None
+        _no_deny = None
+        if _uid is None:
+            _no_deny = ("this platform (%s) has no POSIX file modes: os.chmod "
+                        "toggles a read-only bit and a directory still accepts "
+                        "a write, so the refusal this case needs cannot be "
+                        "produced here" % sys.platform)
+        elif _uid == 0:
+            _no_deny = "this runs as root, so a read-only folder still accepts a write"
+        if not _tgt.is_dir() or _no_deny:
+            _si_skip(_no_deny or "no .codex/ was generated, so a refused write "
+                                 "cannot be produced here")
         else:
             # force one file to be regenerated, then close the folder
             _one = next(iter(sorted(_tgt.rglob("*.toml"))), None)
@@ -4638,6 +4658,23 @@ if _hard9:
                  "hardcoded POSIX shell path. Windows cannot start /bin/sh and "
                  "the suite dies before its first case (Conrad Froehling, "
                  "2026-09-16)" % len(_hard9))
+# 101b. And nothing calls a POSIX-only os function bare. `_os3.geteuid()` sat
+#       in the sandbox-refusal case and took the whole generator group down
+#       with AttributeError on Windows, which the first sweep missed because
+#       the module was aliased. Matched on the call, not on the module name.
+checks += 1
+_bare9 = [_ln for _ln in _b9src.split("\n")
+          if re.search(r"(?<!hasattr\()\b(?:geteuid|getuid|getpwuid|fork|setsid)\s*\(",
+                       _ln)
+          and "hasattr" not in _ln and not _ln.lstrip().startswith("#")]
+if _bare9:
+    fails.append("windows/no-bare-posix-os-call: %d line(s) call a POSIX-only os "
+                 "function with no hasattr guard ON THE SAME LINE. On Windows the "
+                 "attribute is simply not there and the group around the call dies "
+                 "with AttributeError; a guard on the line above is invisible both "
+                 "to this case and to anyone skimming: %s"
+                 % (len(_bare9), "; ".join(l.strip()[:90] for l in _bare9[:3])))
+
 _names9 = set(re.findall(r"sh_run\(\s*[\"']([^\"']+)[\"']", _b9src))
 if len(_names9) < 5:
     fails.append("shell/resolved-in-one-place: only %d named case(s) go through "
