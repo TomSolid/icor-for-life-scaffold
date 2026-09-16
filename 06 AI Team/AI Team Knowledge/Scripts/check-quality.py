@@ -137,6 +137,8 @@ ENTITY_FOLDERS = {
 }
 SKIP_NAMES = {"README.md", "_template.md"}
 WIKILINK = re.compile(r"!?\[\[([^\]\n]+)\]\]")
+# The captured group is everything between the brackets, escaped alias pipe
+# included; `link_name` below is what turns it into a target.
 # A fenced block and an inline code span are code, not prose. `[[Some Note]]`
 # written inside a fence in an SOP is an EXAMPLE of a link, not a link, and
 # counting it made every guideline that teaches wikilinks look like a note
@@ -239,7 +241,15 @@ def link_name(raw):
     m = re.fullmatch(r"!?\[\[(.+?)\]\]", s)
     if m:
         s = m.group(1)
-    s = s.split("|", 1)[0]
+    # `\|` is the alias separator too. Inside a markdown table a raw pipe
+    # ends the cell, so a table link MUST escape it, and Obsidian renders
+    # `[[Note\|Alias]]` exactly like `[[Note|Alias]]`. Splitting on the bare
+    # pipe alone left the backslash glued to the target and made all 17 table
+    # links in SOPs/INDEX.md read as pointing at notes that do not exist
+    # (Steven Koegler, 2026-09-01, the same reader defect he reported against
+    # the old myPKA validator). A genuinely missing target still dangles: this
+    # changes what the target IS, never whether it has to resolve.
+    s = re.split(r"\\?\|", s, maxsplit=1)[0]
     # maxsplit= by name: the positional third argument to re.split is
     # deprecated since Python 3.13 and prints a DeprecationWarning straight
     # into the member's terminal (Andrew Gillley, T13-5).

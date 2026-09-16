@@ -82,7 +82,12 @@ _nio.loader.exec_module(noteio)
 # tsk-2026-09-09-020) and a path or filename (Journal/2026/09, 2026-09-11.md).
 DATE = re.compile(r"(?<![\w\-/])(\d{4})-(\d{2})-(\d{2})(?![\w\-/])(?!\.\w)")
 
-DAILY_LINK = re.compile(r"\[\[(\d{4}-\d{2}-\d{2})(?:\|[^\]\n]*)?\]\]")
+# The alias separator is `|` in prose and `\|` inside a markdown table, where
+# a raw pipe would end the cell. Both are the same link to Obsidian, so both
+# count as already linked; reading only the bare pipe made a dated table row
+# invisible to the existence check below, which is the whole point of the
+# function (Steven Koegler, 2026-09-01).
+DAILY_LINK = re.compile(r"\[\[(\d{4}-\d{2}-\d{2})(?:\\?\|[^\]\n]*)?\]\]")
 
 FRONTMATTER = re.compile(r"^---\r?\n.*?^(?:---|\.\.\.)[ \t]*\r?\n", re.S | re.M)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
