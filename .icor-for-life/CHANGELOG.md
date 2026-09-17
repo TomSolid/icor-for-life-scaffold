@@ -37,9 +37,12 @@ About 1.30.0: its tag sits on `65feac0`, a commit that carries only the
 1.30.0 manifest rebuilt on the 1.30.0 tree. The manifest committed with
 the version bump described three scripts as they were being edited for
 this release, not as 1.30.0 shipped them, and the release gate refuses
-a stale manifest. Nothing else in 1.30.0 changed. Its download was
-built the same evening as this one and carries the same two plugin
-releases.
+a stale manifest. Nothing else in 1.30.0 changed. 1.30.0 has a tag and
+no download: its release run started one minute before the 1.31.0 tag
+was pushed, and the builder, re-reading the tags from GitHub mid-run,
+found a version its manifest could not know about and refused. A tag
+never moves, so 1.30.0 stays a tag, and this release is the first one
+a member on 1.29.0 can download.
 
 ### Added
 
