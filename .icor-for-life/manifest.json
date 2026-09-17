@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.29.0",
-  "built": "2026-09-17T11:34:39Z",
-  "commit": "b8443b6",
+  "version": "1.30.0",
+  "built": "2026-09-17T17:33:36Z",
+  "commit": "67aba79",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -24,7 +24,9 @@
     "04 Inner World/My Life/Habits",
     "03 WiP/_archive",
     "03 WiP/Workstreams",
+    "03 WiP/AI Team",
     "03 WiP/Projects",
+    "03 WiP/Operations",
     "07 Databases",
     "06 AI Team/AI Team Knowledge/Workstreams",
     "06 AI Team/AI Team Knowledge/SOPs",
@@ -379,21 +381,39 @@
       "example": false
     },
     {
+      "path": "03 WiP/AI Team/README.md",
+      "sha256": "c2bb69a4cd864842287f5bd62312315aa54a2e722e3733f10c800e3e45ce43e4",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": "03 WiP/Operations/README.md",
+      "sha256": "583fda82e968eb67f4889c30bbf584c4d0d603c4b1609aa88c4701ec4cccbbc2",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "03 WiP/Projects/README.md",
-      "sha256": "00a8d0c893f89ea97863db597e281686ef89bb83d9e81876dacf38890ae33a00",
+      "sha256": "1a86d66872656d638bcb10d80e86ab86c335ec746b3d96afed7495d26dccaaed",
       "kind": "doc",
       "example": false
     },
     {
       "path": "03 WiP/README.md",
-      "sha256": "7f0e34c87d75f724a40e3e66fed2e03dbaded52051c88379446e8442b9b0d8e9",
+      "sha256": "996cf05825b928d37e3dbf73c1a994660bc4f6a2233a1c751aed7b2afc34fa68",
       "kind": "doc",
       "example": false
     },
     {
       "path": "03 WiP/Workstreams/README.md",
-      "sha256": "56a864f62ad747e6c49d1cce6584cf3febb0e3f40d34e7bfb1bf273b7e216f3f",
+      "sha256": "784f0d1a622447b65cf0fd17c196add5b6eac1194f289969adfa779f58a9d873",
       "kind": "workstream",
+      "example": false
+    },
+    {
+      "path": "03 WiP/_archive/README.md",
+      "sha256": "79a89beb4da7c2f68eb06891bc046d828a4571b4ec5197fc600a42a8e2ce8c47",
+      "kind": "doc",
       "example": false
     },
     {
@@ -686,13 +706,13 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1001-the-six-rooms.md",
-      "sha256": "4ffc84b5b5a8f17cc5a53ea83e834539765e1632b369c5339317ea733a4e7612",
+      "sha256": "28a0c1523f98872da8d1fe55e0082d72df2b810ba54c0d018bdcecf0de8849a6",
       "kind": "guideline",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "e4344422d9006b1edba6cf929fd657bc3ffaa2b1876c592f90ff57235dabde7c",
+      "sha256": "6b9052b0668a316e3d03d69b3e98ef7863962818f36648fd953b20f22bc5a958",
       "kind": "guideline",
       "example": false
     },
@@ -704,7 +724,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1004-naming-rules.md",
-      "sha256": "994b2107968af88f263edd92148305895d063b29edf5bece53f5d32954b07b4d",
+      "sha256": "aa6b803d0a41f76014cf9de4d1c86267b83f2b2b17f9f349f491a19d6e0a8dc7",
       "kind": "guideline",
       "example": false
     },
@@ -722,7 +742,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md",
-      "sha256": "3745a2b1c9fefaff65c3b393be2a45509c6eae26e3b9dc6f461a54e890984740",
+      "sha256": "d201a1aec7b65512c263bd447f0c73ebdd802a50bcd8e7e9a350b4e776929e1a",
       "kind": "guideline",
       "example": false
     },
@@ -788,7 +808,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1006-start-work-and-archive-a-wip-folder.md",
-      "sha256": "534e8fd7a259f3f5cac68b82fc2c4e5a592a2388fb544209eb309147f525b31e",
+      "sha256": "0cca41a5e3ae446d7f8270a2e94aa648a3d6837d38b9abe70e64cf07a821c711",
       "kind": "sop",
       "example": false
     },
@@ -854,7 +874,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1017-answer-the-six-life-questions-from-the-snapshot.md",
-      "sha256": "589d65233943518632363acd2de15d3ad2755f8d8cc2fea7ab2efb71ecfef21e",
+      "sha256": "fb3872465b1589f36b445be41f100caa4674b5547baa8bdfce6fe3a206608543",
       "kind": "sop",
       "example": false
     },
@@ -884,7 +904,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
-      "sha256": "ac5f769f1a4d876ec8405c543b3ddf7ef8410173e55a548d71b0e6569fafbaaa",
+      "sha256": "7c386ff128d3a3c19d1bce9fe081d81a262290f7f0ddd3fa4e85fd2cb4169dd3",
       "kind": "script",
       "example": false
     },
@@ -902,7 +922,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/checkpoint.py",
-      "sha256": "4d71abf16acb6d7fddd1659c23eaa5a7112ed4c99e7f21138f851ce89a37b993",
+      "sha256": "80c8ba2caec5bf56d528b6495c7ee225a537161b0cf3b1a92fd023810df655ce",
       "kind": "script",
       "example": false
     },
@@ -956,7 +976,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "1faa20915b1ed4408518f3163920e5ba411da4d0399ac291d72a03a392db7a5c",
+      "sha256": "93864349ab5be42b807201d621bdef732febed0de5c5eef149f8e4bd536ecd76",
       "kind": "script",
       "example": false
     },
@@ -980,7 +1000,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-progress-report.py",
-      "sha256": "11bb888440d062bb7d3d2096070f5584ef8d78e2d08df7f35c6419fa34139c15",
+      "sha256": "3330516c639f1e4f69442fd983a5af7300a441c06df7946b7e2fc2599b140d2b",
       "kind": "script",
       "example": false
     },
@@ -1016,7 +1036,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "920fe0f0a23cf3b4b8ae5680335e7dffdbba6e9c3bae5ec394f84933a164eb98",
+      "sha256": "077d1e42c1081c2a98a1d66fddc26e4302fd1870f72e3a7c4218cd0332b708ad",
       "kind": "script",
       "example": false
     },
@@ -1070,7 +1090,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "de9f9401eaa25c559f82e593dbbeecffcdf6e0658f8f3466c7845975ec8e2bf9",
+      "sha256": "46cbb07237f0a870dfeb6ead7c86b383cb6c829035ca1b0a27e002998b7b88bf",
       "kind": "script",
       "example": false
     },
@@ -1214,19 +1234,19 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1004-import-and-convert-external-knowledge.md",
-      "sha256": "14deced6262c7c03118a89d81a9cab2dcf2b4b819eee5f44faf3116a33248474",
+      "sha256": "8926278d6405bd5169b84c2e78c5ab0bcd22ae7e8b9778c52265b25796ce1868",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1005-checkpoint.md",
-      "sha256": "6c09dbbfb2543fec9ab82c93b57160bb0434a6dfac10a81169f54f2c9894ab7a",
+      "sha256": "9ffe9fe01ce0b032bd6df017a44e0542f91828258d6729055d47f6428090aa04",
       "kind": "workstream",
       "example": false
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Workstreams/WS-1006-install-an-ai-team-expansion.md",
-      "sha256": "ef2b75e77d0140cc94479024493ace40035f525e45ae69b39d9ffc63cd24e60c",
+      "sha256": "616cf4ffe284fc4fcb412451b972d3e4204e7d99d963433275d33652563b062e",
       "kind": "workstream",
       "example": false
     },
@@ -1466,7 +1486,7 @@
     },
     {
       "path": "06 AI Team/README.md",
-      "sha256": "7dea219cf8b5f9c2f251283cfc3a27795a0fc6545bac28b14614e53a6abb869f",
+      "sha256": "c947174cff41eeccac132096365240b3eb5f2aa01b0b1df4745c993f9a9f05b6",
       "kind": "doc",
       "example": false
     },
@@ -1490,7 +1510,7 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "4ac8ef50a9f4275e4475f4e99f9e4117e1987c293af66fe20bf7554571200b1d",
+      "sha256": "27f2e5ab1c04215b3ef575f016deed8f284708f4985e9bd8569dad8f5779daa5",
       "kind": "doc",
       "example": false
     },
@@ -1514,7 +1534,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3919a90d87314239be77e55bb9b85b3d7898f450488dd8021f0e5f56b72f81c3",
+      "sha256": "ab224008999ed0f93455ce627379b58a73956850c3abdad15bcc73498ac6eac1",
       "kind": "doc",
       "example": false
     },
@@ -1644,6 +1664,17 @@
     }
   ],
   "history": [
+    {
+      "version": "1.30.0",
+      "date": "2026-09-17",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "03 WiP/AI Team/README.md",
+        "03 WiP/Operations/README.md",
+        "03 WiP/_archive/README.md"
+      ]
+    },
     {
       "version": "1.29.0",
       "date": "2026-09-17",
