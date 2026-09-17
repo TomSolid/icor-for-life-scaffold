@@ -12,15 +12,18 @@ Answers, from the files alone, the questions a checkpoint asks:
      the checkpoint runs, and until 2026-09-07 it was invisible here (the
      report said `tasks touched : 0` for a session that shipped one;
      reported by Andrew Gillley from a 1.10.2 vault).
-  2. Which WiP folders could leave?  Every folder in 03 WiP/ (not _archive)
-     whose newest file is older than --window days AND which no open or
-     in-progress task mentions. Both facts are printed for every folder;
-     the flag is only the intersection. The two standing trees,
-     Workstreams/ and Projects/ (03 WiP/README.md, 2026-09-15), are never
-     candidates: a process has no finish line to leave against and an
-     open Project's folder leaves with the Project. Their dated children
-     are scanned instead, one level down, under a `Workstreams/<Name>/`
-     or `Projects/<name>/` prefix, and only those can be flagged.
+  2. Which work in WiP could leave?  Every piece of work in 03 WiP/ (not
+     _archive) whose newest file is older than --window days AND which no
+     open or in-progress task mentions. Both facts are printed for every
+     entry; the flag is only the intersection. The four buckets
+     (03 WiP/README.md, 2026-09-17) are never candidates themselves; the
+     scan steps into them and reports the dated work inside, which inside
+     a bucket is a folder OR a single .md file. Workstreams/<Name>/ is
+     standing too, because a process has no finish line to leave against,
+     so only its dated runs can be flagged; Projects/<name>/ is the unit
+     that leaves, with its Project. A bucket's own README.md is never
+     reported. Operations/ is reported first: it is the bucket nothing
+     closes from the outside, so it is where work goes stale unnoticed.
   3. Is there a session log for today?
   4. How many date mentions still are not linked to their daily note?
      Asked of link-dates-to-daily-notes.py --check, not re-implemented here,
@@ -105,9 +108,20 @@ LOGS = K / "Session Logs"
 WIP = ROOT / "03 WiP"
 MACHINE = ROOT / ".icor-for-life" / "scripts"
 RECEIPTS = MACHINE / "receipts"
-# The standing trees of 03 WiP/README.md. Never candidates themselves; the
-# scan steps into them and reports the dated runs and project folders inside.
-STANDING = ("Workstreams", "Projects")
+# The buckets of 03 WiP/README.md. Never candidates themselves; the scan
+# steps into them and reports the dated work inside. `Reports/` is not
+# shipped and is listed anyway, because a member who opens one must not
+# have it flagged as a stale folder on the first checkpoint after.
+STANDING = ("Workstreams", "Projects", "AI Team", "Operations", "Reports")
+# The two buckets that hold a NAMED folder per process or per Project
+# rather than dated work directly. The other buckets hold the dated work
+# itself, as a file or as a folder.
+NAMED = ("Workstreams", "Projects")
+# Report order, not filesystem order. `Operations/` is read first because
+# it is the bucket nothing closes from the outside: a Project takes its
+# folder with it and a Workstream run is finished by the next run, so
+# Operations is where work goes stale unnoticed (Tom, 2026-09-17).
+BUCKET_ORDER = ("Operations", "Reports", "Workstreams", "AI Team", "Projects")
 today = datetime.date.fromisoformat(a.today) if a.today else datetime.date.today()
 now = datetime.datetime.combine(today, datetime.time(23, 59))
 
@@ -244,9 +258,14 @@ wip = []
 
 
 def wip_row(entry: Path, label: str, standing: bool):
-    newest = newest_under(entry) or mtime(entry)
+    # newest_under() walks a folder; a single dated FILE is its own newest.
+    newest = (mtime(entry) if entry.is_file()
+              else (newest_under(entry) or mtime(entry)))
     age = (now - newest).days
-    referenced = label in all_task_text or entry.name in all_task_text
+    # A task may name the bucket path, the file or folder name, or the
+    # name without its extension. All three are the same piece of work.
+    referenced = (label in all_task_text or entry.name in all_task_text
+                  or (entry.is_file() and entry.stem in all_task_text))
     return {
         "folder": label,
         "days_untouched": max(0, age),
@@ -256,25 +275,51 @@ def wip_row(entry: Path, label: str, standing: bool):
     }
 
 
-if WIP.exists():
-    for entry in sorted(WIP.iterdir()):
-        if not entry.is_dir() or entry.name.startswith("_") or entry.name.startswith("."):
+def wip_child(parent: Path):
+    """The entries inside a bucket that are work, in name order.
+
+    A bucket carries one README.md that explains it. That file is not
+    work and must never be reported, or every checkpoint would offer to
+    archive the documentation of the room it is reporting on.
+    """
+    for child in sorted(parent.iterdir()):
+        if child.name.startswith(".") or child.name.startswith("_"):
             continue
-        if entry.name in STANDING:
+        if child.is_file() and child.name.lower() == "readme.md":
+            continue
+        if child.is_dir() or child.suffix.lower() == ".md":
+            yield child
+
+
+if WIP.exists():
+    roots = [e for e in WIP.iterdir()
+             if not e.name.startswith("_") and not e.name.startswith(".")]
+    # Buckets first, in the order of BUCKET_ORDER; then anything else at
+    # the root, which in a vault older than 1.30.0 is undated-bucket work
+    # from before the buckets existed and is reported exactly as before.
+    def root_key(e: Path):
+        if e.is_dir() and e.name in STANDING:
+            return (0, BUCKET_ORDER.index(e.name) if e.name in BUCKET_ORDER
+                    else len(BUCKET_ORDER), e.name)
+        return (1, 0, e.name)
+
+    for entry in sorted(roots, key=root_key):
+        if entry.is_dir() and entry.name in STANDING:
             wip.append(wip_row(entry, entry.name, standing=True))
-            for child in sorted(entry.iterdir()):
-                if not child.is_dir() or child.name.startswith("."):
-                    continue
+            for child in wip_child(entry):
+                label = f"{entry.name}/{child.name}"
                 # Workstreams/<Name>/ is itself standing (a process); its
                 # dated runs sit one level further down. Projects/<name>/
-                # is the unit that leaves, with its Project.
-                if entry.name == "Workstreams":
-                    wip.append(wip_row(child, f"{entry.name}/{child.name}", standing=True))
-                    for run in sorted(child.iterdir()):
-                        if run.is_dir() and not run.name.startswith("."):
-                            wip.append(wip_row(run, f"{entry.name}/{child.name}/{run.name}", standing=False))
+                # is the unit that leaves, with its Project. Every other
+                # bucket holds the dated work itself.
+                if entry.name == "Workstreams" and child.is_dir():
+                    wip.append(wip_row(child, label, standing=True))
+                    for run in wip_child(child):
+                        wip.append(wip_row(run, f"{label}/{run.name}", standing=False))
                 else:
-                    wip.append(wip_row(child, f"{entry.name}/{child.name}", standing=False))
+                    wip.append(wip_row(child, label, standing=False))
+            continue
+        if not entry.is_dir():
             continue
         wip.append(wip_row(entry, entry.name, standing=False))
 

@@ -47,7 +47,7 @@ flowchart TD
    business surface by definition; that is not evidence about the
    user's working life.
 2. [SCRIPT-CHECKED] Create the working folder
-   `03 WiP/YYYY-MM-DD-import-<source-slug>/` with `manifest.md`
+   `03 WiP/Operations/YYYY-MM-DD-import-<source-slug>/` with `manifest.md`
    ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]). Every imported file gets a manifest line.
 3. **Content conversion (Penn).** Per approved mapping, [[SOP-1010-convert-an-external-note|SOP-1010]]
    converts each note: scaffold frontmatter ([[GL-1002-frontmatter-conventions|GL-1002]]), naming ([[GL-1004-naming-rules|GL-1004]]),

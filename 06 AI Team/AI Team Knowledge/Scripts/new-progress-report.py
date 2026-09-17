@@ -43,7 +43,9 @@ noteio = importlib.util.module_from_spec(_nio)
 _nio.loader.exec_module(noteio)
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--wip", required=True, help="folder name inside 03 WiP/")
+ap.add_argument("--wip", required=True,
+                help="path inside 03 WiP/, bucket included, "
+                     "e.g. Operations/2026-09-18-broken-sync")
 ap.add_argument("--title")
 ap.add_argument("--phase", action="append", default=[])
 ap.add_argument("--plan")

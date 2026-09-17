@@ -15,6 +15,89 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.30.0 (2026-09-17)
+
+The workbench gets topic folders. Work in `03 WiP/` no longer lands as one
+dated folder among dozens; it goes into one of four buckets first, and is
+dated inside it. Every bucket explains itself in its own `README.md`.
+
+Minor bump: two folders are added and a handful of notes and two scripts
+learn about them. Nothing is removed, moved or renamed, no work in your
+own vault has to move, and a vault that already runs 1.29.0 keeps every
+file it has after this update.
+
+### Added
+
+- **`03 WiP/Operations/` and `03 WiP/AI Team/`, two new buckets.** Together
+  with the two that already existed, `03 WiP/Workstreams/` and
+  `03 WiP/Projects/`, they are the four places work can go. You read them
+  from the top of the list and stop at the first one that fits, which is
+  what stops two people filing the same work in two different places:
+
+  1. `Workstreams/<Name>/` for one run of a process that repeats.
+  2. `AI Team/` for work on the team itself, a hire, an SOP, a script.
+  3. `Projects/<Project note name>/` for work a Project note names.
+  4. `Operations/` for everything else that keeps things running.
+
+  `Operations/` is the one to know about. It takes bounded work that has
+  no Project note, and it never asks you to open one. It is also the
+  bucket that goes stale, because nothing closes it from the outside, so
+  the checkpoint reads it first.
+
+- **A `README.md` in every folder of the workbench**, written for someone
+  seeing it for the first time: what goes in, what does not, two example
+  names, and when a piece of work is a file and when it is a folder. New
+  files: `03 WiP/Operations/README.md`, `03 WiP/AI Team/README.md` and
+  `03 WiP/_archive/README.md`.
+
+- **The one file or one folder rule**, inside a bucket. One file is
+  `YYYY-MM-DD-<slug>.md`. Two files or more is `YYYY-MM-DD-<slug>/`. A
+  single file that grows a second file becomes a folder of the same name,
+  with the first file moved in as its `README.md`.
+
+- **One command line per system, wherever you are asked to type one.** On
+  Windows, `python3` opens the Microsoft Store instead of running
+  anything, so the member-facing commands now show `py -3` for Windows
+  beside `python3` for macOS and Linux (`README.md`, `AGENTS.md`,
+  `WS-1006`, `SOP-1017`). The scripts in this vault need Python 3.9 or
+  newer and nothing else: no install step and no packages, and `README.md`
+  now says so.
+
+### Changed
+
+- `03 WiP/README.md` is rewritten around the four buckets: the order they
+  are read in, what each one takes, the file or folder rule, and why two
+  of them hold a named folder per process or per Project instead of dated
+  work. The Workstream versus Project explanation is kept in full.
+- `03 WiP/Projects/README.md` and `03 WiP/Workstreams/README.md` point at
+  the bucket order instead of repeating it, and both drop the loose file
+  allowance in favour of the dated file form.
+- `Scripts/checkpoint.py` knows the buckets. A bucket is never offered for
+  archive; the dated work inside it is, whether that work is a folder or a
+  single `.md` file. A bucket's own `README.md` is never offered. The
+  report lists `Operations/` first.
+- `Scripts/validate-scaffold.py` requires the two new folders, so a vault
+  missing them is reported. `.icor-for-life/manifest.json` reads that same
+  list, so the rooms it names gain both.
+- `SOP-1006`, `WS-1004`, `WS-1005`, `GL-1001`, `GL-1002`, `GL-1004`,
+  `GL-1007`, `AGENTS.md`, `README.md` and `06 AI Team/README.md` all say
+  where work goes in the same words, and link to `03 WiP/README.md` rather
+  than restating the rule.
+- `Scripts/new-progress-report.py` says in its help that `--wip` takes the
+  path inside `03 WiP/` with the bucket included. Its behaviour is
+  unchanged.
+
+### Removed or moved
+
+Nothing was removed, moved or renamed in this version.
+
+### If you are updating by hand
+
+Make the two folders, `03 WiP/Operations/` and `03 WiP/AI Team/`, and copy
+the four `03 WiP/` README files from this release. Work already sitting in
+`03 WiP/` can stay where it is: it archives from there as before, and the
+buckets apply to what you start next.
+
 ## 1.29.0 (2026-09-17)
 
 The Scaffold gets the security policy its twelve bundled plugins already had,

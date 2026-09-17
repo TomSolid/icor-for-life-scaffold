@@ -37,7 +37,8 @@ lesson. Checkable rules are enforced by `Scripts/validate-scaffold.py`.
 | Daily note | `YYYY/MM/YYYY-MM-DD.md` | `2026/08/2026-08-27.md` |
 | Quick capture | `YYYY/MM/YYYYMMDDHHmm.md` | `2026/08/202608271432.md` |
 | Journal entry | `YYYY-MM-DD_<slug>.md` | `2026-08-27_best-business-partner.md` |
-| WiP folder | `YYYY-MM-DD-<slug>/` | `2026-08-27-pivot-video/` |
+| WiP work, one file | `<bucket>/YYYY-MM-DD-<slug>.md` | `Operations/2026-08-27-pivot-video.md` |
+| WiP work, two files or more | `<bucket>/YYYY-MM-DD-<slug>/` | `Operations/2026-08-27-pivot-video/` |
 | Task | `YYYY-MM-DD-<slug>.md` | `2026-08-27-seed-example-notes.md` |
 | Session log | `YYYY-MM-DD-HH-MM_<agent>_<slug>.md` | `2026-08-27-21-30_larry_scaffold-build.md` |
 | SOP / WS / GL, yours | `SOP-NNN-<slug>.md` etc., `001` to `999` | `SOP-001-weekly-invoice-run.md` |

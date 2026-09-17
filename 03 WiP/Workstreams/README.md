@@ -5,10 +5,12 @@ One folder per process, holding its running state: the queue, the current
 run, checklists, and one dated subfolder per run of the process.
 
 A Workstream is a repeatable process that never ends; a Project is bounded
-and ends. That is the whole reason this tree exists beside the dated
-deliverable folders: a process has no finish line to archive against, so
-its state needs a place that does not close. The three kinds of folder,
-side by side: `03 WiP/README.md`.
+and ends. That is the whole reason this tree exists beside the other
+buckets: a process has no finish line to archive against, so its state
+needs a place that does not close. This bucket is checked first of all,
+so one run of a process lands here even when it also touches a Project or
+the AI Team. The buckets in order, and the first match wins rule:
+`03 WiP/README.md`.
 
 ## Shape
 
@@ -19,6 +21,7 @@ Workstreams/
     README.md               which Workstream(s) it serves, how to use it
     YYYY-MM-DD-<slug>/      one run of the process, all of its files
       progress-report.md    where the run stands, when it runs past one sitting
+    YYYY-MM-DD-<slug>.md    or one file, when the run produces only one
 ```
 
 The Workstream note carries `wip_folder: 03 WiP/Workstreams/<Name>/`

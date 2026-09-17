@@ -41,8 +41,9 @@ Goal the way a Project can, through the results it keeps producing
 and when it runs continuously it keeps its running state in a standing
 folder `03 WiP/Workstreams/<Name>/` named in its `wip_folder`. The test
 when filing: is this one run of something that repeats, or a step
-toward a finish line? Both trees and a worked example each:
-`03 WiP/README.md`.
+toward a finish line? Work on the team itself is neither, and has its
+own bucket, `03 WiP/AI Team/`. The four buckets, the order they are read
+in and a worked example each: `03 WiP/README.md`.
 
 ## Authoring rules
 

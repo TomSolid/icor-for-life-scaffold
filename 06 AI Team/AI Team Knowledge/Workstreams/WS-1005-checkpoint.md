@@ -24,9 +24,11 @@ team answers five questions before the session is allowed to be over. Run it
 whenever you stop for the day, and whenever a piece of work is done.
 
 1. [SCRIPT] `Scripts/checkpoint.py` prints the facts: the last session
-   log, which tasks changed since it, and every `03 WiP/` folder with its
-   age and whether any open task still names it. Read it; do not
-   re-derive it.
+   log, which tasks changed since it, and every piece of work in `03 WiP/`
+   with its age and whether any open task still names it. Read it; do not
+   re-derive it. The buckets themselves never leave, only the dated work
+   inside them, and `Operations/` is read first because it is the bucket
+   nothing closes from the outside.
 2. [JUDGEMENT] **Tasks.** For each task the report lists as touched: if
    its work shipped, move it to `Tasks/done/YYYY/MM/` with a one-line
    outcome ([[SOP-1008-track-work-across-sessions|SOP-1008]]); if it is

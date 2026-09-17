@@ -162,7 +162,7 @@ Where would I look for it later?
 | A thing you track over time: a pillar, a project, a subject, a goal, a habit | `04 Inner World/My Life/` | one entity, one note, forever |
 | A person or a company | `04 Inner World/Contacts/` | properties in frontmatter, what you write about them in the Journal |
 | A binary: image, audio, PDF, video | `05 Assets/` | embedded from wherever it is used |
-| Something you are working ON, alone or with the team | `03 WiP/YYYY-MM-DD-<slug>/` | temporary; its result moves to a home above or ships out |
+| Something you are working ON, alone or with the team | `03 WiP/<bucket>/YYYY-MM-DD-<slug>` | the bucket is picked from the top of the list in `03 WiP/README.md`, first match wins; one file, or a folder when it is two files or more. Temporary; its result moves to a home above or ships out |
 
 Journal versus Notes is the fork people trip on, so here is the test:
 **does it have a date as its identity, or a subject?** "What I thought on

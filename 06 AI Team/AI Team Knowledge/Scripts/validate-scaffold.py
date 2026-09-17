@@ -83,7 +83,11 @@ REQUIRED = [
     "04 Inner World/My Life/Topics", "04 Inner World/My Life/Projects",
     "04 Inner World/My Life/Habits",
     "03 WiP/_archive",
-    "03 WiP/Workstreams", "03 WiP/Projects",   # the two standing trees (03 WiP/README.md, 2026-09-15)
+    # The four buckets of 03 WiP/ (03 WiP/README.md, 2026-09-17). Read from
+    # the top, first match wins; Workstreams/ and Projects/ are also the two
+    # standing trees, which hold a named folder per process or per Project
+    # rather than dated work directly.
+    "03 WiP/Workstreams", "03 WiP/AI Team", "03 WiP/Projects", "03 WiP/Operations",
     "07 Databases",
     "06 AI Team/AI Team Knowledge/Workstreams",
     "06 AI Team/AI Team Knowledge/SOPs",

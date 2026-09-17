@@ -43,7 +43,7 @@ cannot hold.
 | `00 Daily Scratchpad/` | Your post-it. One note per day, written by you, deliberately messy. Never deleted. The team extracts from it on your command. |
 | `05 Assets/` | The binary shelf: images, audio, documents. Notes embed them; no knowledge lives here. |
 | `04 Inner World/` | Everything that went through you: Contacts, Journal, Notes (outlines, references, meeting notes, documents), and My Life (Goals, Key Elements, Topics, Projects, Habits). |
-| `03 WiP/` | The workbench. One dated folder per piece of work; finished folders retire to `_archive/`. |
+| `03 WiP/` | The workbench. Work goes into one of four topic folders (Workstreams, AI Team, Projects, Operations) and is dated inside it; finished work retires to `_archive/` under the same folder. |
 | `06 AI Team/` | The staff quarters: agent contracts, shared knowledge (SOPs, Workstreams, Guidelines, Scripts), task tracking, and session logs. |
 | `07 Databases/` | The data shelf. SQLite databases with no markdown source (health archives, logs, analytics stores). Opened read-only by the ICOR for Life - SQLite Viewer plugin: browse, query, and build dashboards, on every device. Ships empty. |
 
@@ -68,12 +68,21 @@ cannot hold.
    it. The AI reads the existing contract and initializes as Larry;
    no generated `/init` file needs to overwrite your instructions.
    The host harness (`.claude/`, `.codex/`, `.gemini/`) is generated from
-   the vault's own files: your AI prints
+   the vault's own files: your AI prints the command, you run it, and
+   `apply` writes it. The command names your Python, and the name
+   differs by system:
+   macOS and Linux
    `python3 "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py" plan`,
-   you run it, and `apply` writes it. It never rewrites your instructions,
+   Windows
+   `py -3 "06 AI Team\AI Team Knowledge\Scripts\scaffold-init.py" plan`.
+   On Windows, never type `python3`: it opens the Microsoft Store instead
+   of running anything. Use `py -3`, or `python` if the launcher is not
+   installed. It never rewrites your instructions,
    and nothing starts on its own.
    Isolated subagents and integrations depend on the runtime's tools;
-   initialization reports any capability gaps. The integrated terminal needs Python 3 on macOS (from
+   initialization reports any capability gaps. The scripts in this vault
+   need Python 3.9 or newer and nothing else: no install step, no
+   packages. The integrated terminal needs Python 3 on macOS (from
    the Xcode Command Line Tools, `xcode-select --install`, or Homebrew)
    and on Linux; on Windows the pane offers one button that opens your
    own terminal (Windows Terminal by default) in the same folder.

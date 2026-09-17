@@ -20,7 +20,7 @@ is the shelf for SQLite data, added 2026-09-01.)
 | 00 Daily Scratchpad | "what did the user write down today, raw?" | forever, never edited by AI |
 | 05 Assets | "which binary file does this note embed?" | forever |
 | 04 Inner World | "what does the user know and who do they know?" | forever, curated |
-| 03 WiP | "what is being worked on right now?" | temporary; retires to _archive. Two standing trees, `Workstreams/` and `Projects/`, hold the working state of running processes and open Projects; their dated runs retire, the trees stay (`03 WiP/README.md`) |
+| 03 WiP | "what is being worked on right now?" | temporary; retires to _archive. Four buckets, checked from the top and first match wins: `Workstreams/<Name>/`, `AI Team/`, `Projects/<name>/`, `Operations/`. Inside a bucket the work is dated: one file, or a folder when it is two files or more. The buckets stay, the dated work inside them retires (`03 WiP/README.md`) |
 | 06 AI Team | "how does the team operate?" | forever, versioned by editing |
 | 07 Databases | "which dataset is too big or too row-shaped for notes?" | forever; sources only, never a database anything regenerates; read-only for the SQLite Viewer plugin |
 

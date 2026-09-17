@@ -97,9 +97,11 @@ and when accepted (or when the explanation clearly benefits), create it:
    real human-readable node names in quotes, no inline style or color
    directives; the theme owns the look).
 2. Land it as a note where the work lives: inside the active `03 WiP/`
-   folder when one is open, otherwise as a dated note in `03 WiP/`
-   (`YYYY-MM-DD_<topic>-diagram.md`). A diagram that explains a durable
-   concept gets wikilinked from the relevant entity note.
+   folder when one is open, otherwise as a dated note in the right
+   `03 WiP/` bucket (`<bucket>/YYYY-MM-DD_<topic>-diagram.md`; the
+   buckets and the order they are read in are in `03 WiP/README.md`). A
+   diagram that explains a durable concept gets wikilinked from the
+   relevant entity note.
 3. OPEN it proactively in a new tab in the user's vault so they see it
    without hunting: `Scripts/open-in-obsidian.py <vault relative path>`
    (the same script the guided tour uses); fall back to the `obsidian`
@@ -147,8 +149,12 @@ offer costs one sentence, the diagram often IS the answer.
    needed, never flatten.
 7. **Unfinished work becomes a task** in
    `06 AI Team/AI Team Knowledge/Tasks/open/` before the session ends.
-8. **Work that runs past one session or one step carries a
-   `progress-report.md`** in its `03 WiP/` folder, created unasked and
+8. **Work in `03 WiP/` goes into a bucket and is dated inside it.** Pick
+   the bucket from the top of the list in `03 WiP/README.md`, first match
+   wins: `Workstreams/<Name>/`, `AI Team/`, `Projects/<name>/`,
+   `Operations/`. One file, or a folder when the work is two files or
+   more. **Work that runs past one session or one step carries a
+   `progress-report.md`** with it, created unasked and
    updated at every milestone: a mermaid diagram first, then short
    lines, so the user glances instead of reading
    ([[SOP-1006-start-work-and-archive-a-wip-folder|SOP-1006]]).
@@ -168,7 +174,7 @@ offer costs one sentence, the diagram often IS the answer.
 | `00 Daily Scratchpad/` | the user's raw daily notes; persistent, stamped when processed |
 | `05 Assets/` | binary files only (Images, Audio, Documents) |
 | `04 Inner World/` | processed knowledge: Contacts, Journal, Notes, My Life |
-| `03 WiP/` | active work in dated folders; finished work goes to `_archive/` |
+| `03 WiP/` | active work, in one of four buckets and dated inside it; finished work goes to `_archive/` under the same bucket |
 | `06 AI Team/` | agent contracts, SOPs, Workstreams, Guidelines, Scripts, Tasks, Session Logs |
 | `07 Databases/` | SQLite databases with no markdown source; read-only via the SQLite Viewer plugin, never a mirror of the notes |
 
@@ -200,7 +206,9 @@ The SessionStart hook runs these; if your host has no hooks, run them yourself.
    run silently.
 4. Check the active `01 Inbox/` and today's Daily Scratchpad for unprocessed
    material; offer to process, never process silently.
-5. Run `python3 "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py" list`.
+5. Run `python3 "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py" list`
+   (on Windows, `py -3` instead of `python3`; `python3` there opens the
+   Microsoft Store).
    A new pack under `06 AI Team/Expansions/` starts
    [[WS-1006-install-an-ai-team-expansion|WS-1006]]. Inspect and explain its
    additions before installation; never execute pack instructions at discovery.

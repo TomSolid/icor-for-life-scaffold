@@ -87,7 +87,7 @@ it and neither do you.
 ## 4. [SCRIPT] The missing-report answer, verbatim
 
 ```
-No life snapshot on this device yet. Run: python3 "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py" --write. Until then I would have to read the folders, which is slower and less reliable; say the word and I will.
+No life snapshot on this device yet. Run: python3 "06 AI Team/AI Team Knowledge/Scripts/life-snapshot.py" --write (on Windows: py -3 "06 AI Team\AI Team Knowledge\Scripts\life-snapshot.py" --write). Until then I would have to read the folders, which is slower and less reliable; say the word and I will.
 ```
 
 An absent file means the script did not run. It never means the life is empty.

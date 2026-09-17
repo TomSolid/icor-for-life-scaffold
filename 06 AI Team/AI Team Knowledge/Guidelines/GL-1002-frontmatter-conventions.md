@@ -430,10 +430,10 @@ still never a carrier.
   document, not a My Life entity, and the Goals room is where the carrier
   question is asked.
 
-The two standing trees, their lifecycle and a worked example each:
-`03 WiP/README.md`, `03 WiP/Workstreams/README.md`,
-`03 WiP/Projects/README.md`. `Scripts/checkpoint.py` never proposes a
-standing tree as a candidate to leave; `life-snapshot.py` reports the
+The four buckets of `03 WiP/`, the order they are read in, the two
+standing trees among them and a worked example each: `03 WiP/README.md`
+and the `README.md` in every bucket. `Scripts/checkpoint.py` never
+proposes a bucket or a standing tree as a candidate to leave; `life-snapshot.py` reports the
 Workstream carriers beside the Project and Habit ones
 (`goals.open[].carriers.workstreams`).
 
