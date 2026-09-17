@@ -15,6 +15,59 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.29.0 (2026-09-17)
+
+The Scaffold gets the security policy its twelve bundled plugins already had,
+and the Planner inside it stops being able to undo work you did in Todoist or
+ClickUp.
+
+Minor bump: one file is added at the root and a bundled plugin gains two
+features. No scaffold script, note, skill or hook changes, nothing is removed,
+moved or renamed, and a vault that already runs 1.28.1 behaves the same after
+this update apart from the Planner.
+
+### Added
+
+- `SECURITY.md` at the root of the Scaffold. It names one address,
+  `support@myicor.com`, prefers a GitHub private advisory, and states what is
+  in scope and what is not: in are the scripts under
+  `06 AI Team/AI Team Knowledge/Scripts/`, the rendered `.claude/settings.json`
+  and `.codex/hooks.json` that a runtime executes, the expansion-pack installer
+  and its receipt model, and the release zip matching the commit it claims; out
+  are the bundled plugins, each linked to its own repository, your own notes and
+  credentials, and Obsidian itself. It also states the credentials posture
+  plainly: the Scaffold ships no key, and both `.env` files you may hold are
+  yours, git-ignored, and never inside the zip. Private vulnerability reporting
+  is enabled on the repository, so the channel the document names exists.
+
+### Changed
+
+- **Planner 0.15.0 inside.** Two releases at once for anyone updating from
+  1.28.1, which carried 0.14.2.
+
+  From 0.14.3: a task you complete in Todoist or ClickUp can no longer be
+  reopened by the planner. With Complete on source switched on, the planner
+  marked the card done, then read its own note back a second later, decided the
+  card looked unfinished, and set the task at the source back to the first open
+  status it could find. The rule is now stated once and holds everywhere: the
+  source always wins. What happens at the source is mirrored into your vault and
+  never sent back out. Complete on source means exactly one thing, which the
+  setting now says in full: checking a card here closes the task there, and
+  unchecking a card you had checked reopens it. Nothing else crosses.
+
+  From 0.15.0: a task deleted in Todoist or ClickUp now disappears from your
+  vault too, into Obsidian's trash so you can bring it back, instead of leaving
+  a note you could not open and could not get rid of and an "HTTP 404" every
+  five minutes. The title of a task syncs both ways, the way the due date, the
+  priority and the body already did, and if you rename it in both places between
+  two syncs the source wins. Your own planning is never part of any of this: the
+  day a card sits on, its half of the day, its order, the star for the week and
+  the note you linked it to live only in your vault.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
 ## 1.28.1 (2026-09-16)
 
 The wrapper that 1.28.0 stopped rendering is now gone from the tree, and the

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.28.1",
-  "built": "2026-09-16T14:15:38Z",
-  "commit": "b02e856",
+  "version": "1.29.0",
+  "built": "2026-09-17T11:34:39Z",
+  "commit": "b8443b6",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -1519,6 +1519,12 @@
       "example": false
     },
     {
+      "path": "SECURITY.md",
+      "sha256": "b740e29095a963a268def592a95234991358eec67df427382205ba8319e1f728",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": "THIRD-PARTY-NOTICES.md",
       "sha256": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575",
       "kind": "doc",
@@ -1638,6 +1644,15 @@
     }
   ],
   "history": [
+    {
+      "version": "1.29.0",
+      "date": "2026-09-17",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "SECURITY.md"
+      ]
+    },
     {
       "version": "1.28.1",
       "date": "2026-09-16",
