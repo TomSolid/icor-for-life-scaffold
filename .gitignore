@@ -69,3 +69,14 @@
 # Python bytecode, regenerated on every script run
 __pycache__/
 *.pyc
+
+# Build caches, written by a tool that was run from this folder and owned by
+# that tool, not by the vault. `.build/` is Swift Package Manager's: it drops
+# a CACHEDIR.TAG inside saying exactly that, and it appears whenever an Xcode
+# or SwiftPM build touches this directory. Its three siblings are named here
+# too, so the next one costs nobody a second look at `git status`. Nothing in
+# this block is ever a note, and nothing in it ships.
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserdatad
