@@ -2,9 +2,13 @@
 """new-agent.py - the scripted half of a hire.
 
 Mack, 2026-09-14. Step 4 of SOP-001 (private) and step 3 of SOP-1007
-(public). Same bytes in both folders: the shape is detected at runtime from
-`.icor-for-life/manifest.json`, so one file serves the private vault and the
-public ICOR for Life Scaffold.
+(public). Same bytes in both folders: the shape is detected at runtime by
+`vault_is_public()` in `check-hire.py`, the one function both hire scripts
+ask, so one file serves the private vault and the public ICOR for Life
+Scaffold. (Until 2026-09-17 this script tested the manifest alone, which a
+private vault also carries, and wrote the public skeleton there. Task
+tsk-2026-09-17-006; red case 15l in run-red-tests.py.) With no
+`check-hire.py` beside it, this script refuses rather than guess.
 
 WHAT IT DOES (everything here has exactly one right answer)
 -----------------------------------------------------------
@@ -263,6 +267,24 @@ def fail(msg):
     return 1
 
 
+def load_vault_is_public():
+    """`vault_is_public` from check-hire.py beside this file, or None.
+
+    Imported, never copied: two scripts holding two copies of one rule is the
+    exact drift task tsk-2026-09-17-006 fixed.
+    """
+    ch = HERE / "check-hire.py"
+    if not ch.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("check_hire_shape", str(ch))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return getattr(mod, "vault_is_public", None)
+    except Exception:
+        return None
+
+
 def main():
     ap = argparse.ArgumentParser(description="Create the scripted half of a hire.")
     ap.add_argument("name", help="the specialist's name, one Title-case word")
@@ -278,7 +300,12 @@ def main():
     root = Path(args.root).resolve()
     name, slug, role = args.name.strip(), args.slug.strip(), args.role.strip()
     today = date.today().isoformat()
-    public = (root / ".icor-for-life" / "manifest.json").is_file()
+    vault_is_public = load_vault_is_public()
+    if vault_is_public is None:
+        return fail("check-hire.py is not beside this script, or has no vault_is_public(). "
+                    "That function is the one answer to which vault this is, and this "
+                    "script does not guess. Restore check-hire.py in Scripts/ and re-run.")
+    public = vault_is_public(root)
     agents = root / AGENTS_REL
     d = agents / name
     contract = d / "AGENT.md"
@@ -319,6 +346,8 @@ def main():
             .read_text(encoding="utf-8")).get("session_id")
     except Exception:
         session_id = None
+    plan.append("shape  %s (check-hire.py vault_is_public)"
+                % ("public Scaffold" if public else "private vault, GL-025 skeleton"))
     plan.append("write  " + str(marker.relative_to(root)) + "  (the hiring marker: it "
                 "opens this one contract to the write guard for 24 hours)")
 
@@ -345,6 +374,7 @@ def main():
         avatar_embed = "![[06 AI Team/AI Team Knowledge/Avatars/%s.png|240]]" % name.lower()
     else:
         avatar_embed = "![[06 AI Team/Agents/%s/avatar.png|240]]" % name
+    plan.append("embed  " + avatar_embed + "  (in the bio card)")
     plan_write(d / (name + ".md"), BIO.format(name=name, role=role, today=today,
                                               avatar=avatar_embed))
 

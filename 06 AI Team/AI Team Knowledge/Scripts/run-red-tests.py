@@ -3699,6 +3699,10 @@ else:
 
         _na_root = _ch.build_fixture(tmp / "hire-new", public=True, scripts_dir=HERE)
         shutil.copy2(str(_NA), str(_na_root / "06 AI Team/AI Team Knowledge/Scripts/new-agent.py"))
+        # new-agent.py asks check-hire.py which vault it is in (the
+        # vault_is_public cases below), so the fixture carries both, exactly
+        # as a real Scripts/ folder does.
+        shutil.copy2(str(_CH), str(_na_root / "06 AI Team/AI Team Knowledge/Scripts/check-hire.py"))
         _na = _na_root / "06 AI Team/AI Team Knowledge/Scripts/new-agent.py"
         _argv = [str(_na), "Newby", "--slug", "newby", "--role", "Fixture helper",
                  "--root", str(_na_root)]
@@ -3751,6 +3755,82 @@ else:
                          "time; a contract that can be overwritten is not canonical")
         elif "Traceback" in (_r2.stderr or ""):
             fails.append("new-agent/refuses-overwrite: crashed instead of refusing")
+
+        # ONE ANSWER TO "WHICH VAULT IS THIS" (Mack, 2026-09-17, task
+        # tsk-2026-09-17-006). A vault can carry a copy of the installed
+        # Scaffold's `.icor-for-life/manifest.json`, so a manifest-only test
+        # calls it public. check-hire.py already knew better (GL-025 present
+        # means private); new-agent.py did not, and on one hire it wrote the
+        # public contract skeleton and the public avatar path into a private
+        # vault. Both scripts now ask the same function, `vault_is_public()`
+        # in check-hire.py.
+        #
+        # Red: manifest AND GL-025 must plan the PRIVATE shape.
+        # Control: manifest and no GL-025 must plan the PUBLIC shape.
+        # Red: new-agent.py with no check-hire.py beside it refuses with a
+        # FAIL line instead of guessing a shape of its own.
+        #
+        # WHAT THIS DOES NOT PROVE: that the skeleton passes check-hire.py.
+        # It proves the shape is chosen by the shared rule. The blanks are the
+        # hiring agent's to fill, and check-hire.py is the gate on that.
+        def _shape_run(root, with_ch=True):
+            sd = root / "06 AI Team/AI Team Knowledge/Scripts"
+            shutil.copy2(str(_NA), str(sd / "new-agent.py"))
+            if with_ch:
+                shutil.copy2(str(_CH), str(sd / "check-hire.py"))
+            elif (sd / "check-hire.py").exists():
+                (sd / "check-hire.py").unlink()
+            return subprocess.run([PY, str(sd / "new-agent.py"), "Shapey", "--slug", "shapey",
+                                   "--role", "Fixture helper", "--root", str(root)],
+                                  capture_output=True, text=True, env=_env)
+
+        def _shape_read(root, rel):
+            p = root / "06 AI Team/Agents/Shapey" / rel
+            return p.read_text(encoding="utf-8") if p.is_file() else ""
+
+        _both = _ch.build_fixture(tmp / "shape-manifest-and-gl025", public=False,
+                                  scripts_dir=HERE)
+        (_both / ".icor-for-life").mkdir(parents=True, exist_ok=True)
+        (_both / ".icor-for-life" / "manifest.json").write_text('{"schema": 1}')
+        _rb = _shape_run(_both)
+        _cb, _bb = _shape_read(_both, "AGENT.md"), _shape_read(_both, "Shapey.md")
+        checks += 1
+        if "Traceback" in (_rb.stderr or "") or not _cb:
+            fails.append("new-agent/private-vault-with-manifest-plans-private: no contract "
+                         "written: exit %d, %s" % (_rb.returncode, (_rb.stderr or "")[:200]))
+        elif "\ntype: agent\n" in _cb or "agent_version:" not in _cb:
+            fails.append("new-agent/private-vault-with-manifest-plans-private: a vault with "
+                         "GL-025 AND a manifest got the PUBLIC contract skeleton, so "
+                         "new-agent.py and check-hire.py disagree about which vault this is")
+        elif "06 AI Team/Agents/Shapey/avatar.png" not in _bb:
+            fails.append("new-agent/private-vault-with-manifest-plans-private: the bio card "
+                         "embeds the public avatar path, not 06 AI Team/Agents/Shapey/avatar.png")
+
+        _pub = _ch.build_fixture(tmp / "shape-public", public=True, scripts_dir=HERE)
+        _rp = _shape_run(_pub)
+        _cp, _bp = _shape_read(_pub, "AGENT.md"), _shape_read(_pub, "Shapey.md")
+        checks += 1
+        if "Traceback" in (_rp.stderr or "") or not _cp:
+            fails.append("new-agent/public-vault-plans-public: no contract written: exit %d, %s"
+                         % (_rp.returncode, (_rp.stderr or "")[:200]))
+        elif "\ntype: agent\n" not in _cp or "agent_version:" in _cp:
+            fails.append("new-agent/public-vault-plans-public: a manifest vault with no GL-025 "
+                         "got the PRIVATE contract skeleton")
+        elif "06 AI Team/AI Team Knowledge/Avatars/shapey.png" not in _bp:
+            fails.append("new-agent/public-vault-plans-public: the bio card does not embed the "
+                         "public avatar path")
+
+        _lone = _ch.build_fixture(tmp / "shape-no-check-hire", public=False, scripts_dir=HERE)
+        _rl = _shape_run(_lone, with_ch=False)
+        checks += 1
+        if _rl.returncode == 0:
+            fails.append("new-agent/no-check-hire-is-refused: new-agent.py ran with no "
+                         "check-hire.py beside it, so it chose a vault shape by a rule of its own")
+        elif "Traceback" in (_rl.stderr or ""):
+            fails.append("new-agent/no-check-hire-is-refused: crashed instead of refusing")
+        elif (_lone / "06 AI Team/Agents/Shapey/AGENT.md").exists():
+            fails.append("new-agent/no-check-hire-is-refused: refused, but only after writing "
+                         "the contract")
 
 
 

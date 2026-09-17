@@ -5,8 +5,9 @@ Mack, 2026-09-14. Row 9 of the 2026-09-14 skills and hooks audit
 (`03 WiP/2026-09-14-scaffold-skills-hooks-audit/report.md`), to the validator
 spec in Nolan's hire output contract, section 5. Same bytes in the private
 vault and in the public ICOR for Life Scaffold: the folder is detected at
-runtime by the presence of `.icor-for-life/manifest.json`, so one file serves
-both shapes.
+runtime by `vault_is_public()` (GL-025 present means private, whatever the
+manifest says), so one file serves both shapes. new-agent.py asks the same
+function.
 
 WHY IT EXISTS
 -------------
@@ -331,18 +332,29 @@ def write_png(path, w, h, solid=True):
 # ---------------------------------------------------------------------------
 # the vault, read once per run
 # ---------------------------------------------------------------------------
+def vault_is_public(root):
+    """True for the public ICOR for Life Scaffold, False for the private vault.
+
+    THE ONE ANSWER. new-agent.py imports this function rather than keeping a
+    rule of its own (task tsk-2026-09-17-006: the two scripts used to disagree,
+    and the hire script wrote the public skeleton into a private vault).
+
+    The manifest alone cannot answer it: a private vault carries a copy of the
+    installed Scaffold's `.icor-for-life/`, so `manifest.json` is present in
+    both. GL-025 is the discriminator, because the private contract schema
+    exists only where it governs.
+    """
+    root = Path(root)
+    gl025 = (root / "06 AI Team/AI Team Knowledge/Guidelines"
+             / "GL-025-agent-contract-schema.md").is_file()
+    manifest = (root / ".icor-for-life" / "manifest.json").is_file()
+    return (not gl025) and (manifest or (root / AGENTS_REL / "Agent 01").is_dir())
+
+
 class Vault(object):
     def __init__(self, root):
         self.root = Path(root).resolve()
-        # Which folder is this? The manifest alone cannot answer it: the private
-        # vault carries a copy of the installed Scaffold's `.icor-for-life/`,
-        # so `manifest.json` is present in both. GL-025 is the discriminator,
-        # because the private contract schema exists only where it governs.
-        gl025 = (self.root / "06 AI Team/AI Team Knowledge/Guidelines"
-                 / "GL-025-agent-contract-schema.md").is_file()
-        manifest = (self.root / ".icor-for-life" / "manifest.json").is_file()
-        self.public = (not gl025) and (manifest
-                                       or (self.root / AGENTS_REL / "Agent 01").is_dir())
+        self.public = vault_is_public(self.root)
         self.agents_dir = self.root / AGENTS_REL
         self.scripts_dir = self.root / SCRIPTS_REL
         self.index_text = read(self.agents_dir / "agent-index.md")

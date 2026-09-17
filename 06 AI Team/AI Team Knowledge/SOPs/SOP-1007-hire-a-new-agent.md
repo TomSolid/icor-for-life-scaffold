@@ -49,6 +49,56 @@ missing.
 | 14 | Session log line | `Scripts/new-session-log.py` | Larry | required |
 | 15 | Manifest entries | `.icor-for-life/manifest.json` | the release build, never by hand | required |
 
+## Scripts Nolan runs in a hire
+
+A hire runs end to end without the user in the loop to launch anything.
+This section is the one exception to the harness rule in `AGENTS.md`
+("nothing here auto-launches"), and `AGENTS.md` points here rather than
+restating it.
+
+**The list is closed.** Nolan runs these from the vault root, in this
+order, as the `[SCRIPT]` steps name them:
+
+1. `Scripts/new-agent.py <Name> --slug <slug> --role "<Role>"` (step 3),
+   which calls `mint-agent-ids.py` for the id.
+2. `Scripts/scaffold-init.py plan`, then `Scripts/scaffold-init.py apply`
+   (step 6).
+3. `Scripts/validate-scaffold.py`, then `Scripts/check-hire.py <Name>`
+   (step 7b), plus a second `scaffold-init.py plan` after any source
+   edit.
+
+These call `mint-agent-ids.py`, `check-agent-shim-mcp.py`,
+`skill-doctor.py` and `noteio.py` from the same folder; nothing else.
+
+**Why the exception is safe.** Every script in the list runs to
+completion and leaves nothing running: no server, no daemon, no MCP
+process, no scheduled job. Each writes only the generated harness files
+(shims, skills) or the hire's own artifacts (folder, skeleton, marker,
+id), and `apply` names every path it touched. A script that is not on
+this list, anything the user gates before it runs (a new tool
+connection, a credential, a webhook receiver, a runtime script) and
+anything that stays up is still announced by the model and started by
+the user, never by Nolan. Nolan does not add to the list; adding to it
+is an edit to this section, with the user's approval.
+
+**A hire never changes the hook config.** If `scaffold-init.py plan`
+lists `.claude/settings.json`, `.claude/settings.README.md` or
+`.codex/hooks.json` under CREATE or UPDATE, Nolan does not run `apply`:
+he reports the line, and the user runs `apply` from a terminal after
+reading `Scripts/hooks-rules.json` themselves and confirming every
+`guard` path in it is a file they recognise under `Scripts/` or
+`.claude/hooks/`. The same stop applies when `plan` prints a PROBLEM
+line. The reason: the generator renders the hook `interpreter` and
+`guard` from `hooks-rules.json` verbatim, with no allowlist, and `plan`
+does not print the resulting command, so reading the plan cannot catch
+a planted hook.
+
+**The user's part.** The user approves the hire (step 8) with the
+generator report and the validator output in front of them. They run
+nothing. If a script in the list fails twice, stop and report the exact
+command, the exact failure line and one sentence on what was tried; no
+third workaround.
+
 ## Steps
 
 1. [JUDGEMENT] Nolan drafts the role: name, one-line mission, what it
@@ -110,12 +160,26 @@ missing.
    allowed, disclosed as such in step 8, and check 5 reports it as
    WARN until the real one lands.
 6. [SCRIPT] The runtime dispatch shim `.claude/agents/<slug>.md` is
-   generated, never copied or typed: announce
+   generated, never copied or typed: Nolan runs
    `Scripts/scaffold-init.py plan`, then `Scripts/scaffold-init.py apply`,
-   and the user runs both from a terminal (`plan` shows what will be
-   written, `apply` writes it). On Codex the session sandbox refuses
-   writes to `.codex/` and `.agents/`, so the generator has to run
-   outside the session or the new agent gets no Codex shim.
+   from the vault root (`plan` shows what will be written, `apply`
+   writes it; the section "Scripts Nolan runs in a hire" is why Nolan
+   may) and shows both reports to the user in step 8; the user runs
+   nothing. Read the plan before the apply: the only CREATE and UPDATE
+   lines should be the new agent's shims and skills; anything else in
+   the plan is drift somebody else caused and is reported, not applied
+   blind. A hire never changes the hook config. If the plan lists
+   `.claude/settings.json`, `.claude/settings.README.md` or
+   `.codex/hooks.json` under CREATE or UPDATE, Nolan does not run
+   `apply`: he reports the line, and the user runs `apply` from a
+   terminal after reading `Scripts/hooks-rules.json` themselves and
+   confirming every `guard` path in it is a file they recognise under
+   `Scripts/` or `.claude/hooks/`. The same stop applies when `plan`
+   prints a PROBLEM line.
+   On Codex the session sandbox refuses writes to `.codex/` and
+   `.agents/`, so there the generator runs from a terminal outside the
+   session, or the new agent gets no Codex shim, and Nolan says so in
+   the step 8 confirmation.
    The shim is a pointer that tells the subagent to read its canonical
    `AGENT.md` every invocation, rendered from the contract's
    frontmatter with the generated-file header on top. Never duplicate
@@ -163,7 +227,10 @@ missing.
    (user-facing), name the role, name the routing triggers.
 7b. [SCRIPT] `Scripts/validate-scaffold.py`, then
    `Scripts/check-hire.py <Name>`, both exit 0 before the hire is
-   announced. `check-hire.py` prints one `OK` or `FAIL` line per check
+   announced. Nolan runs both (section "Scripts Nolan runs in a hire")
+   and shows the output in step 8; a green `check-hire.py <Name>`
+   deletes the `.hiring` marker from step 3 and closes the write
+   guard's door again. `check-hire.py` prints one `OK` or `FAIL` line per check
    (folder, both files, id, avatar, journal, shim, skills, index row,
    wikilinks, dashes, the brief or its waiver; in pack mode, "files
    installed; activation incomplete" when a pack-installed agent has

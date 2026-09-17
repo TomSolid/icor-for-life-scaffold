@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.30.0",
-  "built": "2026-09-17T18:28:42Z",
-  "commit": "8ebee26",
+  "version": "1.31.0",
+  "built": "2026-09-17T20:55:24Z",
+  "commit": "8652f41",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -56,6 +56,12 @@
   ],
   "snippets": [],
   "files": [
+    {
+      "path": ".claude/agents/ada.md",
+      "sha256": "45e8a772e9bcba359fead539d89d8505d62709edba377b386d64d604e6db4f42",
+      "kind": "claude",
+      "example": false
+    },
     {
       "path": ".claude/agents/charta.md",
       "sha256": "4cd43e87360eba6835ce9a3b2b0c8968c80761ad71346135dafb979d18d4cb8d",
@@ -141,6 +147,12 @@
       "example": false
     },
     {
+      "path": ".codex/agents/ada.toml",
+      "sha256": "3376a124fde239941b1c667b3a6d213d6f651821d9e6698cde6c08ef0c589269",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": ".codex/agents/charta.toml",
       "sha256": "7dcc1f8b47a16650ea2a48d9f3ceb21b523710c0d318850b153607834eadb7d5",
       "kind": "doc",
@@ -190,13 +202,19 @@
     },
     {
       "path": ".codex/config.toml",
-      "sha256": "abf31a0203ed016f02b9a3d5cdd532e72a95575af19fda4676001aa9d075ea33",
+      "sha256": "dc38a4bd6c9f1a0261e5f83ada24d12fae795609be05e68b02940d08de9a8ddd",
       "kind": "doc",
       "example": false
     },
     {
       "path": ".codex/hooks.json",
       "sha256": "f5c0654737024a899f828cfce4643c94c0760bb89fe84acda85d2014dc732763",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/ada.md",
+      "sha256": "ebccf87ef31f9f222d7277ed990672a9c0487aea2fecda41ec5cf09a96077aeb",
       "kind": "doc",
       "example": false
     },
@@ -597,6 +615,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/ada.png",
+      "sha256": "a40e8782722b8b9bd98a348b088ee50155ead73d9213da5f39a91298a15aedea",
+      "kind": "asset",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Avatars/charta.png",
       "sha256": "d42200a5fd734dc12bfa669e13f46ec0ff0d7042629eeb26b776f0dc7c267fc3",
       "kind": "asset",
@@ -712,7 +736,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md",
-      "sha256": "6b9052b0668a316e3d03d69b3e98ef7863962818f36648fd953b20f22bc5a958",
+      "sha256": "0826666cbd7f8ad988f75037aab75760ec7995fb8c5ad19c7f0fa0499e5843b2",
       "kind": "guideline",
       "example": false
     },
@@ -814,7 +838,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1007-hire-a-new-agent.md",
-      "sha256": "ad76fd5d7841ded491b89e95c7de51da824d3f09969508171fb7f0288a45d0d3",
+      "sha256": "8ccb1a5ec5eecbda92ee9ba0ac04157bcb549cd40d403efc4803e9c4eebd01b0",
       "kind": "sop",
       "example": false
     },
@@ -904,7 +928,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/check-hire.py",
-      "sha256": "ac5f769f1a4d876ec8405c543b3ddf7ef8410173e55a548d71b0e6569fafbaaa",
+      "sha256": "7c386ff128d3a3c19d1bce9fe081d81a262290f7f0ddd3fa4e85fd2cb4169dd3",
       "kind": "script",
       "example": false
     },
@@ -928,7 +952,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py",
-      "sha256": "91b0bfddb842fcf9c125dfdee284cc48558d5def6047edab1209eca590b1960c",
+      "sha256": "2780f1cd142f3f06714115020a5b62257fe70031702b657ca02b945e28fd34c3",
       "kind": "script",
       "example": false
     },
@@ -976,7 +1000,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/new-agent.py",
-      "sha256": "1faa20915b1ed4408518f3163920e5ba411da4d0399ac291d72a03a392db7a5c",
+      "sha256": "93864349ab5be42b807201d621bdef732febed0de5c5eef149f8e4bd536ecd76",
       "kind": "script",
       "example": false
     },
@@ -1036,7 +1060,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "920fe0f0a23cf3b4b8ae5680335e7dffdbba6e9c3bae5ec394f84933a164eb98",
+      "sha256": "077d1e42c1081c2a98a1d66fddc26e4302fd1870f72e3a7c4218cd0332b708ad",
       "kind": "script",
       "example": false
     },
@@ -1072,7 +1096,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/test-expansion-pack.py",
-      "sha256": "1d216b7986d97a63cab147d1714de9985bf6f5b74a088aadd3a8d43b508af1d5",
+      "sha256": "7ba4960fafa19910e669c1a5c1f75bc0ef60058095e9074ad90df3a18fe254c1",
       "kind": "script",
       "example": false
     },
@@ -1251,6 +1275,30 @@
       "example": false
     },
     {
+      "path": "06 AI Team/Agents/Ada/AGENT.md",
+      "sha256": "0d5181afb75aa711dbb6ee8caa6c93f2987022df043e8a6535e41e92f6ab11b7",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Ada/Ada.md",
+      "sha256": "7e2af33ed6bd83fa82f2e033321e46643e5127503a61c07bac048397ed3208c2",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Ada/Journal/2026-09-17-ada-hired.md",
+      "sha256": "494381f8e83f098bb16fb177bc303bb7ecc57958af86d44fd0988c5ff30f76ed",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Ada/Journal/_template.md",
+      "sha256": "3be8859f106fd4178cb9db2259fbc7e7d4ccca5f4681e3fe60443ecd986a5e00",
+      "kind": "agent",
+      "example": false
+    },
+    {
       "path": "06 AI Team/Agents/Agent 01/AGENT.md",
       "sha256": "cd77489da049d7c9e8add8cd19cae7fc999212fcaaf77a7806643832ab7208ee",
       "kind": "agent",
@@ -1336,7 +1384,7 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "98772c9810c5dadda7934adea94936628061b4be91fe99516cf46f8135690a26",
+      "sha256": "a9a401c978673e61a0af9ea9e2e690d50628030f24fb40f394c2e05bedd8d214",
       "kind": "agent",
       "example": false
     },
@@ -1474,7 +1522,7 @@
     },
     {
       "path": "06 AI Team/Agents/agent-index.md",
-      "sha256": "310c27e54dcfc6937b77e74bb688925d595d5b8bd5d591b42bc503f9c9d0c1b7",
+      "sha256": "fe681df8fbf449ce619743c236fc9c658f2fc700e2ae6e1142b0f7dd5a90400b",
       "kind": "agent",
       "example": false
     },
@@ -1510,7 +1558,7 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "27f2e5ab1c04215b3ef575f016deed8f284708f4985e9bd8569dad8f5779daa5",
+      "sha256": "b67b5c18e8a324bc1b52fcbd7ef3d148072b2193ea11203ee830858376f1cc1c",
       "kind": "doc",
       "example": false
     },
@@ -1609,6 +1657,12 @@
   ],
   "agents": [
     {
+      "name": "Ada",
+      "myicor_id": "438ecbd2-24ce-4368-922c-c57aee601c46",
+      "path": "06 AI Team/Agents/Ada/AGENT.md",
+      "shim": ".claude/agents/ada.md"
+    },
+    {
       "name": "Charta",
       "myicor_id": "351cc2e5-529c-44af-93b8-34cfce04f4fc",
       "path": "06 AI Team/Agents/Charta/AGENT.md",
@@ -1664,6 +1718,22 @@
     }
   ],
   "history": [
+    {
+      "version": "1.31.0",
+      "date": "2026-09-17",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".claude/agents/ada.md",
+        ".codex/agents/ada.toml",
+        ".gemini/agents/ada.md",
+        "06 AI Team/AI Team Knowledge/Avatars/ada.png",
+        "06 AI Team/Agents/Ada/AGENT.md",
+        "06 AI Team/Agents/Ada/Ada.md",
+        "06 AI Team/Agents/Ada/Journal/2026-09-17-ada-hired.md",
+        "06 AI Team/Agents/Ada/Journal/_template.md"
+      ]
+    },
     {
       "version": "1.30.0",
       "date": "2026-09-17",

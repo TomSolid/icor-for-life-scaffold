@@ -15,6 +15,135 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.31.0 (2026-09-17)
+
+The team grows from nine agents to ten. Ada is the planning and audit
+specialist: before a piece of work that needs three or more agents, or
+has real dependencies between its steps, she writes the plan Larry
+dispatches from, and on request she audits the team's own machinery for
+drift. Around her, a hire now runs its own scripts, the root contract
+says which model runs what, the two hire scripts agree on which vault
+they are in, and the Connect and Interface plugins inside are one
+release newer.
+
+Minor bump: one agent is added with her contract, bio, journal, avatar
+and three dispatch shims; `AGENTS.md` gains one section and one
+sentence; `GL-1002` gains one optional key; `SOP-1007` gains one section
+and two reworded steps; five scripts change. Nothing is removed, moved
+or renamed, and a vault that already runs 1.30.0 keeps every file it
+has after this update.
+
+About 1.30.0: its tag sits on `65feac0`, a commit that carries only the
+1.30.0 manifest rebuilt on the 1.30.0 tree. The manifest committed with
+the version bump described three scripts as they were being edited for
+this release, not as 1.30.0 shipped them, and the release gate refuses
+a stale manifest. Nothing else in 1.30.0 changed. Its download was
+built the same evening as this one and carries the same two plugin
+releases.
+
+### Added
+
+- **Ada, the planning and audit specialist.** Same two-file shape as
+  the other agents (`SOP-1007`), a journal, a dispatch shim per host
+  and an avatar in the INKLINE style. She produces two kinds of
+  document and nothing else: a plan (steps, owners, dependency graph as
+  a diagram, gates in order, risks, acceptance criteria) and an audit
+  report (severity, re-runnable evidence, a negative-control note). She
+  never dispatches an agent, never fixes what she audits and never runs
+  a script that writes. Below three agents and without a real
+  dependency between steps she says "under the floor, route inline" and
+  stops. A release of your own plugin or theme is not hers either: that
+  stays with you as maintainer, with Flint's review-before-ship read.
+  - `06 AI Team/Agents/Ada/AGENT.md`: the contract.
+  - `06 AI Team/Agents/Ada/Ada.md`: the bio.
+  - `06 AI Team/Agents/Ada/Journal/_template.md` and
+    `06 AI Team/Agents/Ada/Journal/2026-09-17-ada-hired.md`.
+  - `.claude/agents/ada.md`, `.codex/agents/ada.toml` and
+    `.gemini/agents/ada.md`: the dispatch shims, generated.
+  - `06 AI Team/AI Team Knowledge/Avatars/ada.png`: the avatar.
+  - `agent-index.md`, `AGENTS.md`, Larry's contract and `GL-1002` name
+    the new agent. Larry's contract says when a request goes to Ada
+    first, and that a step she did not name is a plan change that goes
+    back to her, never an improvisation.
+
+- **"Which model runs what", a new section in `AGENTS.md`.** Where the
+  host lets Larry pick a model per dispatch, judgement work (a plan, an
+  audit, a hire, a ruling, a review) goes to the strongest model the
+  host offers and mechanical work to the default. The sorting test is
+  the one in `GL-1005`. It is a preference, never a requirement: where
+  the host offers one model, everything runs on that one, and no
+  contract or shim in this Scaffold names a model or a vendor.
+
+- **`tools`, an optional key on an agent contract (`GL-1002`).** A comma
+  list of the tools the agent may use, each from the allowlist
+  `check-hire.py` check 11 reads; absent means the host default. Ada's
+  contract is the first to carry it (Read, Write, Glob, Grep, Bash: no
+  edit in place, no dispatch), and the generator copies it into her
+  shim.
+
+- **"Scripts Nolan runs in a hire", a new section in `SOP-1007`.** A
+  hire now runs end to end without you launching anything: Nolan runs
+  `new-agent.py`, `scaffold-init.py plan` then `apply`, and
+  `validate-scaffold.py` then `check-hire.py`, from the vault root, and
+  shows every report at the approval step. That closed list is the one
+  exception to "nothing here auto-launches", and `AGENTS.md` points at
+  it rather than restating it. One hard stop inside it: a hire never
+  changes the hook config. If `plan` lists `.claude/settings.json`,
+  `.claude/settings.README.md` or `.codex/hooks.json` under CREATE or
+  UPDATE, or prints a PROBLEM line, Nolan does not run `apply`; he
+  reports the line and you run `apply` yourself after reading
+  `Scripts/hooks-rules.json`.
+
+- **Red case 15l in `run-red-tests.py`.** The hire scripts must refuse
+  to write the public skeleton into a private vault, and `new-agent.py`
+  must refuse to run at all without `check-hire.py` beside it. Watched
+  red before it went green, like every case in the suite.
+
+### Changed
+
+- **`new-agent.py` and `check-hire.py` ask one function which vault
+  this is.** `vault_is_public()` lives in `check-hire.py` and
+  `new-agent.py` imports it. Until now the two scripts tested different
+  things and could disagree, and `new-agent.py`, testing the manifest
+  alone, wrote the public skeleton into a vault that was not the public
+  Scaffold. With no `check-hire.py` beside it, `new-agent.py` now
+  refuses rather than guess.
+- `expansion-pack.py` counts Ada among the core agents an expansion
+  pack can never overwrite, and `test-expansion-pack.py` proves it.
+- `SOP-1007` steps 6 and 7b say Nolan runs the generator and the
+  validators and shows the output; the Codex sandbox caveat stays.
+- `.codex/config.toml` is re-rendered for the larger `AGENTS.md`
+  (14,268 bytes, under the 32 KiB Codex budget).
+- **Connect 0.15.1 inside** (1.29.0 carried 0.15.0). The "Auto-reveal
+  current file" button is back in the file-explorer toolbar: one rule
+  in the plugin's stylesheet hid it together with a button that no
+  version of Obsidian puts there, and auto-reveal has no command to
+  fall back on, so hiding the button took the setting away. "New note"
+  now stays hidden under a non-English Obsidian too, matched by its
+  icon rather than its English label.
+- **Interface 0.7.0 inside** (1.29.0 carried 0.6.5). A command, "Toggle
+  auto-reveal current file in the file explorer", bindable to a hotkey,
+  and a switch under "Obsidian's interface" in the plugin's settings.
+  Both read and write Obsidian's own setting, so nothing new is stored.
+  That one feature needs Obsidian 1.8.3 or newer, where the setting
+  arrived; on an older Obsidian the row says so and the command is not
+  offered, and the rest of the plugin still runs on 1.5.0 and up.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
+### If you are updating by hand
+
+Copy `06 AI Team/Agents/Ada/` and
+`06 AI Team/AI Team Knowledge/Avatars/ada.png` from this release, then
+run `scaffold-init.py plan` and `apply` from the vault root (on Windows
+`py -3` in place of `python3`) so the three shims are generated rather
+than copied. Replace `AGENTS.md`, `06 AI Team/Agents/agent-index.md`,
+`06 AI Team/Agents/Larry/AGENT.md`, `GL-1002`, `SOP-1007` and the five
+scripts named above. The two plugins come with the download: copy
+their folders under `.obsidian/plugins/`.
+
 ## 1.30.0 (2026-09-17)
 
 The workbench gets topic folders. Work in `03 WiP/` no longer lands as one

@@ -56,7 +56,7 @@ step: [[GL-1007-capture-and-where-things-go|GL-1007]] "Doing it by hand".
 | journal-entry | agent_id (the agent's slug), created (ISO datetime), topic (a slug) | updated (ISO datetime), status (durable/superseded), linked_session_logs, related_journal_entries | none: `Scripts/new-agent.py` seeds `Agents/<Name>/Journal/_template.md` |
 | agent-bio | agent, role | - | none |
 | agent-soul | agent | - | none: `Agents/Larry/SOUL.md`, Larry only |
-| agent | myicor_id (uuid v4, lowercase, immutable), name, role, routing_description (one line, required on every new hire) | shim_reads (list of paths), owns_gates (list of guard ids), brief_waived (why no research brief) | none: `Agents/Agent 01/` |
+| agent | myicor_id (uuid v4, lowercase, immutable), name, role, routing_description (one line, required on every new hire) | shim_reads (list of paths), owns_gates (list of guard ids), brief_waived (why no research brief), tools (comma list of the tools the agent may use, each one from the allowlist `Scripts/check-hire.py` check 11 reads; absent means the host default) | none: `Agents/Agent 01/` |
 | icor-reflection | myicor_id (uuid), category, reflected_at (ISO date) | quality_score (0-100), pinned, synced_at (ISO datetime) | none: the plugin writes it |
 | planner-item | source, external_id, title, status (open/done), priority (1-5) | due, url, tags, source_status, planned_day, planned_half, planned_order, done_local, weekly_goal (pins the item to the week; label: pinned, never goal), linked_note (one wikilink to a project note, plan-owned), synced_at, done_at, created_at, parent_id, recurring, due_string, occurrences, reopen_pending, last_completed_due | none: the plugin writes it |
 | planner-routine | name, routine_type (morning/afternoon/evening), start (HH:MM), end (HH:MM, after start), weekdays (mon..sun codes), active (true/false) | created_at (ISO datetime) | none: the plugin writes it |
@@ -833,8 +833,8 @@ created: 2026-08-27
 - **Never the name.** The id is never shown as the agent's name and never
   appears in a filename, a folder name or a wikilink. `name` and the folder
   stay the human handle.
-- **One identity across vaults.** The nine agents this scaffold ships
-  (Charta, Flint, Iris, Larry, Mack, Nolan, Pax, Penn, Silas) carry their
+- **One identity across vaults.** The ten agents this scaffold ships
+  (Ada, Charta, Flint, Iris, Larry, Mack, Nolan, Pax, Penn, Silas) carry their
   ids in this repository, and every copy of one of those contracts, in a
   later scaffold release or in any vault that carries it, keeps the same
   id. A new hire in a vault gets a fresh id; an agent that arrives already
@@ -848,7 +848,7 @@ created: 2026-08-27
 - **The guard.** `Scripts/mint-agent-ids.py --check` refuses a contract
   without the field, a malformed or shared value, or a template off the
   placeholder; `validate-scaffold.py` runs it. `--export` prints the
-  name-to-id map, the way the nine carry their identity into another vault.
+  name-to-id map, the way the ten carry their identity into another vault.
 
 ## Skills: generated from the SOP, never hand-written (ruling 2026-09-14)
 

@@ -20,7 +20,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-CORE = {'Larry', 'Nolan', 'Pax', 'Penn', 'Mack', 'Silas', 'Iris', 'Charta', 'Flint'}
+CORE = {'Larry', 'Nolan', 'Pax', 'Penn', 'Mack', 'Silas', 'Iris', 'Charta', 'Flint',
+        'Ada'}
 
 # F1 (CRITICAL). `Scripts` is NOT in this set and must not be added. A pack
 # file under Scripts/ is imported by every script the session-start hook runs:
@@ -80,8 +81,11 @@ def safe(base, value):
 def agent_case_clash(root, name):
     """The real `Agents/` entry that differs from `name` only by case, if any.
 
-    F3. Case-folding against the nine core names caught `larry` and missed
-    every agent hired since, so this reads the directory instead of a list.
+    F3. Case-folding against the CORE names caught `larry` and missed every
+    agent hired since, so this reads the directory instead of a list. The
+    count in CORE is not a fact to restate anywhere: it grew from nine to ten
+    when Ada shipped, and a sentence naming a number is the thing that goes
+    stale on the next hire.
     """
     try:
         entries = list((root / '06 AI Team' / 'Agents').iterdir())
