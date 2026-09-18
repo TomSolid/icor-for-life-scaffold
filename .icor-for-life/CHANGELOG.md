@@ -22,9 +22,10 @@ Scaffold now proves at release time that it ships the four buckets, their
 `README.md` files and nothing else, so an update can never hand you a
 half-finished piece of somebody else's work to wonder about.
 
-Minor bump: one new check in a script that already ships. Nothing is
-removed, moved or renamed in your vault, no file you have changes, and
-the new check cannot fail a vault you are working in.
+Minor bump: one new check in a script that already ships. Two files
+change, both of them scripts, and both are named below. Nothing is
+removed, moved or renamed, nothing you wrote changes, and the new check
+cannot fail a vault you are working in.
 
 ### Added
 
@@ -48,6 +49,27 @@ the new check cannot fail a vault you are working in.
   check to it, two red and two green, and the two green ones are the point:
   a dotfile is not a leftover, and a vault in use is not a failure.
 
+### Changed
+
+- **`06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py`** carries
+  check 16 and names it in the header list. In your vault the only visible
+  difference is one extra line, `SKIPPED check 16 (03 WiP buckets ship
+  empty)`, telling you the check did not apply here. That line is the
+  point: a check that cannot run says so rather than passing quietly.
+- **`06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py`** carries the
+  four cases that hold check 16 to its job. The suite total moves from 440
+  to 444.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
+### If you are updating by hand
+
+Copy the two scripts named above from this release into
+`06 AI Team/AI Team Knowledge/Scripts/`. That is the whole update: no
+folder is added, no note changes, and nothing has to be regenerated.
+
 ## 1.31.0 (2026-09-17)
 
 The team grows from nine agents to ten. Ada is the planning and audit
@@ -56,8 +78,9 @@ has real dependencies between its steps, she writes the plan Larry
 dispatches from, and on request she audits the team's own machinery for
 drift. Around her, a hire now runs its own scripts, the root contract
 says which model runs what, the two hire scripts agree on which vault
-they are in, and the Connect and Interface plugins inside are one
-release newer.
+they are in, and four of the bundles inside are newer than the ones
+1.29.0 carried: the Connect, Interface and Planner plugins and the
+INKLINE theme.
 
 Minor bump: one agent is added with her contract, bio, journal, avatar
 and three dispatch shims; `AGENTS.md` gains one section and one
@@ -164,6 +187,17 @@ a member on 1.29.0 can download.
   That one feature needs Obsidian 1.8.3 or newer, where the setting
   arrived; on an older Obsidian the row says so and the command is not
   offered, and the rest of the plugin still runs on 1.5.0 and up.
+- **Planner 0.15.1 inside** (1.29.0 carried 0.15.0). A data-safety fix,
+  so it is worth knowing it arrived: starred email notes are no longer
+  moved to the trash when a mailbox renumbers. If you star notes out of
+  your mail, this is the version that stops losing them.
+- **INKLINE 1.6.2 inside** (1.29.0 carried 1.6.1). The theme the whole
+  vault is styled with. Nothing you have to do; it comes with the
+  download.
+
+  Both of these were in the 1.31.0 download and this section did not say
+  so until 1.32.0. Added here rather than under 1.32.0, because the
+  version that shipped them is the version that has to name them.
 
 ### Removed
 
@@ -177,8 +211,9 @@ run `scaffold-init.py plan` and `apply` from the vault root (on Windows
 `py -3` in place of `python3`) so the three shims are generated rather
 than copied. Replace `AGENTS.md`, `06 AI Team/Agents/agent-index.md`,
 `06 AI Team/Agents/Larry/AGENT.md`, `GL-1002`, `SOP-1007` and the five
-scripts named above. The two plugins come with the download: copy
-their folders under `.obsidian/plugins/`.
+scripts named above. The three plugins come with the download: copy
+their folders under `.obsidian/plugins/`, and the INKLINE theme folder
+under `.obsidian/themes/`.
 
 ## 1.30.0 (2026-09-17)
 
