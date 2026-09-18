@@ -15,6 +15,39 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.32.0 (2026-09-18)
+
+The workbench you are handed is empty. `03 WiP/` is your room, and the
+Scaffold now proves at release time that it ships the four buckets, their
+`README.md` files and nothing else, so an update can never hand you a
+half-finished piece of somebody else's work to wonder about.
+
+Minor bump: one new check in a script that already ships. Nothing is
+removed, moved or renamed in your vault, no file you have changes, and
+the new check cannot fail a vault you are working in.
+
+### Added
+
+- **`validate-scaffold.py` check 16: the `03 WiP/` buckets ship empty
+  except their `README.md`.** Any other file under `03 WiP/` fails the
+  release, named in the failure line. Dotfiles are allowed, because
+  `03 WiP/_archive/.gitkeep` is one, and empty folders are allowed,
+  because `Workstreams/` and `Projects/` hold a named folder each.
+
+  **It cannot fail your vault.** The check runs only in the repository the
+  release is built from, which it recognises by a file that ships in no
+  release. Anywhere else it reports itself `SKIPPED` on stdout and in
+  `--json`, and is never counted as passed. A full `03 WiP/` in your vault
+  is the room doing its job.
+
+  Why a check rather than a note to self: the buckets were created on
+  2026-09-17 and within hours a session wrote a hire workup into a folder
+  of its own under `03 WiP/`. It was never committed, never in a manifest
+  and never in a release, so it reached nobody, but nothing in the repo
+  would have stopped it either. Four cases in `run-red-tests.py` hold the
+  check to it, two red and two green, and the two green ones are the point:
+  a dotfile is not a leftover, and a vault in use is not a failure.
+
 ## 1.31.0 (2026-09-17)
 
 The team grows from nine agents to ten. Ada is the planning and audit

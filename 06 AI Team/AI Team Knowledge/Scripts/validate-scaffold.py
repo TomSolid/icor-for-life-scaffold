@@ -43,6 +43,11 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      member can add to with `[[`, not as one string. The list of list
      properties is read from the templates themselves, which GL-1002
      names as the one place the field list is spelled out as YAML.
+ 16. In the Scaffold SOURCE REPO only, every bucket under 03 WiP/ holds
+     nothing but its README.md: the member gets an empty working surface,
+     never somebody else's leftover work (Tom, 2026-09-18). In any other
+     tree a full 03 WiP/ is the room working as designed, so the check
+     reports itself SKIPPED and is never counted as passed.
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 
 Usage: validate-scaffold.py [<vault-root>] [--json]
@@ -729,6 +734,43 @@ for name in ("CLAUDE.md", "AGENT.md", "ADAPTER-PROMPT.md"):
         fails.append("CLAUDE.md must import @AGENTS.md directly")
     if name in ("CLAUDE.md", "AGENT.md") and len(content) > 1500:
         fails.append(f"root adapter duplicates rules instead of a thin pointer: {name}")
+
+# --- 16. the shipped 03 WiP buckets are empty except their README ---------
+# 03 WiP/ is the MEMBER's working surface, so the Scaffold hands it over with
+# the buckets and their READMEs and nothing else in them (Tom, 2026-09-18).
+# Within hours of the buckets existing a session wrote a hire workup straight
+# into 03 WiP/2026-09-17-ada-hire/ in the source repo, where it was untracked,
+# invisible to `git status`-by-habit, and one `git add` away from shipping to
+# every member as somebody else's leftover work. "Remember not to write there"
+# is not a control; this is.
+#
+# WHY THIS IS SCOPED, AND WHY A SKIP IS LOUD. In a lived-in vault a full
+# 03 WiP/ is the room working exactly as designed, and a check that failed
+# there would be ripped out within a week, taking the release gate with it.
+# So it runs only in the Scaffold's own SOURCE REPO, identified by the release
+# workflow that cuts the release: .github/ is in no manifest and ships in no
+# release, so its presence means this tree is the one the release is built
+# from. Everywhere else the check reports itself SKIPPED, on stdout and in
+# --json, the same way check 6 does, so it can never pass by covering nothing.
+#
+# FILES ONLY. The standing trees (Workstreams/, Projects/) hold a named folder
+# per process or per Project, and an empty folder is not in a git tree at all,
+# so a directory is never the failure. A file in one is.
+wip = ROOT / "03 WiP"
+if not (ROOT / ".github/workflows/release.yml").is_file():
+    skipped.append({"check": 16, "name": "03 WiP buckets ship empty",
+                    "reason": "not the Scaffold source repo (no .github/workflows/"
+                              "release.yml); a member's 03 WiP/ is meant to fill up"})
+elif wip.is_dir():
+    sources["16"] = ".github/workflows/release.yml"
+    for f in sorted(wip.rglob("*")):
+        if not f.is_file() or f.name.startswith("."):
+            continue
+        if f.name == "README.md":
+            continue
+        fails.append(
+            "03 WiP ships empty except its READMEs, so this file must not be in "
+            f"the Scaffold (move it to your own vault): {f.relative_to(ROOT)}")
 
 for msg in fails:
     print(f"FAIL {msg}", file=sys.stderr)

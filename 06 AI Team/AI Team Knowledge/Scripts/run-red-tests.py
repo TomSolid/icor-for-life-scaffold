@@ -475,6 +475,57 @@ with tempfile.TemporaryDirectory() as td:
     shutil.copytree(ROOT, notree, ignore=fixture_ignore(".obsidian"))
     shutil.rmtree(notree / "03 WiP" / "Projects")
     expect_fail("validate-scaffold/missing-standing-tree", [str(HERE / "validate-scaffold.py"), str(notree)])
+    # 1c4. validate-scaffold check 16: in the SOURCE REPO the 03 WiP buckets
+    #      ship empty except their README. A session wrote a hire workup into
+    #      03 WiP/2026-09-17-ada-hire/ hours after the buckets were created
+    #      (2026-09-17); it was untracked, so nothing looked at it, and one
+    #      `git add` would have shipped somebody else's leftover work to every
+    #      member. Four assertions, because the interesting half of this check
+    #      is what it must NOT do:
+    #        red   - a file in a stray folder under a bucket, the exact shape
+    #                that recurred, and it must fail FOR that file
+    #        red   - a file loose at the 03 WiP root
+    #        green - a dotfile is not a leftover (_archive/.gitkeep ships)
+    #        green - a LIVED-IN vault, which has no release workflow, must
+    #                report the check SKIPPED and stay exit 0; a full 03 WiP/
+    #                there is the room working as designed, and a check that
+    #                failed a member's own work would be removed within a week
+    wipsrc = tmp / "wip-source-repo"
+    shutil.copytree(ROOT, wipsrc, ignore=fixture_ignore(".git", "__pycache__"))
+    stray = wipsrc / "03 WiP/2026-09-17-ada-hire"
+    stray.mkdir(parents=True, exist_ok=True)
+    (stray / "proposal.md").write_text("a hire workup that belongs in a vault\n")
+    r = expect_fail("validate-scaffold/wip-bucket-not-empty",
+                    [str(HERE / "validate-scaffold.py"), str(wipsrc)])
+    if "03 WiP/2026-09-17-ada-hire/proposal.md" not in r.stderr:
+        fails.append("validate-scaffold/wip-bucket-not-empty: went red, but not "
+                     "for the stray file: " + r.stderr)
+    shutil.rmtree(stray)
+    (wipsrc / "03 WiP/loose.md").write_text("loose at the room root\n")
+    expect_fail("validate-scaffold/wip-root-not-empty",
+                [str(HERE / "validate-scaffold.py"), str(wipsrc)])
+    (wipsrc / "03 WiP/loose.md").unlink()
+    (wipsrc / "03 WiP/.DS_Store").write_text("x")
+    checks += 1
+    if subprocess.run([PY, str(HERE / "validate-scaffold.py"), str(wipsrc)],
+                      capture_output=True, text=True).returncode != 0:
+        fails.append("validate-scaffold/wip-dotfile-is-not-a-leftover: a dotfile "
+                     "under 03 WiP was treated as shipped work; _archive/.gitkeep is one")
+    (wipsrc / "03 WiP/.DS_Store").unlink()
+    # The member's vault: same tree, no release workflow, real work in a bucket.
+    shutil.rmtree(wipsrc / ".github", ignore_errors=True)
+    (wipsrc / "03 WiP/Operations/2026-09-18-member-work.md").write_text("mine\n")
+    checks += 1
+    r = subprocess.run([PY, str(HERE / "validate-scaffold.py"),
+                        str(wipsrc), "--json"], capture_output=True, text=True)
+    if r.returncode != 0:
+        fails.append("validate-scaffold/wip-lived-in-vault-is-not-a-failure: failed "
+                     "a vault whose 03 WiP/ is in use, which is what the room is for: "
+                     + r.stderr)
+    elif 16 not in [s.get("check") for s in json.loads(r.stdout).get("skipped", [])]:
+        fails.append("validate-scaffold/wip-lived-in-vault-is-not-a-failure: passed "
+                     "without reporting check 16 SKIPPED, so it covered nothing and "
+                     "said nothing")
     # 1d. checkpoint must see a task that already shipped. A task closed
     #     earlier in the same session sits in Tasks/done/YYYY/MM/ (hard rule
     #     6) by the time the checkpoint runs; until 2026-09-07 the scan read

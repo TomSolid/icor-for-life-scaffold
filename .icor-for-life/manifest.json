@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.31.0",
-  "built": "2026-09-17T20:55:24Z",
-  "commit": "8652f41",
+  "version": "1.32.0",
+  "built": "2026-09-18T10:50:00Z",
+  "commit": "f96b0b9",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -1060,7 +1060,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/run-red-tests.py",
-      "sha256": "077d1e42c1081c2a98a1d66fddc26e4302fd1870f72e3a7c4218cd0332b708ad",
+      "sha256": "e590110837165ce7bb4f6f3751e0763829f9a2bfc17bf5745a76ceffb4d85859",
       "kind": "script",
       "example": false
     },
@@ -1114,7 +1114,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py",
-      "sha256": "46cbb07237f0a870dfeb6ead7c86b383cb6c829035ca1b0a27e002998b7b88bf",
+      "sha256": "362deb5f0478b814bf320483c12cc39792e1ec7029169ecaff02b95c2836c1c8",
       "kind": "script",
       "example": false
     },
@@ -1718,6 +1718,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.32.0",
+      "date": "2026-09-17",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.31.0",
       "date": "2026-09-17",
