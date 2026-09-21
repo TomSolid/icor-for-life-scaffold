@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.32.0",
-  "built": "2026-09-18T11:18:17Z",
-  "commit": "dacbec4",
+  "version": "1.33.0",
+  "built": "2026-09-21T11:57:53Z",
+  "commit": "cd5ec55",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -316,7 +316,7 @@
     },
     {
       "path": ".obsidian/plugins/icor-for-life-outliner/manifest.json",
-      "sha256": "c2a6f2169fc61e6299bc3ffba85accb2d9d77183eee51e50b9ed785cd4daf2ff",
+      "sha256": "04f48a66984536c5b3624f412b48e100bedeb726995920ed20f769b0352fc800",
       "kind": "config",
       "example": false
     },
@@ -334,7 +334,7 @@
     },
     {
       "path": ".obsidian/plugins/icor-for-life-pdf-annotation/manifest.json",
-      "sha256": "fc5c774ae29001d9bce846cd1d6ed8dfcec7d1933d4a3a6c1fd396ebe7ab5543",
+      "sha256": "a5f9948e105670728ed6a3ba7b2476b03ecbec8f5c6a88c3fceae6f8902fbf93",
       "kind": "config",
       "example": false
     },
@@ -900,6 +900,12 @@
       "path": "06 AI Team/AI Team Knowledge/SOPs/SOP-1017-answer-the-six-life-questions-from-the-snapshot.md",
       "sha256": "fb3872465b1589f36b445be41f100caa4674b5547baa8bdfce6fe3a206608543",
       "kind": "sop",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/AI Team Knowledge/Scripts/LICENSE",
+      "sha256": "77a6575ec003398ce17d644b60058039b4747e0ae1e2988c0e282775412110b9",
+      "kind": "script",
       "example": false
     },
     {
@@ -1576,13 +1582,13 @@
     },
     {
       "path": "LICENSE.md",
-      "sha256": "b4b219a68256a7950064db18c2a96b1fcdea9c04a38cadb03fb903130096606b",
+      "sha256": "bedc7c21261b89609773406afb7b5a595100e03e905fe52186d7a5ab011f654e",
       "kind": "doc",
       "example": false
     },
     {
       "path": "README.md",
-      "sha256": "ab224008999ed0f93455ce627379b58a73956850c3abdad15bcc73498ac6eac1",
+      "sha256": "2a0332a5c9563f54cecea34a420303f33ec9685bf37c11357f763194c15187f2",
       "kind": "doc",
       "example": false
     },
@@ -1718,6 +1724,15 @@
     }
   ],
   "history": [
+    {
+      "version": "1.33.0",
+      "date": "2026-09-21",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Scripts/LICENSE"
+      ]
+    },
     {
       "version": "1.32.0",
       "date": "2026-09-18",
