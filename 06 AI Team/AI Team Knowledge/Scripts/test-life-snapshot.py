@@ -746,19 +746,30 @@ with tempfile.TemporaryDirectory() as td:
     check("done-priority on a line that is not there refuses",
           r.returncode == 1 and "FAIL" in r.stderr, r.stderr + r.stdout)
 
+    # The second row must stay inside the current ISO week: `day(1)` on a
+    # Monday is the previous week's Sunday, and the row would land in that
+    # week's note instead. Anchor it to this week's Monday; on a Monday
+    # itself take Tuesday, which also exercises a row added for a later day.
+    monday = TODAY - datetime.timedelta(days=TODAY.weekday())
+    other = monday if monday != TODAY else monday + datetime.timedelta(days=1)
+    other_day = other.isoformat()
     pw(V, "set-highlight", "Record episode 3")
-    pw(V, "set-highlight", "Paco review call", "--date", day(1))
+    pw(V, "set-highlight", "Paco review call", "--date", other_day)
     txt = note.read_text(encoding="utf-8")
+    newer, older = (("Paco review call", "Record episode 3") if other > TODAY
+                    else ("Record episode 3", "Paco review call"))
     check("set-highlight writes one row per date, newest on top",
-          txt.index("Record episode 3") < txt.index("Paco review call"), txt)
-    pw(V, "mark-highlight", "Y", "--date", day(1))
+          txt.count("| %s |" % TODAY.isoformat()) == 1
+          and txt.count("| %s |" % other_day) == 1
+          and txt.index(newer) < txt.index(older), txt)
+    pw(V, "mark-highlight", "Y", "--date", other_day)
     pw(V, "set-highlight", "Record episode 4")
     txt = note.read_text(encoding="utf-8")
     check("set-highlight replaces a day's row in place, keeping the marker",
           txt.count("| %s |" % TODAY.isoformat()) == 1
           and "Record episode 3" not in txt and "Record episode 4" in txt, txt)
     check("mark-highlight writes the habit-log marker set",
-          ("| %s | Paco review call | Y |" % day(1)) in txt, txt)
+          ("| %s | Paco review call | Y |" % other_day) in txt, txt)
     r = pw(V, "mark-highlight", "Q")
     check("an unknown marker is refused", r.returncode == 1, r.stderr)
     r = pw(V, "set-highlight", "out of range", "--date", day(40),
