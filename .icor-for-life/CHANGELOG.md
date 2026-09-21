@@ -23,8 +23,17 @@ the MIT licence, forward from the plugin versions named in `LICENSE.md`.
 What you wrote, and the Scaffold's own prose, templates and contracts, stay
 exactly as licensed before: yours to use and adapt, not open source.
 
-Minor bump: one new file, the scripts' own licence. Nothing is removed,
-moved or renamed, and nothing about how the vault works changes.
+Every plugin inside this download is the release that turned it MIT:
+Planner 0.16.0, Connect 0.16.0, Focus 0.7.0, Interface 0.8.0, Scaffold
+Check 0.6.0, SQLite Viewer 0.6.0, AI Chat 0.16.0, Terminal 0.2.0, Canvases
+0.4.0, Scratchpad 0.2.0, Outliner 0.2.0 and PDF Annotation 0.2.0. Each is a
+docs-only release over the version 1.32.0 carried: the `LICENSE` inside
+every plugin folder is now the MIT text, and no plugin behaves differently.
+The INKLINE theme is unchanged at 1.6.2.
+
+Minor bump: one new file, the scripts' own licence, and twelve bundled
+plugins at their MIT releases. Nothing is removed, moved or renamed, and
+nothing about how the vault works changes.
 
 ### Added
 
@@ -38,6 +47,33 @@ moved or renamed, and nothing about how the vault works changes.
   MIT at, and a row for the scripts is new.
 - `README.md`: the licence note says the plugins and scripts are MIT and
   that plugin contributions are welcome under a DCO sign-off.
+- **Outliner 0.2.0 inside** (1.32.0 carried 0.1.0). The released assets
+  byte for byte: `main.js` 3ec8a8fa52de, unchanged since 0.1.0,
+  `manifest.json` 04f48a669845, `styles.css` 87240ff7ddba, from release
+  0.2.0. The plugin is MIT; nothing it does changes.
+  - `.obsidian/plugins/icor-for-life-outliner/manifest.json`: the version.
+- **PDF Annotation 0.2.0 inside** (1.32.0 carried 0.1.3). The released
+  assets byte for byte: `main.js` dc2bf55c9d35, unchanged since 0.1.3,
+  `manifest.json` a5f9948e1056, `styles.css` 7cb2ad3a3d7c, from release
+  0.2.0. The plugin is MIT; nothing it does changes.
+  - `.obsidian/plugins/icor-for-life-pdf-annotation/manifest.json`: the
+    version.
+- **Planner 0.16.0, Connect 0.16.0, Focus 0.7.0, Interface 0.8.0, Scaffold
+  Check 0.6.0, SQLite Viewer 0.6.0, AI Chat 0.16.0, Terminal 0.2.0,
+  Canvases 0.4.0 and Scratchpad 0.2.0 inside**, each staged by the
+  download from its own repository at that release. Docs-only releases:
+  the `LICENSE` in each plugin folder is MIT, `main.js` is byte-identical
+  to the previous release wherever the plugin ships a built bundle.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
+### If you are updating by hand
+
+Copy `06 AI Team/AI Team Knowledge/Scripts/LICENSE`, `LICENSE.md` and
+`README.md`. Plugins update themselves from the community directory, or
+copy each plugin folder from the download.
 
 ## 1.32.0 (2026-09-18)
 
