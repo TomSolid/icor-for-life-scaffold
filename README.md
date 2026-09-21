@@ -170,8 +170,9 @@ journey lives here:
 > content is licensed under the ICOR for Life Source-Available License
 > (Content) - see the root [[LICENSE]] file for the full terms and for the
 > per-part summary (the INKLINE theme is CC BY-NC-ND 4.0, with its embedded
-> fonts under SIL OFL 1.1; the ICOR plugins are source-available, and the
-> open-source libraries some of them bundle keep their own notices, listed
-> in [[THIRD-PARTY-NOTICES]]). Every plugin in this vault is an ICOR for
-> Life plugin; none is a third-party community install. Contributions are
-> accepted under the contribution clause in each license.
+> fonts under SIL OFL 1.1; the ICOR plugins and the AI Team scripts are open
+> source under MIT, and the open-source libraries some plugins bundle keep
+> their own notices, listed in [[THIRD-PARTY-NOTICES]]). Every plugin in this
+> vault is an ICOR for Life plugin; none is a third-party community install.
+> Plugin contributions are welcome as pull requests under MIT with a DCO
+> sign-off; see each plugin's CONTRIBUTING.md.

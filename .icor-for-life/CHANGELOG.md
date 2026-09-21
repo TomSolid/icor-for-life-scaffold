@@ -15,6 +15,30 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.33.0 (2026-09-21)
+
+The plugins are open source. Every ICOR for Life plugin, and the Python and
+shell scripts under `06 AI Team/AI Team Knowledge/Scripts/`, are now under
+the MIT licence, forward from the plugin versions named in `LICENSE.md`.
+What you wrote, and the Scaffold's own prose, templates and contracts, stay
+exactly as licensed before: yours to use and adapt, not open source.
+
+Minor bump: one new file, the scripts' own licence. Nothing is removed,
+moved or renamed, and nothing about how the vault works changes.
+
+### Added
+
+- `06 AI Team/AI Team Knowledge/Scripts/LICENSE`: the verbatim MIT text for
+  the scripts in that folder.
+
+### Changed
+
+- `LICENSE.md`: the plain-language summary now says which part is MIT and
+  which part is not, every plugin row reads MIT from the version it turns
+  MIT at, and a row for the scripts is new.
+- `README.md`: the licence note says the plugins and scripts are MIT and
+  that plugin contributions are welcome under a DCO sign-off.
+
 ## 1.32.0 (2026-09-18)
 
 The workbench you are handed is empty. `03 WiP/` is your room, and the

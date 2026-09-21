@@ -1,35 +1,39 @@
 # ICOR for Life - What you may do with each part
 
-What you can do: install it, run it, read the code, modify your own copy,
-and use it in your own business. What you cannot do: sell it, redistribute
-it, or offer it (original or modified) as your own product or service to
-others. Contributions: send a pull request. See CONTRIBUTING.md;
-submitting one grants Paperless Movement the rights described in Section 7
-of the LICENSE. This is not open source. It is source-available: the code
-is visible, personal and business use are free, resale and republishing
-are not. Bundled third-party components keep their own licenses; see
-THIRD-PARTY-NOTICES.md.
+Two licences live here. **The code is MIT**: every ICOR for Life plugin
+and the Python scripts under `06 AI Team/AI Team Knowledge/Scripts/` are
+open source under the MIT licence, forward from the versions named below.
+Install them, run them, read them, change them, sell them, ship them in your
+own product; keep the copyright and licence notice. Each plugin repository
+carries the verbatim MIT text in its own `LICENSE`, a `TRADEMARK.md`, and a
+`CONTRIBUTING.md` that asks for a DCO sign-off on every commit; the scripts
+carry theirs in `06 AI Team/AI Team Knowledge/Scripts/LICENSE`. Machine-readable
+identifier in every plugin's `package.json`: `MIT`. Plugin releases published
+before the version named in the table stay under the ICOR for Life
+Source-Available License (Code) v1.0 they were published with.
 
-The block above is the plain-language summary of the ICOR for Life
-Source-Available License (Code) v1.0 that governs the plugins listed
-below; each plugin repository carries its own LICENSE and CONTRIBUTING.md.
-Machine-readable identifier, used in every plugin repository's
-`package.json`: `LicenseRef-ICOR-Source-Available-1.0`.
+**The content is not.** The folder structure, documents, templates, agent
+contracts, guidelines and prose stay under the ICOR for Life Source-Available
+License (Content) v1.0 below: yours to use and adapt without limit, not yours
+to publish. The INKLINE theme stays CC BY-NC-ND 4.0. Bundled third-party
+components keep their own licences; see THIRD-PARTY-NOTICES.md. Trademarks
+are never licensed by any of these; see the note under the table.
 
 | Artifact | License | You MAY | You may NOT |
 |---|---|---|---|
 | INKLINE theme (`ICOR for Life - INKLINE`) | CC BY-NC-ND 4.0 (embedded fonts: SIL OFL 1.1, separately) | Use in your own vaults (incl. via the community theme store), modify your own copy for personal use, share unchanged copies noncommercially with attribution | Sell it or bundle it into any paid product or service, publish modified or derivative versions, redistribute the embedded font files by themselves |
-| ICOR Planner plugin (`icor-for-life-planner`) | ICOR for Life Source-Available License (Code) v1.0 | Install and run in your own vaults, read the source, modify for personal use, keep your copies forever | Redistribute or publish (original or modified), use commercially, offer to others as a product/service |
-| ICOR Focus plugin (`icor-for-life-focus`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| ICOR Interface plugin (`icor-for-life-interface`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| ICOR Scaffold Check plugin (`icor-for-life-scaffold-check`) | ICOR for Life Source-Available License (Code) v1.0 | Same as above | Same as above |
-| ICOR AI Chat plugin (`icor-for-life-chat`) | ICOR for Life Source-Available License (Code) v1.0 (Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
-| myICOR Connect plugin (`icor-for-life-connect`) | ICOR for Life Source-Available License (Code) v1.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
-| ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | ICOR for Life Source-Available License (Code) v1.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
-| ICOR Terminal plugin (`icor-for-life-terminal`) | ICOR for Life Source-Available License (Code) v1.0 (bundles xterm.js and its addons under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
-| ICOR Outliner plugin (`icor-for-life-outliner`) | ICOR for Life Source-Available License (Code) v1.0 (bundles no third-party code) | Same as above | Same as above |
-| ICOR PDF Annotation plugin (`icor-for-life-pdf-annotation`) | ICOR for Life Source-Available License (Code) v1.0 (bundles no third-party code) | Same as above | Same as above |
-| ICOR Canvases plugin (`icor-for-life-canvases`) | ICOR for Life Source-Available License (Code) v1.0 (bundles no third-party code) | Same as above | Same as above |
+| ICOR Planner plugin (`icor-for-life-planner`) | MIT from 0.16.0 | Install and run in your own vaults, read the source, change it, sell it, ship it in your own product; keep the copyright and licence notice | Use the ICOR, ICOR for Life, myICOR or Paperless Movement marks or logos for a fork or product, or list a fork under the plugin's id or name (see each repo's TRADEMARK.md) |
+| ICOR Focus plugin (`icor-for-life-focus`) | MIT from 0.7.0 | Same as above | Same as above |
+| ICOR Interface plugin (`icor-for-life-interface`) | MIT from 0.8.0 | Same as above | Same as above |
+| ICOR Scaffold Check plugin (`icor-for-life-scaffold-check`) | MIT from 0.6.0 | Same as above | Same as above |
+| ICOR AI Chat plugin (`icor-for-life-chat`) | MIT from 0.16.0 (the built main.js also carries @anthropic-ai/claude-agent-sdk, Copyright (c) Anthropic PBC, not MIT; Claude Code access: your own Anthropic account, under Anthropic's own terms) | Same as above | Same as above; Claude usage outside your own agreement with Anthropic |
+| myICOR Connect plugin (`icor-for-life-connect`) | MIT from 0.16.0 (platform access: myICOR Terms of Service) | Same as above | Same as above; platform API use outside the membership ToS |
+| ICOR SQLite Viewer plugin (`icor-for-life-sqlite-viewer`) | MIT from 0.6.0 (bundles sql.js under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
+| ICOR Terminal plugin (`icor-for-life-terminal`) | MIT from 0.2.0 (bundles xterm.js and its addons under MIT, listed in its own THIRD-PARTY-NOTICES.md) | Same as above | Same as above |
+| ICOR Outliner plugin (`icor-for-life-outliner`) | MIT from 0.2.0 (bundles no third-party code) | Same as above | Same as above |
+| ICOR PDF Annotation plugin (`icor-for-life-pdf-annotation`) | MIT from 0.2.0 (bundles no third-party code) | Same as above | Same as above |
+| ICOR Canvases plugin (`icor-for-life-canvases`) | MIT from 0.4.0 (bundles no third-party code) | Same as above | Same as above |
+| AI Team scripts (`06 AI Team/AI Team Knowledge/Scripts/*.py`, `*.sh`) | MIT (own `LICENSE` in that folder) | Same as above | Same as above |
 | Scaffold content (structure, templates, AI-team files, prose) | ICOR for Life Source-Available License (Content) v1.0 | Use as your personal vault, adapt and extend your own copy without limit, quote brief excerpts with attribution, apply the ICOR Journey method freely | Publish or share the vault, adapted versions, or substantial parts; build commercial products, courses, or templates from the files |
 
 "Personal use" means use by you, for you, in vaults you control. Your license
