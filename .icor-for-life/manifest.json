@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.34.0",
-  "built": "2026-09-22T16:39:26Z",
-  "commit": "9c8f5c9",
+  "version": "1.34.1",
+  "built": "2026-09-22T16:59:40Z",
+  "commit": "290cbb3",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -88,7 +88,7 @@
     },
     {
       "path": ".claude/agents/mason.md",
-      "sha256": "7c412a17d32ff52f0f9edd2584ca44912c286254ca87ca2573b702bb256b2645",
+      "sha256": "4c7b04574ee9c22829b12b1024377a569b12b23e44f58c30fb3c0020889ad023",
       "kind": "claude",
       "example": false
     },
@@ -1456,7 +1456,7 @@
     },
     {
       "path": "06 AI Team/Agents/Mason/AGENT.md",
-      "sha256": "aca7f7e16e4382e4d90edf2ef2a5ee24704de65e0f4ae3aa809dbeb4b4fa9cad",
+      "sha256": "559ec1fa606f01f8f1cfd338ff40e0d4b615345ce216050f9929b6a6a1e0baaa",
       "kind": "agent",
       "example": false
     },
@@ -1778,6 +1778,13 @@
     }
   ],
   "history": [
+    {
+      "version": "1.34.1",
+      "date": "2026-09-22",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "1.34.0",
       "date": "2026-09-22",
