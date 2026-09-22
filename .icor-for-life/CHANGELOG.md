@@ -81,14 +81,21 @@ Nothing. No file is removed, moved or renamed in this release.
 
 ### If you are updating by hand
 
-Copy `06 AI Team/Agents/Mason/` and
-`06 AI Team/AI Team Knowledge/Avatars/mason.png` from this release, then
-run `scaffold-init.py plan` and `apply` from the vault root (on Windows
+Replace `AGENTS.md`, `README.md`, `06 AI Team/Agents/agent-index.md`,
+`06 AI Team/Agents/Larry/AGENT.md` and
+`06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py` with the copies
+in this release, and copy `06 AI Team/Agents/Mason/` and
+`06 AI Team/AI Team Knowledge/Avatars/mason.png`. Then run
+`scaffold-init.py plan` and `apply` from the vault root (on Windows
 `py -3` in place of `python3`) so the three shims and `.codex/config.toml`
-are generated rather than copied. Replace `AGENTS.md`, `README.md`,
-`06 AI Team/Agents/agent-index.md`, `06 AI Team/Agents/Larry/AGENT.md`
-and `06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py`. The
-plugins and the theme are unchanged; nothing to copy under `.obsidian/`.
+are generated rather than copied; `AGENTS.md` first, because the
+generator stamps that file's size into `.codex/config.toml`, and the
+other order produces a config that at once asks for attention. Last,
+copy `.icor-for-life/VERSION`, `.icor-for-life/manifest.json` and
+`.icor-for-life/CHANGELOG.md` from this release: Scaffold Check reads
+`VERSION` for the version you run, and without this step it keeps
+telling you 1.34.0 is out. The plugins and the theme are unchanged;
+nothing to copy under `.obsidian/`.
 
 ## 1.33.0 (2026-09-21)
 
