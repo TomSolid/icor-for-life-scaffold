@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "name": "ICOR for Life Scaffold",
-  "version": "1.33.0",
-  "built": "2026-09-21T12:14:42Z",
-  "commit": "ee9e072",
+  "version": "1.34.0",
+  "built": "2026-09-22T16:13:48Z",
+  "commit": "6bb18f3",
   "theme": "ICOR for Life - INKLINE",
   "rooms": [
     "06 AI Team/Expansions",
@@ -83,6 +83,12 @@
     {
       "path": ".claude/agents/mack.md",
       "sha256": "81c49e5c4cb68af8372fe8a9b2c93a81b2c2c38747f9da7bf4a857c13690e0fd",
+      "kind": "claude",
+      "example": false
+    },
+    {
+      "path": ".claude/agents/mason.md",
+      "sha256": "7c412a17d32ff52f0f9edd2584ca44912c286254ca87ca2573b702bb256b2645",
       "kind": "claude",
       "example": false
     },
@@ -177,6 +183,12 @@
       "example": false
     },
     {
+      "path": ".codex/agents/mason.toml",
+      "sha256": "77fc21d33fbeecdaef26eae8062e9da2fb8c9ba7e641dc080f46b039bee8a2ad",
+      "kind": "doc",
+      "example": false
+    },
+    {
       "path": ".codex/agents/nolan.toml",
       "sha256": "f30ee19a8f6ed66283e4825484fa85fa07048c616ab5916d2022c9288540139d",
       "kind": "doc",
@@ -202,7 +214,7 @@
     },
     {
       "path": ".codex/config.toml",
-      "sha256": "dc38a4bd6c9f1a0261e5f83ada24d12fae795609be05e68b02940d08de9a8ddd",
+      "sha256": "d6181642c152194f2e035655e347704bf096383f723e24a10f168c31eb6056f2",
       "kind": "doc",
       "example": false
     },
@@ -239,6 +251,12 @@
     {
       "path": ".gemini/agents/mack.md",
       "sha256": "b8a22c86cfcbe5f55a610c0afcd1835df446d0890b672249fff2571f062a8791",
+      "kind": "doc",
+      "example": false
+    },
+    {
+      "path": ".gemini/agents/mason.md",
+      "sha256": "6c39f3919d61cb3f4815d60994e214e7d9a1633b86e1fb821af1babb968c06f8",
       "kind": "doc",
       "example": false
     },
@@ -651,6 +669,12 @@
       "example": false
     },
     {
+      "path": "06 AI Team/AI Team Knowledge/Avatars/mason.png",
+      "sha256": "b1208a34f1dc115ad56cac27fb9e29a0de799305ae6d07f5c7df2e89e01f1616",
+      "kind": "asset",
+      "example": false
+    },
+    {
       "path": "06 AI Team/AI Team Knowledge/Avatars/nolan.png",
       "sha256": "d06b34d1a3ca69fc66b75cc6a6e8d9b07518347288ca0628a331e4ca2de6c474",
       "kind": "asset",
@@ -958,7 +982,7 @@
     },
     {
       "path": "06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py",
-      "sha256": "2780f1cd142f3f06714115020a5b62257fe70031702b657ca02b945e28fd34c3",
+      "sha256": "852024fca85d8954017bdec2d9d047efa6dd9b02e21426d5e4d7ae740d5f2374",
       "kind": "script",
       "example": false
     },
@@ -1390,7 +1414,7 @@
     },
     {
       "path": "06 AI Team/Agents/Larry/AGENT.md",
-      "sha256": "a9a401c978673e61a0af9ea9e2e690d50628030f24fb40f394c2e05bedd8d214",
+      "sha256": "00bfb5c52b2cc443bb1d06c595056a9a3bf7bfb26aba3843c21e7fa5ef5ddc74",
       "kind": "agent",
       "example": false
     },
@@ -1427,6 +1451,30 @@
     {
       "path": "06 AI Team/Agents/Mack/Mack.md",
       "sha256": "3701aa00d3eb1589f4692d389173c0805d2999c5a68ae81565b1e01b0db2dea0",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mason/AGENT.md",
+      "sha256": "45ba475240bb494cc613d310253c87def86bfeb7181697f7523c96580dc5e580",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mason/Journal/2026-09-22-mason-hired.md",
+      "sha256": "b76b4d755edfbbc51f7fce6acedc1fd55a5ea3e01deaae166d766a368171672a",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mason/Journal/_template.md",
+      "sha256": "b9b03be294b858d4da9c952ff4db3bbcc34a1d6d105d7e1ff7a3579c489deed8",
+      "kind": "agent",
+      "example": false
+    },
+    {
+      "path": "06 AI Team/Agents/Mason/Mason.md",
+      "sha256": "186897e90591a6130c83307aff8107d50ccdc14174b5d7d01b9db4ea9b47c0be",
       "kind": "agent",
       "example": false
     },
@@ -1528,7 +1576,7 @@
     },
     {
       "path": "06 AI Team/Agents/agent-index.md",
-      "sha256": "fe681df8fbf449ce619743c236fc9c658f2fc700e2ae6e1142b0f7dd5a90400b",
+      "sha256": "76f86473dbaa365e774d00105bb09e0acf7a83b09c0df4a76eba4ef3a0d8492a",
       "kind": "agent",
       "example": false
     },
@@ -1564,7 +1612,7 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "b67b5c18e8a324bc1b52fcbd7ef3d148072b2193ea11203ee830858376f1cc1c",
+      "sha256": "9a5ce98809f5a70922eaabcec49685251e2818215838eef3c155d1d3a8415793",
       "kind": "doc",
       "example": false
     },
@@ -1588,7 +1636,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "2a0332a5c9563f54cecea34a420303f33ec9685bf37c11357f763194c15187f2",
+      "sha256": "28fa1a4946007058f3998c8ee0fe5826d508068c9e339c4e5e89ba1be869ff41",
       "kind": "doc",
       "example": false
     },
@@ -1699,6 +1747,12 @@
       "shim": ".claude/agents/mack.md"
     },
     {
+      "name": "Mason",
+      "myicor_id": "89ae64a9-06a6-471a-bafe-78eb7a4770ae",
+      "path": "06 AI Team/Agents/Mason/AGENT.md",
+      "shim": ".claude/agents/mason.md"
+    },
+    {
       "name": "Nolan",
       "myicor_id": "7ebf4b50-1027-4726-b69e-005e93c95cf0",
       "path": "06 AI Team/Agents/Nolan/AGENT.md",
@@ -1724,6 +1778,22 @@
     }
   ],
   "history": [
+    {
+      "version": "1.34.0",
+      "date": "2026-09-22",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        ".claude/agents/mason.md",
+        ".codex/agents/mason.toml",
+        ".gemini/agents/mason.md",
+        "06 AI Team/AI Team Knowledge/Avatars/mason.png",
+        "06 AI Team/Agents/Mason/AGENT.md",
+        "06 AI Team/Agents/Mason/Journal/2026-09-22-mason-hired.md",
+        "06 AI Team/Agents/Mason/Journal/_template.md",
+        "06 AI Team/Agents/Mason/Mason.md"
+      ]
+    },
     {
       "version": "1.33.0",
       "date": "2026-09-21",
