@@ -132,7 +132,12 @@ member able to explain what they submitted.
    `gh auth status` logged in (if not: the member runs `gh auth login`;
    Mason never does it for them). `git config user.name` and
    `user.email` set to the member's real identity. A clone folder
-   outside the vault. Node present for the gate.
+   outside the vault. Node present for the gate, and in the six
+   repositories that build from `src/` (table below) `npm ci` in the
+   clone before anything else: their gate calls `tsc`, `esbuild` and
+   `eslint` from devDependencies and dies with command-not-found on a
+   fresh fork. The other six have no dependencies and nothing to
+   install.
 3. [JUDGEMENT] **Find the code.** Fork and clone
    (`gh repo fork myICOR/<repo> --clone --remote`, which leaves
    `origin` on the fork and `upstream` on myICOR), read `CONTRIBUTING.md`,
@@ -171,7 +176,11 @@ member able to explain what they submitted.
    label means a security or platform read comes before review; wait,
    do not chase. A `too-big` label means split. Review comments are
    answered by a new commit on the same branch, signed off, never by a
-   force-push over history a reviewer already read. The pull request
+   force-push over content a reviewer already read. The one force-push
+   that is allowed is the one the sign-off check itself prescribes when
+   a commit lacks its `Signed-off-by:` line: `git rebase --signoff
+   HEAD~N && git push --force-with-lease`, which changes trailers and
+   nothing a reviewer read. The pull request
    note in the vault is updated at each step.
 9. [JUDGEMENT] **The hand-back, when the answer is no.** Three shapes:
    "not a plugin change" (a vault, note or settings problem: the owning
@@ -185,8 +194,9 @@ member able to explain what they submitted.
 ## The house rules (from `CONTRIBUTING.md` and the pull request template)
 
 Every myICOR plugin repository carries the same `CONTRIBUTING.md`
-(confirmed 2026-09-22 across the local checkouts; only the gate line
-differs) and the organisation-level pull request template. What they
+(confirmed 2026-09-22 on the GitHub default branches, the trees a member
+forks; only the gate line differs) and the organisation-level pull
+request template. What they
 require, and what a pull request that ignores them gets:
 
 | Rule | Consequence |
@@ -205,27 +215,37 @@ Contributors never push to `main`. Merging ships nothing: releases are
 cut from a version tag by the maintainer. MIT covers the code, not the
 name: a diverging project starts fresh under its own id and name.
 
-## The twelve plugins and their gates
+## The twelve plugins: where the source is, and the gate
 
-| Plugin | Repository (`github.com/myICOR/`) | Gate |
-| --- | --- | --- |
-| Planner | `icor-for-life-planner` | `npm test` |
-| Connect | `icor-for-life-connect` | `npm test` |
-| AI Chat | `icor-for-life-chat` | read the repository's `CONTRIBUTING.md` |
-| Interface | `icor-for-life-interface` | `npm test` |
-| Focus | `icor-for-life-focus` | `npm test` |
-| Scaffold Check | `icor-for-life-scaffold-check` | `npm test` |
-| SQLite Viewer | `icor-for-life-sqlite-viewer` | `npm test` |
-| Canvases | `icor-for-life-canvases` | `npm run gate` |
-| Terminal | `icor-for-life-terminal` | read the repository's `CONTRIBUTING.md` |
-| Outliner | `icor-for-life-outliner` | `npm run gate` |
-| PDF Annotation | `icor-for-life-pdf-annotation` | `npm run gate` |
-| Scratchpad | `icor-for-life-scratchpad` | `npm run gate` |
+The twelve split six and six, and the split decides where the fix goes.
+Six keep one tracked `main.js` with no `src/`, no lockfile and no
+dependencies: edit `main.js`, gate `npm test`. Six build from `src/`,
+their `main.js` is gitignored build output, a lockfile is present:
+edit under `src/`, `npm ci` first, gate `npm run gate`. Editing
+`main.js` in a build-shape repository is the most likely wasted cycle
+in this whole procedure: the build overwrites it and git will not take
+it.
 
-This table is a starting point, read on 2026-09-22. The repository's
-own `CONTRIBUTING.md` on the day of the work is the rule; when it
-differs from this table, the repository wins and Mason notes the
-difference in `Journal/`.
+| Plugin | Repository (`github.com/myICOR/`) | Source to edit | Install | Gate |
+| --- | --- | --- | --- | --- |
+| Planner | `icor-for-life-planner` | `main.js` (tracked) | none | `npm test` |
+| Connect | `icor-for-life-connect` | `main.js` (tracked) | none | `npm test` |
+| Interface | `icor-for-life-interface` | `main.js` (tracked) | none | `npm test` |
+| Focus | `icor-for-life-focus` | `main.js` (tracked) | none | `npm test` |
+| Scaffold Check | `icor-for-life-scaffold-check` | `main.js` (tracked) | none | `npm test` |
+| SQLite Viewer | `icor-for-life-sqlite-viewer` | `main.js` (tracked) | none | `npm test` |
+| AI Chat | `icor-for-life-chat` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+| Terminal | `icor-for-life-terminal` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+| Canvases | `icor-for-life-canvases` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+| Outliner | `icor-for-life-outliner` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+| PDF Annotation | `icor-for-life-pdf-annotation` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+| Scratchpad | `icor-for-life-scratchpad` | `src/` (`main.js` is build output) | `npm ci` | `npm run gate` |
+
+This table was read on 2026-09-22 from the GitHub default branch of
+each repository, the only tree that counts because it is the one a
+member forks. The repository's own `CONTRIBUTING.md` and `package.json`
+on the day of the work are the rule; when they differ from this table,
+the repository wins and Mason notes the difference in `Journal/`.
 
 ## The worked example: a new source in the Planner
 
@@ -233,7 +253,11 @@ The Planner keeps every task source behind one connector registry in
 its single `main.js`, and a new source is one entry plus its own code,
 never a change to the sync core. Adding Notion, or any HTTP source:
 
-1. One `CONNECTORS` entry with `support: community` in its descriptor.
+1. One `CONNECTORS` entry, with the keys the registry actually has
+   (`id`, `label`, `folder`, `kind`, `platforms`, `svg`, and the six
+   functions below) and nothing invented. Community maintenance is not
+   a registry field; it is the `community-maintained` label on the
+   pull request and the release note, which every repository carries.
 2. Its own function block: `configured`, `fetchOpen`, `setClosed`,
    `pushFields`, `probeGone`, `doneNotice`.
 3. One `SECRET_FIELDS` line for its token, read through the plugin's
@@ -242,7 +266,10 @@ never a change to the sync core. Adding Notion, or any HTTP source:
 5. One test file, with the red test for a partial open set: an adapter
    that returns a partial window as complete makes the Planner mark
    real tasks done, so `complete: true` only with the full open set,
-   `complete: false` or a degraded result otherwise. "The source is
+   `complete: false` or a degraded result otherwise. The Planner reads
+   `complete: result.complete !== false`, so a result that omits the
+   field counts as complete: a partial or degraded fetch must set
+   `complete: false` explicitly, never leave it out. "The source is
    always the winner" is the rule the test protects.
 
 Network through Obsidian's `requestUrl()`, so it works on a phone. No
