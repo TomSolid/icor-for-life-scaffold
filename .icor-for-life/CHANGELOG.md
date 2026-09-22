@@ -15,6 +15,81 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 1.34.0 (2026-09-22)
+
+The team grows from ten agents to eleven. Mason is the plugin
+contributor: when one of the ICOR for Life plugins misbehaves, or you
+wish it did something it does not, he decides whether that is a plugin
+change at all and in which plugin, makes the smallest fix in that
+plugin's repository on GitHub, runs the repository's own gate, explains
+the change in plain words, and opens the pull request in your name with
+a DCO sign-off. You do not need to know git or GitHub. He is the agent
+the MIT release in 1.33.0 was missing: the plugins take pull requests
+now, and Mason is how a member sends one.
+
+Minor bump: one agent is added with his contract, bio, journal, avatar
+and three dispatch shims; six existing files gain one line or one
+paragraph each. Nothing is removed, moved or renamed, every bundled
+plugin is the release 1.33.0 carried, and a vault that already runs
+1.33.0 keeps every file it has after this update.
+
+### Added
+
+- **Mason, the plugin contributor.** Same two-file shape as the other
+  agents (`SOP-1007`), a journal, a dispatch shim per host and an avatar
+  in the INKLINE style. He works inside repositories you do not own, so
+  he does two jobs at once: the fix, and the plain-language account of
+  the fix that lets you stand behind it. The fix is one issue per pull
+  request, with a test that fails before and passes after, nothing else
+  in the diff, no version or changelog edit; the gate is the plugin
+  repository's own check, run before the pull request and pasted into
+  it. When the answer is no, he says why and names the right door
+  (Penn or Silas for a vault or note problem, Mack for a tool
+  connection, Flint for a platform verdict, the repository's
+  `SECURITY.md` for anything security-shaped, which never goes through
+  a pull request). A judgement role, so he runs on the strongest model
+  the host offers (`AGENTS.md`, "Which model runs what").
+  - `06 AI Team/Agents/Mason/AGENT.md`: the contract.
+  - `06 AI Team/Agents/Mason/Mason.md`: the bio.
+  - `06 AI Team/Agents/Mason/Journal/_template.md` and
+    `06 AI Team/Agents/Mason/Journal/2026-09-22-mason-hired.md`.
+  - `.claude/agents/mason.md`, `.codex/agents/mason.toml` and
+    `.gemini/agents/mason.md`: the dispatch shims, generated.
+  - `06 AI Team/AI Team Knowledge/Avatars/mason.png`: the avatar.
+
+### Changed
+
+- `06 AI Team/Agents/agent-index.md`: one row for Mason, with the
+  phrases that route to him and the four kinds of request that do not.
+- `AGENTS.md`: the identity line names Mason among the specialists
+  Larry launches rather than role-plays.
+- `06 AI Team/Agents/Larry/AGENT.md`: the "never" line says Mason fixes
+  a plugin and opens the pull request, so Larry does not.
+- `README.md`: one paragraph under the team section says what to ask
+  Larry for when a plugin has a bug or you want it to do something new.
+- `expansion-pack.py` counts Mason among the core agents an expansion
+  pack can never overwrite; `test-expansion-pack.py` proves it.
+- `.codex/config.toml` is re-rendered for the larger `AGENTS.md`
+  (14,275 bytes, under the 32 KiB Codex budget).
+
+Every bundled plugin and the INKLINE theme are the versions 1.33.0
+carried; none of them changes in this release.
+
+### Removed
+
+Nothing. No file is removed, moved or renamed in this release.
+
+### If you are updating by hand
+
+Copy `06 AI Team/Agents/Mason/` and
+`06 AI Team/AI Team Knowledge/Avatars/mason.png` from this release, then
+run `scaffold-init.py plan` and `apply` from the vault root (on Windows
+`py -3` in place of `python3`) so the three shims and `.codex/config.toml`
+are generated rather than copied. Replace `AGENTS.md`, `README.md`,
+`06 AI Team/Agents/agent-index.md`, `06 AI Team/Agents/Larry/AGENT.md`
+and `06 AI Team/AI Team Knowledge/Scripts/expansion-pack.py`. The
+plugins and the theme are unchanged; nothing to copy under `.obsidian/`.
+
 ## 1.33.0 (2026-09-21)
 
 The plugins are open source. Every ICOR for Life plugin, and the Python and
