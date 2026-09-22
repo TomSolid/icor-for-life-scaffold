@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 CORE = {'Larry', 'Nolan', 'Pax', 'Penn', 'Mack', 'Silas', 'Iris', 'Charta', 'Flint',
-        'Ada'}
+        'Ada', 'Mason'}
 
 # F1 (CRITICAL). `Scripts` is NOT in this set and must not be added. A pack
 # file under Scripts/ is imported by every script the session-start hook runs:

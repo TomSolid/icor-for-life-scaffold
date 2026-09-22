@@ -150,6 +150,12 @@ anything) as Topics or your own folders, or install expansion packs from
 app.myicor.com. When you need a specialist the team does not have, ask
 Larry: Nolan hires them from the `Agent 01` template.
 
+Found a bug in one of the plugins, or want one to do something new?
+Ask Larry for Mason. He makes the fix in that plugin's repository on
+GitHub, explains it in plain words, and opens the pull request for you,
+so the fix reaches every member with the next release instead of
+staying on your machine.
+
 ## Learn the concepts: the ICOR Journey
 
 This scaffold is the implementation layer of the ICOR methodology. Each
