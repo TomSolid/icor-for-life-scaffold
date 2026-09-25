@@ -2,8 +2,8 @@
   "schema": 2,
   "name": "ICOR for Life Scaffold",
   "version": "2.0.0",
-  "built": "2026-09-25T01:30:01Z",
-  "commit": "2d77f73",
+  "built": "2026-09-25T09:49:26Z",
+  "commit": "e3b4baa",
   "lab": false,
   "source_commit": "f7dd5f0",
   "implements": "icor-concepts/1",
@@ -84,7 +84,7 @@
   ],
   "snippets": [],
   "files": {
-    ".icor-for-life/CHANGELOG.md": "2b273c7b05b7798380aca90e553343675a68580b597b957969d26812ed6000f5",
+    ".icor-for-life/CHANGELOG.md": "10c85af9ec4bb77338ccb9b60ba3f2969ebf65ce76791475c80972ca334ca9aa",
     ".icor-for-life/README.md": "c0ba4d491917950a639f365fe02ab9b26221c231fd0c4f18668e8d02856a32a4",
     ".icor-for-life/VERSION": "c28fcca53637bc88e124af1725df13cb98c69dedefd62fb3cdbe1cdb6b760624",
     ".icor-for-life/manifest.json": "self",
@@ -207,7 +207,7 @@
     "THIRD-PARTY-NOTICES.md": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575"
   },
   "repo_only": {
-    ".github/workflows/release.yml": "8dbedb65413c5ace2cc56ab07cb1e83741a52e4ebeb2d0fd33bab3b6c3df4142",
+    ".github/workflows/release.yml": "68453e4ef216605522bdbf5c01241eae328c41b3ea4e4d63e215b378118a9e99",
     ".gitignore": "64bcab4ad2794445d9445ea1245ffa29adc6b390a2f9def29b9328532c1c76bf",
     "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "ad9923dbbfa9d82f4e4aae4912804e8dcc52ecafaad5082977cfa0e4d8d90e3b"
   },
@@ -2564,7 +2564,7 @@
   "vendored": {
     "06 AI Team/AI Team Knowledge/Scripts/noteio-icor.py": {
       "upstream": "mypka:06 AI Team/AI Team Knowledge/Scripts/noteio.py",
-      "upstream_version": "6.0.0",
+      "upstream_version": "6.0.1",
       "sha256": "8adf62965c7a646d9e567eaed2d809164796c75f81c6cb6626a8fbf0e3bd7f22",
       "rule": "byte-identical copy; edit upstream only; CI fails on any hash mismatch"
     }

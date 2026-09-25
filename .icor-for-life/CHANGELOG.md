@@ -23,7 +23,7 @@ The split. ICOR for Life 2.0.0 is the content half of the ICOR for Life
 Scaffold 1.34.1 (`f7dd5f0`): the rooms, the entity templates, the concept
 Guidelines, the life scripts and the Obsidian setup. The AI team half
 (contracts, SOPs, Workstreams, team scripts, host files) moved to myPKA
-6.0.0 (github.com/myICOR/myPKA), which runs unpacked into this folder or
+6.0.1 (github.com/myICOR/myPKA), which runs unpacked into this folder or
 beside it. Every team file that moved is marked `moved_to: mypka` in
 `.icor-for-life/manifest.json`, so an update never deletes it.
 

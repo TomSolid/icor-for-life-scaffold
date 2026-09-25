@@ -44,7 +44,7 @@
 # remote, g5w); the pins are set at step 18.
 #
 # Step 13: myPKA lives in myICOR/myPKA (Marshall M5) and tags with a leading
-# v (M3), so the pin is v6.0.0; ICOR keeps bare tags. GH_TOKEN is set only on
+# v (M3), so the pin is v6.0.1; ICOR keeps bare tags. GH_TOKEN is set only on
 # the steps that call gh (Vex F6), never for the whole job.
 #
 # Step 18 (Vex P7, Marshall H2): build-provenance attestations. The zip and
@@ -84,7 +84,7 @@ env:
   ASSET_STEM: icor-for-life-obsidian-edition
   SCRIPTS: 06 AI Team/AI Team Knowledge/Scripts
   MYPKA_REPO: myICOR/myPKA
-  MYPKA_PIN: 'v6.0.0'
+  MYPKA_PIN: 'v6.0.1'
   MYPKA_PIN_SHA: '0000000000000000000000000000000000000000'  # set at step 18, with the pin
 
 defaults:
