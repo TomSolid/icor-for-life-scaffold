@@ -30,6 +30,23 @@ flowing; getting the work done is the point.
 find rough edges. If something looks off, post it in the myICOR
 community and it gets fixed fast.
 
+## ICOR for Life and myPKA
+
+Since 2.0.0 this download is the folder only: the rooms, the templates,
+the Guidelines, the life scripts and the Obsidian setup. The AI Team
+(Larry and the specialists, `AGENTS.md`, the hooks and the team scripts)
+is **myPKA**, its own download: https://github.com/myICOR/myPKA. The
+steps below that talk to your AI need myPKA.
+
+- **Mode A: myPKA inside this folder.** Unpack myPKA into this folder and
+  one folder holds both. The two share no file names, so neither
+  overwrites the other.
+- **Mode B: myPKA beside this folder.** myPKA lives in its own folder, and
+  its `.mypka/sources.yaml` points at this one.
+
+Coming from 1.34 or earlier, where the team came in this download? Read
+"Coming from ICOR for Life 1.34 or earlier" in myPKA's `README-myPKA.md`.
+
 ## The rooms
 
 Six knowledge rooms plus two machine-facing surfaces: the Planner,
@@ -62,7 +79,8 @@ cannot hold.
    the **ICOR for Life - Terminal** plugin: run "Run Claude Code here"
    from the command palette, or "New terminal" for a plain shell in the
    vault folder. Use the AI runtime of your choice with file access. The
-   shared entry is `AGENTS.md`; `CLAUDE.md` imports it for Claude Code,
+   one entry file is `AGENTS.md`: Claude Code (2.1.277 or later), Codex
+   and Cursor read it as is, Gemini CLI through `.gemini/settings.json`,
    and root `AGENT.md` is a compatibility pointer. If your runtime does
    not discover the entry automatically, paste `ADAPTER-PROMPT.md` into
    it. The AI reads the existing contract and initializes as Larry;
@@ -138,17 +156,39 @@ its own version in `.icor-for-life/` (a `VERSION`, a `CHANGELOG.md` that
 names every file a version removed or moved and where it went, and a
 `manifest.json` for machines), and the **ICOR for Life - Scaffold Check**
 plugin reads the latest manifest and tells you what is missing, what changed
-upstream since your download, what you edited yourself, and which files the
-scaffold has since removed that are still sitting in your vault, each with
-the changelog line that explains it. It is read-only: it writes a report, and
-you or your AI make the changes.
+upstream since your download, what you edited yourself, and which files a
+release after your installed version removed that are still sitting in your
+vault, each with the changelog line that explains it. It is read-only: it
+writes a report, and you or your AI make the changes.
+
+Once you have installed the version that removed a file, the check no longer
+lists that file. An old `CLAUDE.md` still in your vault after you update to
+2.0.0 is one example: the report does not mention it. A file like that is
+harmless, and you can delete it by hand; this version's section of
+`.icor-for-life/CHANGELOG.md` names every file it removed.
+
+### Check that a download is genuine
+
+Every release zip carries a build-provenance attestation: a signed record
+that says which workflow built these exact bytes, from which tag. Before you
+unpack a download, check it with the GitHub CLI (`gh`). Put the version you
+downloaded in place of `<version>`, as one line:
+
+```
+gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo TomSolid/icor-for-life-scaffold --signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
+```
+
+Use the download only if it prints that verification succeeded. The
+unversioned `icor-for-life-obsidian-edition.zip` is the same bytes and checks
+with the same command.
 
 ## Extending it
 
 The rooms are the core. Add your own collections (quotes, recipes,
-anything) as Topics or your own folders, or install expansion packs from
-app.myicor.com. When you need a specialist the team does not have, ask
-Larry: Nolan hires them from the `Agent 01` template.
+anything) as Topics or your own folders. AI Team expansion packs come
+with myPKA (see "ICOR for Life and myPKA" above). When you need a
+specialist the team does not have, ask Larry: Nolan hires them from the
+`Agent 01` template.
 
 Found a bug in one of the plugins, or want one to do something new?
 Ask Larry for Mason. He makes the fix in that plugin's repository on

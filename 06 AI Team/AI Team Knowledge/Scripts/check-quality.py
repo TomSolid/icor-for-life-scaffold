@@ -17,8 +17,9 @@ stops a release, a quality finding is a conversation with the member.
 
 Everything the guideline states is READ from the guideline. The field
 lists, the required fields and the closed value sets all come from
-GL-1002's own table through new-base.py's parser, so a ruling changes one
-markdown table and this script changes with it. What lives here is only
+GL-1002's own table (and GL-1015's team rows, when myPKA shares this
+folder) through new-base.py's parser, so a ruling changes one markdown
+table and this script changes with it. What lives here is only
 what GL-1002 cannot state: the thresholds below, and how a metric is
 counted.
 
@@ -418,6 +419,13 @@ def run(root):
     # The type column of the same table. A value outside it is not a type,
     # and nothing downstream may act on it as if it were.
     known_types = set(declared) | {"scratchpad", "capture"}
+    # Which guideline a type's fields live in: GL-1015 for the team half,
+    # GL-1002 for everything else. Named in the finding so the fix lands in
+    # the right file.
+    team = new_base.team_types(root)
+
+    def gl(t):
+        return "GL-1015" if t in team else "GL-1002"
 
     files, notes = collect(root)
     resolve = resolver(files, notes)
@@ -455,7 +463,7 @@ def run(root):
         if declared_type and declared_type not in known_types:
             values["enum_violations"] += 1
             add("enum_violations", posix,
-                "`type` is `%s`, which is not one of the types GL-1002 declares."
+                "`type` is `%s`, which is not one of the types GL-1002 or GL-1015 declares."
                 % declared_type,
                 "Set `type` to one of %s." % ", ".join(sorted(known_types)))
         archived = "/archive/" in "/" + posix
@@ -488,7 +496,7 @@ def run(root):
                     values["missing_required_fields"] += 1
                     add("missing_required_fields", posix,
                         "Required field `%s` is missing or empty." % field,
-                        "Fill `%s` in the Properties panel (GL-1002)." % field)
+                        "Fill `%s` in the Properties panel (%s)." % (field, gl(t)))
 
         # --- invented fields -------------------------------------------------
         if t in declared:
@@ -496,9 +504,9 @@ def run(root):
                 if field not in declared[t]:
                     values["invented_fields"] += 1
                     add("invented_fields", posix,
-                        "`%s` is not a GL-1002 field for type `%s`." % (field, t),
-                        "Rename it to the GL-1002 field that means this, or "
-                        "add it to GL-1002 first and then use it.")
+                        "`%s` is not a %s field for type `%s`." % (field, gl(t), t),
+                        "Rename it to the %s field that means this, or "
+                        "add it to %s first and then use it." % (gl(t), gl(t)))
 
         # --- dangling links ---------------------------------------------------
         for raw in WIKILINK.findall(n["prose"]):

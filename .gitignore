@@ -80,3 +80,8 @@ __pycache__/
 .swiftpm/
 DerivedData/
 *.xcuserdatad
+
+# The member's overrides and the updater's own output (Marshall C). Never
+# tracked, never shipped; both builders refuse to ship either suffix.
+*.local.md
+*.update

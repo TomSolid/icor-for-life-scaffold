@@ -35,16 +35,16 @@ from pathlib import Path
 # running.
 sys.dont_write_bytecode = True
 
-# noteio.py sits beside this script and is loaded by path, not by name, so
+# noteio-icor.py sits beside this script and is loaded by path, not by name, so
 # the import needs nothing on sys.path, which is what lets this script run
 # under the `-I -B -X utf8` the rendered hooks carry, with its own folder
-# dropped from sys.path. A missing noteio.py is a half-upgraded Scripts/
+# dropped from sys.path. A missing noteio-icor.py is a half-upgraded Scripts/
 # folder and says so in one line, because a traceback out of an import
 # teaches the member nothing about what to do next.
-_nio_path = Path(__file__).resolve().parent / "noteio.py"
+_nio_path = Path(__file__).resolve().parent / "noteio-icor.py"
 if not _nio_path.is_file():
-    raise SystemExit("FAIL noteio.py is missing from %s. Scripts/ is half "
-                     "upgraded; restore noteio.py beside this script and run "
+    raise SystemExit("FAIL noteio-icor.py is missing from %s. Scripts/ is half "
+                     "upgraded; restore noteio-icor.py beside this script and run "
                      "this again." % _nio_path.parent)
 _nio = importlib.util.spec_from_file_location("noteio", _nio_path)
 noteio = importlib.util.module_from_spec(_nio)
@@ -52,6 +52,25 @@ _nio.loader.exec_module(noteio)
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 GL002 = "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md"
+# The team half of the per-type table (split step 10, 2026-09-24): task,
+# session-log, sop / workstream / guideline, journal-entry, agent and the
+# other `side: team` types of icor-concepts/1 live in myPKA's GL-1015, not in
+# GL-1002. GL-1002 is always read and must exist; GL-1015 is read when it is
+# under the same root, which is mode A (myPKA unpacked into this folder) and a
+# staged merge. A bare ICOR for Life folder (mode B, or no team at all) holds
+# no team notes, so its table is the content half alone and nothing is lost.
+GL015 = "06 AI Team/AI Team Knowledge/Guidelines/GL-1015-team-frontmatter-conventions.md"
+
+
+def _guideline_texts(root):
+    """The texts the per-type table is read from: GL-1002, then GL-1015 when
+    present. Both tables share one header shape, so one parser reads both and
+    no field list is copied anywhere (GL-1005)."""
+    texts = [(root / GL002).read_text(encoding="utf-8")]
+    team = root / GL015
+    if team.is_file():
+        texts.append(team.read_text(encoding="utf-8"))
+    return texts
 
 # The registry: which collections earn a Base, and their canonical
 # table shape. Columns are GL-1002 note properties; file.name is always
@@ -255,8 +274,9 @@ def _table_row(line):
     return [c.strip() for c in s[1:-1].split("|")]
 
 
-def _gl002_table(root, columns):
-    """Read GL-1002's per-type table and return {type: set(field names)},
+def _gl002_table(root, columns, texts=None):
+    """Read the per-type table (GL-1002, plus GL-1015's team rows when that
+    file is under ROOT) and return {type: set(field names)},
     taking the field names from the named COLUMNS only.
 
     Deterministic, and column-order independent: the header row that names
@@ -270,7 +290,7 @@ def _gl002_table(root, columns):
     pdf-highlight field table, the habit-log markers) never carry both
     header names, so they are skipped.
     """
-    text = (root / GL002).read_text(encoding="utf-8")
+    text = "\n\n".join(texts if texts is not None else _guideline_texts(root))
     out = {}
     cols = None          # header name -> index, while inside the table
     for line in text.splitlines():
@@ -312,6 +332,17 @@ def gl002_fields(root):
             for t, f in _gl002_table(root, FIELD_COLUMNS).items()}
 
 
+def team_types(root):
+    """The types GL-1015 declares (the team half), empty when GL-1015 is not
+    under ROOT. A report names the guideline a type's fields live in, and a
+    team field is added to GL-1015 first, never to GL-1002."""
+    team = root / GL015
+    if not team.is_file():
+        return set()
+    return set(_gl002_table(root, FIELD_COLUMNS,
+                            [team.read_text(encoding="utf-8")]))
+
+
 def gl002_required(root):
     """{type: set(REQUIRED fields)} from the same table, same reader.
 
@@ -342,7 +373,7 @@ def gl002_enums(root):
     habit, so the map is keyed by type first: a hardcoded copy in a checker
     would have to repeat that distinction and would be wrong the day one of
     them changes."""
-    text = (root / GL002).read_text(encoding="utf-8")
+    text = "\n\n".join(_guideline_texts(root))
     out = {}
     cols = None
     for line in text.splitlines():

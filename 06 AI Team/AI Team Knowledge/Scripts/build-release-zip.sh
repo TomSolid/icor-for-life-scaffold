@@ -61,7 +61,13 @@
 #
 # Usage: bash build-release-zip.sh [output-dir]   (default: ~/Desktop)
 #
-# Environment (every one optional; the defaults are the local maintainer setup):
+# Environment (every one optional except MYPKA_TREE; the defaults are the
+# local maintainer setup):
+#   MYPKA_TREE            REQUIRED since the split (plan step 12): a myPKA
+#                         checkout at the pinned tag. zip-staged-tree.sh and
+#                         the red-test suite live there now. The gate runs on a
+#                         mode A merge (the staged tree, this checkout over it);
+#                         the zip holds the staged ICOR tree only.
 #   ICOR_SCAFFOLD_TAG     stage this exact tag of the scaffold instead of
 #                         origin/main. The release workflow sets it to the
 #                         version it just tagged, so what ships is the tagged
@@ -89,6 +95,12 @@ set -euo pipefail
 # The helper scripts this one calls live beside it, in the repo checkout, never
 # in the staged tree: what archives the bytes must not be one of the bytes.
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+MYPKA_TREE="${MYPKA_TREE:-}"
+MYPKA_SCRIPTS="$MYPKA_TREE/06 AI Team/AI Team Knowledge/Scripts"
+if [ -z "$MYPKA_TREE" ] || [ ! -f "$MYPKA_SCRIPTS/zip-staged-tree.sh" ] || [ ! -f "$MYPKA_SCRIPTS/release-gate-red-tests.sh" ]; then
+  echo "RELEASE ABORTED: MYPKA_TREE must name a myPKA checkout at the pinned tag (zip-staged-tree.sh and the red-test gate live there since the split)" >&2
+  exit 1
+fi
 
 MIRRORS="$HOME/.icor-git"
 SCAFFOLD_GIT="${ICOR_SCAFFOLD_GIT:-$MIRRORS/scaffold.git}"
@@ -350,6 +362,9 @@ echo "==> red-test gate (no release while a guard has not been watched go red)"
 PROBE="$WORK/probe"
 mkdir -p "$PROBE"
 cp -a "$STAGE"/. "$PROBE"/
+# Mode A merge: the pinned myPKA checkout over the copy, so the suite and the
+# guards it tests are there. Never over $STAGE.
+( cd "$MYPKA_TREE" && tar -c --exclude=.git . ) | tar -x -C "$PROBE"
 if ! PYTHONDONTWRITEBYTECODE=1 sh "$PROBE/06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh" "$PROBE"; then
   echo "BLOCKED red-tests: the staged tree carries a guard that did not refuse what it must refuse"; fail=1
 fi
@@ -805,7 +820,7 @@ rm -f "$OUT_DIR/$NAME"
 snapshot "03-before-zip"
 echo "==> zipping -> $OUT_DIR/$NAME"
 STAGE_EPOCH="$(git --git-dir "$SCAFFOLD_GIT" log -1 --format=%ct "$scaffold_staged")"
-if ! sh "$SELF_DIR/zip-staged-tree.sh" "$STAGE" "$OUT_DIR/$NAME" "$STAGE_EPOCH"; then
+if ! sh "$MYPKA_SCRIPTS/zip-staged-tree.sh" "$STAGE" "$OUT_DIR/$NAME" "$STAGE_EPOCH"; then
   echo "RELEASE ABORTED: the staged tree could not be archived reproducibly." >&2
   exit 1
 fi

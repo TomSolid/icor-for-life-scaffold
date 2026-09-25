@@ -8,7 +8,7 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      (daily note), YYYYMMDDHHmm.md (quick capture) or
      YYYY-MM-DD_canvas.canvas.
   4. Journal entries sit in YYYY/MM/ and are named YYYY-MM-DD_<slug>.md.
-  5. Session logs and done/cancelled tasks sit in YYYY/MM/.
+  5. (moved) Session logs and task nesting: myPKA validate-team.py.
   6. Every folder inside a room resolves a colour and a glyph from the
      file-tree rules of the INKLINE theme (.obsidian/themes/*/theme.css,
      since 1.4.0; the icor-rooms.css snippet before that), so a new
@@ -19,10 +19,7 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      name, cadence, status, cadence_days/month_day value sets).
   8. Every note in 02 Planner/Routines/ has the planner-routine shape
      (type, routine_type, HH:MM start before end, weekdays, active).
-  9. Every agent contract carries a well-formed, unique myicor_id and the
-     template carries the nil placeholder (GL-1002, Agents: the stable
-     identity), checked by mint-agent-ids.py --check so the rule has one
-     home.
+  9. (moved) Agent folders and their myicor_id: myPKA validate-team.py.
  10. Every `type: note` file in 04 Inner World/Notes/ carries a note_type
      from GL-1002's set (reference, idea, outline, meeting, draft, other)
      and at
@@ -48,6 +45,15 @@ Checks (all deterministic, per GL-1001 and GL-1004):
      never somebody else's leftover work (Tom, 2026-09-18). In any other
      tree a full 03 WiP/ is the room working as designed, so the check
      reports itself SKIPPED and is never counted as passed.
+(15, moved) The root entry contract (AGENTS.md and its adapters): myPKA
+     validate-team.py.
+
+CONTENT ONLY (myPKA split, 10-placement row 3). This script checks what the
+ICOR for Life folder ships and keeps, and it passes on that folder alone.
+Everything the team ships (06 AI Team/Agents, SOPs, Tasks, Session Logs,
+Expansions, AI Sessions, the root entry files) is checked by myPKA's
+validate-team.py, from the team root, in either install mode.
+
 Exit 0 = compliant. Exit 1 = violations listed on stderr.
 
 Usage: validate-scaffold.py [<vault-root>] [--json]
@@ -76,7 +82,6 @@ skipped = []   # {"check", "name", "reason"}: a check that could not run here
 sources = {}   # check -> the file it read
 
 REQUIRED = [
-    "06 AI Team/Expansions",
     "01 Inbox/Outer World/archive",
     "01 Inbox/Scanner Inbox",
     "00 Daily Scratchpad",
@@ -94,17 +99,8 @@ REQUIRED = [
     # rather than dated work directly.
     "03 WiP/Workstreams", "03 WiP/AI Team", "03 WiP/Projects", "03 WiP/Operations",
     "07 Databases",
-    "06 AI Team/AI Team Knowledge/Workstreams",
-    "06 AI Team/AI Team Knowledge/SOPs",
-    "06 AI Team/AI Team Knowledge/Guidelines",
-    "06 AI Team/AI Team Knowledge/Scripts",
-    "06 AI Team/AI Team Knowledge/Tasks/open",
-    "06 AI Team/AI Team Knowledge/Tasks/in-progress",
-    "06 AI Team/AI Team Knowledge/Tasks/done",
-    "06 AI Team/AI Team Knowledge/Tasks/cancelled",
-    "06 AI Team/AI Team Knowledge/Session Logs",
-    "06 AI Team/Agents",
-    "06 AI Team/AI Sessions",
+    # No 06 AI Team/ entry: the team's folders are myPKA's and are checked by
+    # its validate-team.py. The Templates folder this repo ships is check 12.
 ]
 for rel in REQUIRED:
     if not (ROOT / rel).is_dir():
@@ -453,36 +449,9 @@ if templates_dir.is_dir():
                             f".obsidian/types.json declares {p!r} as "
                             f"{got!r}, it must be {want!r}{why}")
 
-agents = ROOT / "06 AI Team/Agents"
-if agents.is_dir():
-    for d in agents.iterdir():
-        if d.is_dir() and not d.name.startswith("."):
-            if not (d / "AGENT.md").is_file():
-                fails.append(f"agent folder missing AGENT.md: {d.name}")
-            if not (d / f"{d.name}.md").is_file():
-                fails.append(f"agent folder missing user-facing bio {d.name}.md: {d.name}")
-    # 9. The stable identity. The rule (shape, uniqueness, the template's
-    #    placeholder) lives in mint-agent-ids.py; this runs it rather than
-    #    restating it, and relays its FAIL lines.
-    import subprocess
-    r = subprocess.run(
-        [sys.executable, str(Path(__file__).resolve().parent / "mint-agent-ids.py"),
-         "--check", "--root", str(ROOT)],
-        capture_output=True, text=True)
-    if r.returncode != 0:
-        relayed = [l[5:] for l in (r.stderr or "").splitlines() if l.startswith("FAIL ")]
-        if not relayed:
-            tail = ((r.stderr or r.stdout).strip().splitlines() or ["no output"])[-1]
-            relayed = [f"mint-agent-ids.py --check failed without a FAIL line: {tail}"]
-        fails.extend(relayed)
-
-for area in ("Session Logs", "Tasks/done", "Tasks/cancelled"):
-    base = ROOT / "06 AI Team/AI Team Knowledge" / area
-    if base.is_dir():
-        for f in base.rglob("*.md"):
-            rel = f.relative_to(base)
-            if len(rel.parts) != 3:
-                fails.append(f"{area} entry not in YYYY/MM/: {rel}")
+# Checks 5 and 9 (session-log and task nesting, agent folders and their
+# myicor_id) moved to myPKA's validate-team.py with the split: they are about
+# the team's tree, which in mode B is not in this folder at all.
 
 # --- 6. no folder inside a room renders unstyled -----------------------
 # Every rule that colours the file tree reduces to predicates on one string,
@@ -718,22 +687,8 @@ else:
                     f"folder renders unstyled in the file tree (no {missing} "
                     f"from {sources['6']}): {rel}")
 
-# --- 15. portable root entry contract and thin adapters -------------------
-canonical = ROOT / "AGENTS.md"
-if not canonical.is_file() or len(canonical.read_text(encoding="utf-8").strip()) < 200:
-    fails.append("missing or empty canonical root AGENTS.md")
-for name in ("CLAUDE.md", "AGENT.md", "ADAPTER-PROMPT.md"):
-    entry = ROOT / name
-    if not entry.is_file():
-        fails.append(f"missing root entry: {name}")
-        continue
-    content = entry.read_text(encoding="utf-8")
-    if "AGENTS.md" not in content:
-        fails.append(f"root entry does not point to AGENTS.md: {name}")
-    if name == "CLAUDE.md" and not re.search(r"^@AGENTS\.md$", content, re.M):
-        fails.append("CLAUDE.md must import @AGENTS.md directly")
-    if name in ("CLAUDE.md", "AGENT.md") and len(content) > 1500:
-        fails.append(f"root adapter duplicates rules instead of a thin pointer: {name}")
+# Check 15 (the root entry contract) moved to myPKA's validate-team.py: the
+# entry files ship with the team, not with this folder.
 
 # --- 16. the shipped 03 WiP buckets are empty except their README ---------
 # 03 WiP/ is the MEMBER's working surface, so the Scaffold hands it over with

@@ -2,9 +2,11 @@
 
 One section per version, newest first. Each section says what was **added**,
 what **changed**, and, most important for anyone updating by hand, what was
-**removed or moved**. A file you still have that this list says is gone is a
-leftover, and the Scaffold Check plugin will point at it and at the line here
-that explains it.
+**removed or moved**. A file you still have that a release after your
+installed version removed is a leftover, and the Scaffold Check plugin will
+point at it and at the line here that explains it. Once you have installed
+the version that removed a file, the plugin no longer lists it. Such a file
+is harmless, and you can delete it by hand.
 
 The rule for writing an entry: every removed or moved file is named in
 backticks on its own line, with where it went. The manifest builder reads
@@ -14,6 +16,46 @@ A section is opened under the version being cut, never under a heading
 called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
+
+## 2.0.0
+
+The split. ICOR for Life 2.0.0 is the content half of the ICOR for Life
+Scaffold 1.34.1 (`f7dd5f0`): the rooms, the entity templates, the concept
+Guidelines, the life scripts and the Obsidian setup. The AI team half
+(contracts, SOPs, Workstreams, team scripts, host files) moved to myPKA
+6.0.0 (github.com/myICOR/myPKA), which runs unpacked into this folder or
+beside it. Every team file that moved is marked `moved_to: mypka` in
+`.icor-for-life/manifest.json`, so an update never deletes it.
+
+- Removed: `CLAUDE.md`, the Claude Code entry file. myPKA's `AGENTS.md` is the one entry file now, and Claude Code reads it directly. A copy you edited stays yours.
+- Removed: `GEMINI.md`, the Gemini CLI entry file. Gemini CLI finds myPKA's `AGENTS.md` through `.gemini/settings.json`. A copy you edited stays yours.
+- Removed: `06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh`, a maintainer script that never belonged in a member folder. It lives in the myPKA repository and does not ship.
+- Added (step 18, Vex P7): every release zip is attested (build provenance).
+  `README.md` shows the `gh attestation verify` command a member runs
+  before unpacking a download.
+- Changed (Vex, Themis): `SECURITY.md` covers only what ICOR for Life
+  ships (the life scripts, the Obsidian setup, the bundled plugins and
+  theme, the release workflow and its attestations) and points to myPKA's
+  `SECURITY-myPKA.md` for the AI team. Reports go through GitHub private
+  vulnerability reporting on this repository.
+- Changed (Themis, Tom): `SECURITY.md` makes no time promise. 1.x named
+  targets for a first reply, an assessment and a fix; "Our timelines"
+  now says we read every report and reply when we can, and keeps only
+  the 90-day window for keeping a finding private.
+- Changed: `README.md` explains ICOR for Life and myPKA (mode A, mode B)
+  and sends AI Team expansion packs to myPKA. The Scripts folder's README
+  lists only the life scripts; the team scripts' reference moved to myPKA.
+  The release workflow gains Gate 1c: no open decision bracket in any
+  tracked file.
+- Changed: the manifest shape. `files` is a map of path to sha256,
+  `repo_only`, `seed`, `previous` and `vendored` are new, and `agents` moved
+  to the myPKA manifest.
+- Added: `06 AI Team/AI Team Knowledge/Scripts/noteio-icor.py`, a pinned copy
+  of myPKA's `noteio.py`.
+- Changed (step 13, Flint, Marshall): the manifest is `schema` 2, lists the
+  example notes in `examples`, marks a removal that myPKA now ships as
+  `moved_to: mypka`, keeps `previous` to paths it still ships, and carries
+  `retired_ids` (GL-1009: never shipped; reserved for the recording package).
 
 ## 1.34.1 (2026-09-22)
 

@@ -24,7 +24,7 @@ What it will not do:
   - it never overwrites an existing note. `ensure` on a note that exists
     says so and changes nothing.
   - it never translates a line ending. A CRLF note stays a CRLF note, byte
-    for byte, which is what noteio.py is for.
+    for byte, which is what noteio-icor.py is for.
 
 Exit 0 = the note is in the state the command asked for (including "it
 already was"). Exit 1 = refused, with the reason and the next action.
@@ -100,13 +100,13 @@ SECRET_SHAPES = (
 )
 
 
-# noteio.py sits beside this script in the public Scaffold and is loaded
+# noteio-icor.py sits beside this script in the public Scaffold and is loaded
 # by path, not by name, so the import needs nothing on sys.path. Where it
 # does NOT (the private vault, whose Scripts/ folder predates it) the
 # identical fallback below runs, the same shape life-snapshot.py uses for
 # check-quality.py's readers. The fixture suite asserts the two agree.
 def _load_noteio():
-    path = HERE / "noteio.py"
+    path = HERE / "noteio-icor.py"
     if not path.is_file():
         return None
     try:

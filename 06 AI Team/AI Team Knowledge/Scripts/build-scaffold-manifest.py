@@ -5,7 +5,40 @@ THIS version of the ICOR for Life Scaffold.
 Usage:
   build-scaffold-manifest.py            -> (re)write .icor-for-life/manifest.json
   build-scaffold-manifest.py --check    -> exit 1 if the manifest on disk is stale
-                                           or a removal has no changelog line
+                                           or a removal has no changelog line,
+                                           or a note has an empty name in it
+  build-scaffold-manifest.py --check --upstream <myPKA checkout>
+                                        -> also: every `vendored` file equals its
+                                           upstream file in that checkout
+
+THE SPLIT (plan step 12, 2026-09-24). This repo is the content half; myPKA
+is the team half, and in mode A both are unpacked into one folder. What
+changed here, and why:
+  - VERSION may carry a pre-release tag (2.0.0-lab); tags, history and the
+    changelog sections sort by semver precedence (2.0.0-lab < 2.0.0).
+  - `files` is a map path -> sha256, the shape the updater (myPKA
+    mypka-update.py) and the disjoint check read. The version folder is
+    hashed too; the manifest's own entry is the literal "self".
+  - `repo_only` holds the tracked files that never reach a member (the zip's
+    RESIDUE_PATHS plus .gitignore, placement row 9), with their hashes.
+  - `seed` lists shipped files that are the member's after the first install
+    (.obsidian/workspace.json, which Obsidian rewrites): the updater adds
+    them when missing and never overwrites them. Formerly EXCLUDE.
+  - `previous` maps a path to the sha256 of every older byte-state it had at
+    an earlier tag: the updater overwrites only bytes a release shipped.
+  - NO `agents` list. The contracts live in myPKA now, and so does the list
+    (build-mypka-manifest.py). Reading 06 AI Team/Agents from here found
+    nothing in a sibling layout and a different product's files in mode A.
+  - step 13 (Flint's step 14 preconditions, Marshall M2): `schema` is 2;
+    `examples` lists the shipped example notes; a `history` removal that the
+    myPKA manifest under --upstream ships is marked `moved_to: "mypka"` (with
+    no --upstream the marks are carried from the manifest on disk) and needs
+    no changelog line; `previous` holds only paths this release ships; tags
+    may carry a leading v.
+  - carried, never computed: name, implements, exposes, tools, vendored,
+    source_commit, retired_ids. They are declared in the manifest by a person (step 3 and
+    step 10) and kept across rebuilds; the tools and vendored paths are
+    validated against `files`, and a vendored file's hash against its pin.
 
 What the manifest is for. A member's vault is a copy of one version of this
 repo with their own content grown on top. The Scaffold Check plugin reads the
@@ -30,35 +63,22 @@ Sources of truth, none of them duplicated here:
   rooms     the REQUIRED list in validate-scaffold.py (read via ast, not copied)
   plugins   .obsidian/community-plugins.json (the icor-for-life-* ids)
   snippets  .obsidian/appearance.json enabledCssSnippets
-  files     `git ls-files`: only tracked files ship, same rule as the zip,
-            minus the RESIDUE_PATHS the zip builder strips (read via regex
-            from build-release-zip.sh, not copied)
+  files     `git ls-files`: every tracked file, shipped ones in `files`,
+            the RESIDUE_PATHS the zip builder strips (read via regex from
+            build-release-zip.sh, not copied) in `repo_only`
   history   `git diff --name-status -M` between consecutive tags
-  notes     .icor-for-life/CHANGELOG.md, matched by exact backticked path
-  agents    06 AI Team/Agents/<Name>/AGENT.md frontmatter, one entry per
-            shipped agent that is not a template, sorted by name:
-              {"name", "myicor_id", "path", "shim"}
-            `name` is the folder name; `myicor_id` is READ from the
-            contract (GL-1002, Agents: the stable identity) and never
-            generated here; `shim` is the tracked .claude/agents/<slug>.md
-            or null. The reader is mint-agent-ids.py's, loaded from this
-            folder, so the UUID rule has one home. A contract without a
-            valid id fails the build by name: Scaffold Check matches a
-            shipped agent by identity, so a manifest missing one agent
-            would teach it that the agent is not shipped. Additive under
-            schema 1; a checker must accept a manifest without `agents`.
+  previous  the blobs of the same paths at every earlier tag
+  notes     .icor-for-life/CHANGELOG.md, the line whose first backticked
+            name is the exact path; never one with an empty name in it
 
 Exit 0 = manifest written (or --check passed). Exit 1 = see stderr.
 """
 import ast, datetime, hashlib, json, re, subprocess, sys
 from pathlib import Path
 
-# This file importlib-loads mint-agent-ids.py out of THIS folder, so stock
-# CPython writes Scripts/__pycache__/mint-agent-ids.cpython-3NN.pyc into the
-# very tree whose tracked files it is about to hash. It is gitignored, so it
-# never reached the manifest or the zip, but it sat in the tree on the release
-# path, where a stray byte is exactly what nobody wants to have to explain.
-# Same switch and same reason as run-red-tests.py (1.24.0 CI).
+# No .pyc into the tree this script hashes. It no longer imports a sibling
+# (the agents reader moved to myPKA with the agents), and the switch stays so
+# the next import cannot reintroduce the 1.24.0 CI defect.
 sys.dont_write_bytecode = True
 
 HERE = Path(__file__).resolve().parent
@@ -67,9 +87,25 @@ META = ROOT / ".icor-for-life"
 MANIFEST = META / "manifest.json"
 VERSION_FILE = META / "VERSION"
 CHANGELOG = META / "CHANGELOG.md"
-SCHEMA = 1
+# schema 2 (Flint step 14, 4.1): `files` is a path map since the split, so
+# the schema says so; a reader branches on `schema` first, shape second.
+SCHEMA = 2
 
 CHECK = "--check" in sys.argv[1:]
+UPSTREAM = None
+_args = sys.argv[1:]
+if "--upstream" in _args:
+    _i = _args.index("--upstream")
+    if _i + 1 >= len(_args):
+        sys.exit("FAIL --upstream needs the path of a myPKA checkout")
+    UPSTREAM = Path(_args[_i + 1]).expanduser().resolve()
+    del _args[_i:_i + 2]
+_unknown = [a for a in _args if a != "--check"]
+if _unknown:
+    sys.exit("FAIL unknown argument(s): %s (usage: [--check] [--upstream <myPKA checkout>])" % " ".join(_unknown))
+CARRIED = ("name", "implements", "exposes", "tools", "vendored", "source_commit", "retired_ids")
+MANIFEST_REL = ".icor-for-life/manifest.json"
+SEMVER = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?"
 
 def die(msg):
     sys.exit("FAIL " + msg)
@@ -84,8 +120,8 @@ def git(*args):
 if not VERSION_FILE.is_file():
     die("%s is missing; write one line, e.g. 1.5.0" % VERSION_FILE.relative_to(ROOT))
 version = VERSION_FILE.read_text(encoding="utf-8").strip()
-if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-    die("VERSION must be MAJOR.MINOR.PATCH, got %r" % version)
+if not re.fullmatch(SEMVER, version):
+    die("VERSION must be MAJOR.MINOR.PATCH with an optional -pre-release tag, got %r" % version)
 
 # -------------------------------------------------------------------- rooms --
 # validate-scaffold.py owns the list of required folders. It runs on import,
@@ -112,14 +148,13 @@ snippets = sorted(appearance.get("enabledCssSnippets") or [])
 theme = appearance.get("cssTheme") or ""
 
 # -------------------------------------------------------------------- files --
-# Not hashed: per-user state, the one file the member is told to edit, and
-# the versioning metadata itself (the version check covers that).
-EXCLUDE = {
-    ".obsidian/workspace.json",
-    ".mcp.json",
-    ".gitignore",
-}
-EXCLUDE_PREFIX = (".icor-for-life/",)
+# Since the split every tracked file is described: shipped ones in `files`,
+# the rest in `repo_only`. Per-user state still ships (the first-open
+# workspace), so it is listed, and marked SEED: the member's after the first
+# install, never overwritten by the updater. .gitignore guards the repo and a
+# mode A folder alike, and is never installed (placement row 9).
+SEED = {".obsidian/workspace.json"}
+REPO_ONLY_ALWAYS = {".gitignore"}
 
 # Files the zip builder's residue gate strips from the download never reach a
 # member, so the manifest must not describe them either: the Scaffold Check
@@ -160,102 +195,49 @@ def is_example(path, data):
     end = head.find("\n---", 3)
     return bool(EXAMPLE_TAG.search(head[:end] if end > 0 else head))
 
-tracked = [p for p in git("ls-files", "-z").split("\0") if p]
-files = []
+tracked = sorted(p for p in git("ls-files", "-z").split("\0") if p)
+files, repo_only, examples = {}, {}, []
 for p in tracked:
-    if p in EXCLUDE or p in RESIDUE or p.startswith(EXCLUDE_PREFIX) or p.endswith("/.gitkeep"):
+    if p == MANIFEST_REL:
+        files[p] = "self"
         continue
     fp = ROOT / p
     if not fp.is_file():
         die("tracked but missing on disk: %s" % p)
     data = fp.read_bytes()
-    files.append({
-        "path": p,
-        "sha256": hashlib.sha256(data).hexdigest(),
-        "kind": kind_of(p),
-        "example": is_example(p, data),
-    })
-files.sort(key=lambda f: f["path"])
+    h = hashlib.sha256(data).hexdigest()
+    (repo_only if (p in RESIDUE or p in REPO_ONLY_ALWAYS) else files)[p] = h
+    if p in files and is_example(p, data):
+        examples.append(p)
+seed = sorted(p for p in SEED if p in files)
+# `examples` (Flint step 14, 4.2): the shipped example notes, the member's to
+# delete. The 1.x list carried a per-file `example` flag; the map has no room.
+examples = sorted(examples)
 
 # -------------------------------------------------------------------- bases --
 IN_FOLDER = re.compile(r'file\.inFolder\("([^"]+)"\)')
 bases = []
-for f in files:
-    if f["kind"] != "base": continue
-    txt = (ROOT / f["path"]).read_text(encoding="utf-8", errors="ignore")
-    bases.append({"path": f["path"], "folders": sorted(set(IN_FOLDER.findall(txt)))})
+for fpath in files:
+    if kind_of(fpath) != "base": continue
+    txt = (ROOT / fpath).read_text(encoding="utf-8", errors="ignore")
+    bases.append({"path": fpath, "folders": sorted(set(IN_FOLDER.findall(txt)))})
 
 # ------------------------------------------------------------------- agents --
-# The shipped agents by identity (GL-1002, Agents: the stable identity). The
-# Scaffold Check plugin matches an agent in a member's vault by myicor_id, so
-# a renamed folder is still the shipped agent and a fresh hire never is. The
-# frontmatter reader is mint-agent-ids.py's own, imported from this folder
-# (the file name has hyphens, hence importlib); the UUID regex, the nil
-# placeholder and the template rule therefore have exactly one home.
-import importlib.util
-
-def load_mint():
-    src = HERE / "mint-agent-ids.py"
-    if not src.is_file():
-        die("%s is missing; the agents list needs its frontmatter reader" % src.relative_to(ROOT))
-    spec = importlib.util.spec_from_file_location("mint_agent_ids", src)
-    mod = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(mod)
-    except Exception as exc:  # noqa: BLE001
-        die("cannot load %s: %s" % (src.relative_to(ROOT), exc))
-    for attr in ("frontmatter", "read_value", "is_template", "UUID4_RE", "NIL"):
-        if not hasattr(mod, attr):
-            die("mint-agent-ids.py no longer defines %s; the manifest's agents reader depends on it" % attr)
-    return mod
-
-mint = load_mint()
-AGENTS_PREFIX = "06 AI Team/Agents/"
-shipped = {f["path"] for f in files}
-
-def shim_of(name):
-    """The tracked Claude Code shim for this agent, or None. Shims are named
-    after the agent in lowercase kebab-case (.claude/agents/penn.md)."""
-    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
-    path = ".claude/agents/%s.md" % slug
-    return path if path in shipped else None
-
-agents = []
-ids_seen = {}
-for p in sorted(shipped):
-    if not (p.startswith(AGENTS_PREFIX) and p.endswith("/AGENT.md")):
-        continue
-    parts = p[len(AGENTS_PREFIX):].split("/")
-    if len(parts) != 2:
-        continue  # only <Name>/AGENT.md is a contract
-    name = parts[0]
-    if mint.is_template(name):
-        continue  # Agent 01 carries the nil placeholder by design
-    fm = mint.frontmatter((ROOT / p).read_text(encoding="utf-8"))
-    if fm is None:
-        die("agent %s: %s has no frontmatter, so it carries no myicor_id" % (name, p))
-    idx, val = mint.read_value(fm[0])
-    if idx is None:
-        die("agent %s: %s lacks myicor_id; run mint-agent-ids.py (GL-1002, Agents: the stable identity)" % (name, p))
-    if val == mint.NIL:
-        die("agent %s: myicor_id is the nil placeholder; a shipped agent needs a real id" % name)
-    if not mint.UUID4_RE.fullmatch(val):
-        die("agent %s: myicor_id %r is not a lowercase UUID v4" % (name, val))
-    if val in ids_seen:
-        die("agent %s: myicor_id %s is already carried by %s; an identity names one agent" % (name, val, ids_seen[val]))
-    ids_seen[val] = name
-    agents.append({"name": name, "myicor_id": val, "path": p, "shim": shim_of(name)})
-agents.sort(key=lambda a: a["name"])
-if not agents:
-    die("no shipped agent contract found under %s; a scaffold with no agents is not one" % AGENTS_PREFIX)
+# None here since the split: the contracts and their list live in myPKA
+# (build-mypka-manifest.py). A checker must accept a manifest without them.
 
 # ------------------------------------------------------------------ history --
 # Machine facts from git: what each tagged version removed, renamed and added
 # relative to the tag before it. HEAD counts as the version in VERSION when it
 # sits past the newest tag, which is the state a manifest is built in.
 def semver_key(t):
-    m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", t)
-    return tuple(int(x) for x in m.groups()) if m else None
+    """semver precedence: 2.0.0-lab < 2.0.0 < 2.0.1. None if not a version."""
+    m = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?", t or "")
+    if not m:
+        return None
+    pre = m.group(4)
+    ids = tuple((0, int(x), "") if x.isdigit() else (1, 0, x) for x in pre.split(".")) if pre else ()
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3)), 0 if pre else 1, ids)
 
 tags = sorted((t for t in git("tag").split() if semver_key(t)), key=semver_key)
 head_tag = git("describe", "--tags", "--exact-match", "HEAD").strip() if git("tag", "--points-at", "HEAD").strip() else ""
@@ -291,7 +273,7 @@ def changelog_sections():
     if not CHANGELOG.is_file(): return out
     cur = None
     for line in CHANGELOG.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^##\s+\[?(\d+\.\d+\.\d+)\]?", line)
+        m = re.match(r"^##\s+\[?(%s)\]?" % SEMVER, line)
         if m:
             cur = m.group(1); out[cur] = []
         elif cur:
@@ -302,15 +284,73 @@ sections = changelog_sections()
 TICKED = re.compile(r"`([^`]+)`")
 
 def note_for(ver, path):
-    """The changelog line that names this exact path, minus the path itself."""
+    """The changelog line whose SUBJECT is this exact path: its first
+    backticked name. A line that names the path only in passing explains
+    another file (the `CLAUDE.md` line mentions myPKA's `AGENTS.md`), so it
+    is not this path's note. A line that opens with the path drops it, since
+    the report shows the path beside the note ("`x` is deleted." gives "is
+    deleted."); a line that names it later keeps it whole, so the note never
+    reads with a hole where the name was ("Removed: , the Claude Code entry
+    file", the 2.0.0 bug Felix found in Scaffold Check)."""
+    tick = "`%s`" % path
     for line in sections.get(ver, "").splitlines():
-        if path in TICKED.findall(line):
-            text = line.strip().lstrip("-* ").strip()
-            text = text.replace("`%s`" % path, "").strip(" :-")
-            return text
+        names = TICKED.findall(line)
+        if not names or names[0] != path:
+            continue
+        text = line.strip().lstrip("-* ").strip()
+        if text.startswith(tick):
+            text = text[len(tick):].strip(" :-")
+        return text
     return ""
 
+# A note is shown to members as it is. One with an empty slot where a name
+# belongs (it opens on punctuation, ": ," or "( )", a run of spaces, an empty
+# pair of backticks) is refused, whoever made the hole: this builder, or a
+# changelog line written "- `x`, removed." (its note would open ", removed.").
+NOTE_HOLE = re.compile(r"^[,;:.)]|[:(]\s*[,;:.)]|\S {2,}\S|``")
+
+def note_hole(note):
+    return bool(note) and NOTE_HOLE.search(note) is not None
+
+# moved_to (Flint step 14, 4.1): a removal that the pinned myPKA manifest
+# ships is a MOVE, not a removal, and says so. With --upstream the builder
+# reads that manifest and decides; without it the marks are carried from the
+# manifest on disk for the same version and path (a build without the myPKA
+# checkout neither adds nor drops one). A moved file needs no changelog line
+# of its own: the move is its explanation.
+try:
+    on_disk = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.is_file() else {}
+except ValueError as exc:
+    die("manifest.json is not valid JSON: %s" % exc)
+UP_FILES = None
+if UPSTREAM is not None and (UPSTREAM / ".mypka/manifest.json").is_file():
+    try:
+        UP_FILES = set(json.loads((UPSTREAM / ".mypka/manifest.json").read_text(encoding="utf-8")).get("files") or {})
+    except ValueError as exc:
+        die("--upstream %s: .mypka/manifest.json is not valid JSON: %s" % (UPSTREAM, exc))
+CARRIED_MOVES = {(h.get("version"), r.get("path")) for h in (on_disk.get("history") or [])
+                 for r in (h.get("removed") or []) if r.get("moved_to") == "mypka"}
+
+def moved(label, path):
+    if UP_FILES is not None:
+        return path in UP_FILES
+    return (label, path) in CARRIED_MOVES
+
+def removal(label, path, sha256, **extra):
+    note = note_for(label, path)
+    mv = moved(label, path)
+    if not note and not mv:
+        unexplained.append((label, path))
+    if note_hole(note):
+        holed.append((label, path, note))
+    entry = {"path": path, "sha256": sha256, "note": note or ("moved to myPKA" if mv else "")}
+    if mv:
+        entry["moved_to"] = "mypka"
+    entry.update(extra)
+    return entry
+
 unexplained = []
+holed = []
 history = []
 prev = None
 for label, rev in points:
@@ -337,9 +377,7 @@ for label, rev in points:
         parts = line.split("\t")
         code = parts[0][0]
         if code == "D":
-            note = note_for(label, parts[1])
-            if not note: unexplained.append((label, parts[1]))
-            removed.append({"path": parts[1], "sha256": blob_sha(prev, parts[1]), "note": note})
+            removed.append(removal(label, parts[1], blob_sha(prev, parts[1])))
             seen_removed.add(parts[1])
         elif code == "R":
             renamed.append({"from": parts[1], "to": parts[2], "from_sha256": blob_sha(prev, parts[1])})
@@ -358,62 +396,129 @@ for label, rev in points:
                                              "%s..%s" % (prev, span_end)).split("\n")))):
         if path in seen_removed or path in present_at_end: continue
         deleting = git("log", "-1", "--format=%H", "--diff-filter=D", "%s..%s" % (prev, span_end), "--", path).strip()
-        note = note_for(label, path)
-        if not note: unexplained.append((label, path))
-        removed.append({"path": path, "sha256": blob_sha(deleting + "^", path) if deleting else "", "note": note,
-                        "transient": True})
+        removed.append(removal(label, path, blob_sha(deleting + "^", path) if deleting else "", transient=True))
     history.append({"version": label, "date": date, "removed": removed, "renamed": renamed, "added": added})
     prev = rev
 history.reverse()  # newest first
 
+# ----------------------------------------------------------------- previous --
+# Every older byte-state a path had at an earlier tag. The updater overwrites
+# a member's file only when its bytes are one a release shipped; without this
+# it knows only the version the member installed, and one skipped release
+# would turn every untouched file into "edited".
+previous = {}
+for tag in (t for t in tags if semver_key(t) < semver_key(version)):
+    entries = []
+    for rec in filter(None, git("ls-tree", "-r", "-z", "--full-tree", tag).split("\0")):
+        info, path = rec.split("\t", 1)
+        _mode, typ, oid = info.split()
+        # Only paths this release still ships (Marshall M2): an older state
+        # of a file ICOR no longer ships is nothing the updater can use.
+        if typ == "blob" and path in files and path != MANIFEST_REL:
+            entries.append((path, oid))
+    if not entries:
+        continue
+    out = subprocess.run(["git", "cat-file", "--batch"], cwd=ROOT, capture_output=True,
+                         input="".join(o + "\n" for _p, o in entries).encode()).stdout
+    pos = 0
+    for path, _oid in entries:
+        nl = out.index(b"\n", pos)
+        size = int(out[pos:nl].split()[2])
+        h = hashlib.sha256(out[nl + 1:nl + 1 + size]).hexdigest()
+        pos = nl + 1 + size + 1
+        if files.get(path) != h:
+            previous.setdefault(path, set()).add(h)
+previous = {k: sorted(v) for k, v in sorted(previous.items())}
+
+# ------------------------------------------------------------------ carried --
+carried = {k: on_disk[k] for k in CARRIED if k in on_disk}
+carry_fails = []
+for tool, tpath in sorted((carried.get("tools") or {}).items()):
+    if tpath not in files:
+        carry_fails.append("tools.%s names %s, which this release does not ship" % (tool, tpath))
+for vpath, pin in sorted((carried.get("vendored") or {}).items()):
+    if vpath not in files:
+        carry_fails.append("vendored %s is not a shipped file" % vpath)
+    elif files[vpath] != pin.get("sha256"):
+        carry_fails.append("vendored %s does not match its pin (a hand edit, or a sync that did not "
+                           "rewrite the pin); edit upstream only" % vpath)
+    if UPSTREAM is not None:
+        up_rel = str(pin.get("upstream", "")).split(":", 1)[-1]
+        up = UPSTREAM / up_rel
+        if not up.is_file():
+            carry_fails.append("vendored %s: upstream %s is not in %s" % (vpath, up_rel, UPSTREAM))
+        elif hashlib.sha256(up.read_bytes()).hexdigest() != pin.get("sha256"):
+            carry_fails.append("vendored %s: upstream %s in %s has moved on from the pin; sync the copy "
+                               "and the pin together" % (vpath, up_rel, UPSTREAM))
+
 manifest = {
     "schema": SCHEMA,
-    "name": "ICOR for Life Scaffold",
+    "name": carried.get("name") or "ICOR for Life Scaffold",
     "version": version,
     "built": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "commit": git("rev-parse", "--short", "HEAD").strip(),
+    "lab": ("lab" in version.split("-", 1)[1]) if "-" in version else False,
+}
+for k in ("source_commit", "implements", "exposes", "tools"):
+    if k in carried:
+        manifest[k] = carried[k]
+manifest.update({
     "theme": theme,
     "rooms": rooms,
     "plugins": plugins,
     "snippets": snippets,
     "files": files,
+    "repo_only": repo_only,
+    "seed": seed,
+    "examples": examples,
     "bases": bases,
-    "agents": agents,
     "history": history,
-}
+    "previous": previous,
+})
+if "vendored" in carried:
+    manifest["vendored"] = carried["vendored"]
+# retired_ids: SOP/WS/GL numbers that were shipped once, or are reserved by
+# code outside these repos, and never come back, declared by a person; check-disjoint.py counts them as used when it
+# enforces "the next free number across both manifests".
+if "retired_ids" in carried:
+    manifest["retired_ids"] = carried["retired_ids"]
+
+def holed_fails():
+    return ["%s removes `%s` and its note has an empty name where a name belongs: %r; write the "
+            "changelog line as \"- Removed: `%s`, what it was.\"" % (v, p, n, p) for v, p, n in holed]
 
 # -------------------------------------------------------------------- check --
 def strip_volatile(m):
     m = dict(m); m.pop("built", None); m.pop("commit", None); return m
 
 if CHECK:
-    fails = []
+    fails = list(carry_fails)
     if not MANIFEST.is_file():
         fails.append("manifest.json does not exist; run build-scaffold-manifest.py")
-    else:
-        try:
-            on_disk = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        except ValueError as exc:
-            fails.append("manifest.json is not valid JSON: %s" % exc); on_disk = {}
-        if on_disk.get("agents") != agents:
-            fails.append("manifest.json is stale: the agents list changed (a folder renamed, a myicor_id changed, "
-                         "an agent added or removed, or a shim moved); run build-scaffold-manifest.py")
-        elif strip_volatile(on_disk) != strip_volatile(manifest):
-            fails.append("manifest.json is stale: the tree changed since it was built; run build-scaffold-manifest.py")
+    elif strip_volatile(on_disk) != strip_volatile(manifest):
+        stale = sorted(k for k in set(on_disk) | set(manifest)
+                       if k not in ("built", "commit") and on_disk.get(k) != manifest.get(k))
+        fails.append("manifest.json is stale in: %s; the tree changed since it was built; "
+                     "run build-scaffold-manifest.py" % ", ".join(stale))
     for ver, path in unexplained:
         fails.append("%s removes `%s` and CHANGELOG.md's %s section has no line naming it" % (ver, path, ver))
-    if version not in sections:
-        fails.append("CHANGELOG.md has no '## %s' section" % version)
+    fails += holed_fails()
+    if not sections.get(version, "").strip():
+        fails.append("CHANGELOG.md has no '## %s' section with content" % version)
     if fails:
         for f in fails: print("FAIL " + f, file=sys.stderr)
         sys.exit(1)
-    print("OK manifest %s is current: %d files, %d bases, %d agents, %d versions of history"
-          % (version, len(files), len(bases), len(agents), len(history)))
+    print("OK manifest %s is current: %d files, %d repo-only, %d seed, %d bases, %d versions of history%s"
+          % (version, len(files), len(repo_only), len(seed), len(bases), len(history),
+             ", vendored pins match %s" % UPSTREAM if UPSTREAM else ""))
     sys.exit(0)
 
+if carry_fails or holed:
+    for f in carry_fails + holed_fails(): print("FAIL " + f, file=sys.stderr)
+    die("nothing written")
 META.mkdir(exist_ok=True)
 MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-print("OK wrote %s: version %s, %d files, %d bases, %d agents, %d versions of history"
-      % (MANIFEST.relative_to(ROOT), version, len(files), len(bases), len(agents), len(history)))
+print("OK wrote %s: version %s, %d files, %d repo-only, %d seed, %d bases, %d versions of history"
+      % (MANIFEST.relative_to(ROOT), version, len(files), len(repo_only), len(seed), len(bases), len(history)))
 for ver, path in unexplained:
     print("WARN %s removes `%s` and CHANGELOG.md does not say why; --check will fail until it does" % (ver, path), file=sys.stderr)

@@ -1,165 +1,67 @@
-# Security Policy
+# ICOR for Life security policy
 
-The ICOR for Life Scaffold is a vault template. It is mostly markdown, and
-markdown does not attack anybody. Three parts of it do run, and those are the
-parts worth your time:
+ICOR for Life is the content half of your folder: the rooms, the entity templates, the concept Guidelines and the Obsidian setup. It is mostly markdown, and markdown doesn't attack anybody. The parts that run are the parts this policy is about: the life scripts, the Obsidian plugins and theme that come in the zip, and the release pipeline that builds that zip.
 
-- **Python scripts** under `06 AI Team/AI Team Knowledge/Scripts/`, which a
-  member runs on their own machine against their own notes.
-- **Generated hook configs**, `.claude/settings.json` and `.codex/hooks.json`,
-  which hand two of those scripts to an AI runtime to execute automatically:
-  one at session start, one before every write.
-- **The expansion-pack installer**, which copies files somebody else wrote
-  into a member's vault.
+The AI team is not part of ICOR for Life. The contracts, the team scripts, the hooks and the write guard they run, the updater, the resolver, `add-mcp-server.py`, the expansion-pack installer and the shipped `.mcp.json` all belong to myPKA, which has its own policy: [SECURITY-myPKA.md](https://github.com/myICOR/myPKA/blob/main/SECURITY-myPKA.md).
 
-Around that sits a suite of twelve first-party Obsidian plugins, each its own
-repository with its own security policy, and a release zip that has to carry
-exactly the tree the commit says it does and nothing else.
+## The key rule: ICOR for Life never ships or needs a secret
 
-The Scaffold itself opens no network connection, holds no key of its own, and
-talks to no server we operate. If you find a way to make any of it do
-something its member did not ask for, we want to hear about it before anyone
-else does.
+- **No release carries a key, token or password.** Nothing in this repository does either. The release workflow uses only the short-lived token GitHub gives each run, and only on the steps that talk to GitHub.
+- **ICOR for Life needs no account and no key to run.** The life scripts open no network connection. They read and write notes in your folder. The only outside program one of them starts is Obsidian, when `open-in-obsidian.py` opens a note for you.
+- **ICOR for Life ships no `.env`, no `.mcp.json` and no hook.** If your folder has them, they came from myPKA or from you.
+- **Plugin settings stay yours.** Some plugins keep a token or a key in their own `data.json` (Planner, Connect, Scaffold Check, Terminal). The zip carries only each plugin's `main.js`, `manifest.json` and `styles.css`, and the theme's `manifest.json` and `theme.css`. A `data.json` is never in a zip, and an update never brings one.
+- **Never paste a key into a report or a chat.** We never ask you to.
 
-## Reporting a vulnerability
-
-**Please do not open a public GitHub issue for a security problem.**
-
-Two channels, in order of preference:
-
-1. **GitHub private security advisory** (preferred). Go to the Security tab of
-   this repository and open a draft advisory. This keeps the report private
-   between you and the maintainer until a fix ships.
-2. **Email** `support@myicor.com` with `SECURITY` and `icor-for-life-scaffold`
-   in the subject line. This is a monitored mailbox. If you want to encrypt the
-   report, say so in a first message and we will arrange a key.
-
-A useful report contains:
-
-- **The version.** It is in `.icor-for-life/VERSION`, one line. Please do not
-  guess it from the download date.
-- **Your operating system, and your Python version** (`python3 --version`).
-  Nearly everything that runs here is Python, and more than one finding in this
-  repository has turned on which interpreter resolved and what was on its path.
-- **The script and the line.** Name the file under `Scripts/` and the line
-  number, not just the behaviour. These scripts are short and readable and the
-  fix usually lives within a few lines of the finding.
-- **Steps to reproduce against a throwaway copy of the vault.** Copy the
-  scaffold to a scratch folder and break that one. Do not reproduce a finding
-  against notes you care about, and do not send us the notes.
-- **Harmless payloads.** A proof of concept that writes a file named after the
-  finding proves everything one that deletes a folder proves, and costs nobody
-  anything. The best report we have received did exactly this: a scratch copy,
-  a payload that announced itself and did nothing else, the offending line
-  quoted, and not one real file touched. Please copy that.
-- **No real credentials.** Never paste an API token, a `.env` line, or the
-  contents of your own `.mcp.json`. Describe the credential instead ("the
-  token my Linear MCP server uses"). If a credential of yours was exposed,
-  rotate it at its provider first, then report.
-
-## What to expect
-
-This project is maintained by one person, so these are timelines we can
-actually keep rather than ones that sound good:
-
-| Stage | Target |
-| --- | --- |
-| We acknowledge your report | within 5 business days |
-| We tell you whether we agree it is a vulnerability, and how severe | within 10 business days |
-| We ship a fix for a confirmed critical or high issue | in the next release |
-| We ask you to hold public disclosure until | a fix ships, or 90 days from your report, whichever comes first |
-
-The Scaffold releases often, so "the next release" is a shorter promise here
-than it sounds. If a deadline is going to slip we will tell you before it
-slips, not after. If you do not hear from us within 10 business days, please
-chase us: assume the message got lost rather than ignored.
+Found a real secret in an ICOR for Life release, in this repository or in its history? That's the most serious report we can get. Send it at once (below).
 
 ## Supported versions
 
-**Only the current minor line is supported.** Fixes land on `main` and ship in
-the next release. There are no backports, and an older zip is never patched in
-place: a download from three versions ago stays exactly as it was.
+| Version | Security fixes |
+| --- | --- |
+| 2.x | Yes. Fixes ship as a new 2.x release. |
+| 1.34.1 and earlier (the Scaffold before the split into ICOR for Life and myPKA) | No. Move to 2.x together with myPKA 6.x: [README-myPKA.md](https://github.com/myICOR/myPKA/blob/main/README-myPKA.md), "Coming from ICOR for Life 1.34 or earlier". |
 
-Updating means downloading the current zip. You do not have to diff it by hand.
-The vault carries its own version in `.icor-for-life/`, and the
-**ICOR for Life - Scaffold Check** plugin reads the published manifest and
-tells you what is missing, what changed upstream since your download, what you
-edited yourself, and which files the Scaffold has since removed that are still
-sitting in your vault. It is read-only. It writes a report; you make the changes.
+A fix always ships as a new version. A published zip is never replaced or patched in place. To get a fix, download the new release and check it (below). The **ICOR for Life - Scaffold Check** plugin then shows what is missing, what changed and which files a version removed. It only reads and reports; you make the changes. Only the newest 2.x release gets fixes, so stay on it.
 
-We are not going to publish a version-support table we would not honour.
+## How to report a problem
 
-## Scope: the parts that run
+**Never in a public issue.** Use GitHub's private vulnerability reporting on this repository:
 
-**The Python scripts** (`06 AI Team/AI Team Knowledge/Scripts/`). Roughly forty
-of them, run by a member or by their AI against their own vault. In scope: any
-script that writes outside the path it was given, follows a symbolic link out
-of the vault, executes a string assembled from note content or from a filename,
-or imports a module out of a folder a member's notes can reach. The scripts run
-under `-I -B` for this reason, and a finding that defeats that isolation is
-exactly what we want to see.
+https://github.com/TomSolid/icor-for-life-scaffold/security/advisories/new
 
-**The generated hook configs** (`.claude/settings.json`, `.codex/hooks.json`).
-These are not documentation. A runtime reads them and executes what they name:
-`session-start.py` when a session opens, and `write-guard.py` before every
-Write, Edit and Bash call. In scope: any path by which the write guard can be
-made to pass a write it should refuse, or to be skipped entirely while the
-session still looks guarded; any way a rendered hook command runs something
-other than the script it names; and the Codex hook's root walk, which climbs
-from the session directory looking for `AGENTS.md` and would be a finding if it
-could be made to find the wrong one.
+Only you and the maintainers see the report until a fix ships. You need a GitHub account. Without one, write to `support@myicor.com` with `SECURITY` and `icor-for-life` in the subject.
 
-**The expansion-pack installer** (`Scripts/expansion-pack.py`). It copies a
-third party's files into a member's vault and runs nothing from the pack, not
-even to unpack it. That is not the same as the installed files being inert, and
-the installer is written on that assumption: schema 1 refuses `Scripts/` as a
-target outright, refuses `__pycache__`, refuses every importable or loadable
-suffix on the final path segment, refuses symbolic links, and refuses any path
-that escapes its root. In scope: any pack that gets a file past those checks,
-lands anything in a folder an interpreter or a loader reads, or writes outside
-the four kinds it is allowed.
+How we handle personal data in reports: https://myicor.com/privacy#github
 
-**The receipt model.** The record of what a pack installed lives in the vault
-at `.icor-for-life/expansions/`, never inside the pack, because a receipt
-written by whoever shipped the pack is a list that party controls. In scope:
-any way a pack influences its own receipt, and any way a forged or edited
-receipt makes `remove` delete a file the pack never installed.
+Not sure whether it's ICOR for Life, myPKA or a plugin? Report it here. We move it to the right place and tell you.
 
-**The release zip.** In scope: the zip carrying anything that is not in the
-commit it claims to be built from, a bundled plugin whose bytes differ from the
-release its own repository published, build tooling or maintainer residue
-reaching a member, or any leftover state in the shipped `.obsidian` folder.
+A useful report has:
 
-## Credentials
+- **The version**, from `.icor-for-life/VERSION`. Please don't guess it from the download date.
+- **Your operating system, your Python version** (`python3 --version`) **and your Obsidian version.** For a plugin or the theme, its version too.
+- **The file and the line.** Name the script under `Scripts/`, or the file under `.obsidian/`, and the line number, not only the behaviour.
+- **Steps to reproduce on a throwaway copy.** Copy the folder to a scratch place and break that one. Never test against notes you care about, and never send us your notes.
+- **A harmless proof.** A payload that writes a file named after the finding proves as much as one that deletes a folder, and costs nobody anything.
+- **No real credentials.** Never paste a token, a line from your `.env` or a plugin's `data.json`. Describe the credential instead ("the token my Connect plugin uses"). If one of your keys was exposed, rotate it with its provider first, then report.
 
-**The Scaffold ships no key, and stores none of its own.** There is no account
-to create, no sign-in, and no myICOR-operated endpoint anywhere in this
-repository. The one entry in the shipped `.mcp.json` is a public HTTP URL with
-no credential attached.
+## What's in scope
 
-A `.env` file in a member's vault is the member's own file. Two exist in
-practice: one beside `AGENTS.md` at the vault root, written by
-`Scripts/add-mcp-server.py`, and one at `06 AI Team/AI Team Knowledge/.env`,
-which is the default env-file backend for the plugins that offer one. Both are
-git-ignored, neither is tracked, and neither is in the zip. A `.env` you find
-in your vault is one you made.
+**The life scripts** under `06 AI Team/AI Team Knowledge/Scripts/`: `life-snapshot.py`, `check-quality.py`, `check-bases.py`, `find-entity.py`, `new-entity.py`, `new-journal-entry.py`, `new-base.py`, `set-property.py`, `planner-week.py`, `link-dates-to-daily-notes.py`, `stamp-processed.py`, `open-in-obsidian.py`, `validate-scaffold.py` and their test suites. Any script that writes outside the path it was given or outside your folder, or follows a symbolic link out of it. Any script that runs a string built from note content or a file name, starts a program other than the one it names, loads code from a folder your notes can reach, or opens a network connection. Any script that puts a secret or a private note into a tracked file, a log line, an error message or your terminal. `noteio-icor.py` is a byte-identical copy of myPKA's `noteio.py`: report it here or there, the fix lands in myPKA and ships back in the next ICOR for Life release.
 
-`add-mcp-server.py` writes locally and only locally. It adds the server entry
-to `.mcp.json` and a **placeholder** line to `.env`, refuses anything
-secret-shaped passed on the command line (a secret belongs in `.env`,
-referenced from `.mcp.json` as `${VAR}`), never overwrites an existing value,
-and never prints a value it has read. In scope: any route by which it, or any
-other script here, writes a real secret into a tracked file, echoes one to a
-terminal, or puts one in a note, a log line or an error message.
+**The shipped Obsidian setup** (`.obsidian/`). Any setting in the zip that turns on something you didn't choose, loads a plugin, theme or snippet that isn't ours, or carries leftover state from our machines (a `data.json`, a token, a workspace).
 
-## Out of scope
+**The bundled plugins and the theme, as shipped.** The twelve plugins and the INKLINE theme are built in their own repositories. In scope here: bytes in the zip that differ from the release that plugin's or theme's repository published, or any file in a plugin or theme folder beyond the ones listed above. A bug in the plugin or theme code itself goes to its repository (below).
 
-These are not vulnerabilities in this repository and we will close them as
-such:
+**The release workflow** (`.github/workflows/release.yml`). Any way to get a release out without every gate passing, to build it from anything but its tag, to replace a published file, to use a myPKA checkout other than the pinned commit, or to reach the workflow's token.
 
-- **The bundled plugins.** Report a plugin vulnerability to that plugin's
-  repository, which is where its code, its maintainer and its own
-  `SECURITY.md` are. All twelve publish one:
+**The attestations and the zip.** A zip or a `manifest.json` that passes the check below without being built by `release.yml` from its tag on a GitHub-hosted runner. A zip that carries anything not in that tag and the bundled plugin and theme releases: build tooling, personal data, a repository-only file or any secret.
+
+## What's out of scope
+
+These aren't vulnerabilities in ICOR for Life, and we close them as such:
+
+- **The AI team: report to myPKA.** The write guard, the hooks, `session-start.py`, the updater, the resolver, `add-mcp-server.py`, `scaffold-init.py`, the expansion-pack installer and the shipped `.mcp.json` are myPKA's. Its policy: [SECURITY-myPKA.md](https://github.com/myICOR/myPKA/blob/main/SECURITY-myPKA.md). Its form: https://github.com/myICOR/myPKA/security/advisories/new.
+- **Plugin and theme code.** Each has its own repository and its own `SECURITY.md`:
   [Planner](https://github.com/myICOR/icor-for-life-planner),
   [Focus](https://github.com/myICOR/icor-for-life-focus),
   [Connect](https://github.com/myICOR/icor-for-life-connect),
@@ -171,49 +73,59 @@ such:
   [Outliner](https://github.com/myICOR/icor-for-life-outliner),
   [PDF Annotation](https://github.com/myICOR/icor-for-life-pdf-annotation),
   [Canvases](https://github.com/myICOR/icor-for-life-canvases),
-  [Scratchpad](https://github.com/myICOR/icor-for-life-scratchpad).
-  What the zip ships from each of them, and whether those bytes match that
-  plugin's own published release, is in scope here.
-- **A member's own notes and a member's own credentials.** What you put in your
-  vault is yours, and so is where you sync it. A token in your `.env`, notes in
-  a cloud folder, or a vault on a shared machine is your setup rather than a
-  flaw in this template. Anything in this repository that moves a credential
-  out of your vault, or into a file you did not choose, is in scope above.
-- **Obsidian itself.** Report those to
-  [Obsidian](https://github.com/obsidianmd/obsidian-releases/issues).
-- **Your AI runtime, and what you asked it to do.** The scaffold hands a
-  runtime two hooks and a set of instructions in `AGENTS.md`. It is not a
-  sandbox, has never claimed to be one, and cannot stop a model you granted
-  file access from doing what you granted it. A model ignoring an instruction
-  in `AGENTS.md` is a quality issue. A model getting past `write-guard.py` is
-  a vulnerability, and that one belongs here.
-- **Python, git, Obsidian or a third-party tool having a vulnerability.**
-  Report those to their maintainers. How this repository invokes them is in
-  scope.
-- **Missing hardening with no demonstrated impact.** "The scripts are not
-  signed", "`.env` is not encrypted at rest", a dependency version with no
-  reachable exploit path, or the output of an automated scanner with no
-  working proof of concept.
-- **Social engineering, physical access, or attacks that require the member to
-  already be running attacker-controlled code.**
+  [Scratchpad](https://github.com/myICOR/icor-for-life-scratchpad),
+  [INKLINE theme](https://github.com/myICOR/icor-for-life-inkline).
+  Whether the zip carries exactly what those repositories published is in scope here.
+- **Obsidian itself.** Report to [Obsidian](https://github.com/obsidianmd/obsidian-releases/issues).
+- **Your AI host and its model.** ICOR for Life is not a sandbox and can't stop a model you gave file access from using it.
+- **Your own notes, keys and setup.** What you put in your folder, a plugin's settings, where you sync it and who uses your computer. Anything in ICOR for Life that moves a key or a note out of your folder, or into a file you didn't choose, is in scope.
+- **The myICOR web app and its MCP endpoint.** That is a hosted service, not code in this repository. Still use the private form above, say it's about the hosted service, and we pass it to the right people.
+- **Problems in Python, git, Obsidian's own code or your operating system.** Report those to their makers. How ICOR for Life calls them is in scope.
+- **Hardening with no shown impact.** "The scripts aren't signed", "`data.json` isn't encrypted", scanner output with no working proof.
+- **Social engineering, physical access, or attacks that need you to already be running the attacker's code.**
+
+## Check that a download is genuine
+
+Every release zip, and the `manifest.json` beside it, carries a build-provenance attestation: a signed record of which workflow built these exact bytes, from which tag. Check it with the GitHub CLI (`gh`) before you unpack the zip. Put your version in place of `<version>`, as one line:
+
+```
+gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo TomSolid/icor-for-life-scaffold --signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
+```
+
+Use the download only if it prints that verification succeeded. The unversioned `icor-for-life-obsidian-edition.zip` is the same bytes and checks with the same command.
+
+This proves who built the zip: our release workflow, from that tag, on a GitHub-hosted runner. It doesn't prove the code is free of bugs. That's what this policy is for.
+
+## Our timelines
+
+ICOR for Life is maintained by a small team. We read every report, and we reply when we can. We can't promise a time to reply or a time to ship a fix, and nothing in this policy is a deadline we owe you.
+
+Please keep your finding private until a fix ships, or until 90 days after your report, whichever comes first. If we need more time, we may ask you. Waiting longer is your choice.
+
+When the fix ships, we publish a GitHub security advisory on this repository and name the fix in `.icor-for-life/CHANGELOG.md`. We credit you by name and link in both, unless you'd rather stay anonymous. If a problem is being used against members before a fix exists, we may publish a warning and a safe workaround earlier, and we tell you first.
+
+There's no bug bounty. We can't pay for reports.
 
 ## Good-faith research
 
-We will not pursue or support legal action against anyone who reports a
-vulnerability to us in good faith, follows this policy, gives us reasonable
-time to fix the issue before disclosure, and does not access, modify or destroy
-data that is not their own.
+If you research ICOR for Life in good faith and follow this policy, Paperless Movement S.L., the company behind ICOR for Life, authorizes that research in advance. For that research we won't file a criminal complaint against you (a denuncia or querella in Spain, a Strafantrag in Germany) and we won't bring a civil claim against you.
 
-Please test against a throwaway copy of the vault and your own machine. This
-repository is a folder of scripts that edit notes, so that is as much for your
-protection as ours.
+That holds when you:
 
-There is no bug bounty. We are a small team and cannot pay for reports. We will
-credit you by name and link in `.icor-for-life/CHANGELOG.md` and in the
-advisory unless you would rather stay anonymous.
+- Test only what "What's in scope" lists, on a copy of ICOR for Life on your own computer, or in your own fork or throwaway repository.
+- Test the release workflows in your own fork. Don't open a pull request meant to run code in our repository.
+- Stop at the first harmless proof. Don't use a finding to reach further, and don't keep any access you gained.
+- Don't access, copy, keep, change or destroy data that isn't yours. If you see someone else's data by accident, stop, delete what you have and tell us in your report.
+- Don't slow down or break anything for anyone else: no denial of service, no load testing, no spam, no social engineering, no physical access.
+- Report only through one of the private channels above, or privately through INCIBE-CERT, Spain's national cybersecurity response team, and keep the finding private for the time set in "Our timelines".
 
-## Credit
+Where it ends:
 
-Thank you for taking the time. A report that arrives privately, against a
-scratch copy, with the line quoted and nothing real broken, is worth a great
-deal more than the effort it costs you to write it.
+- **It doesn't cover the myICOR web app, its MCP endpoint or any other hosted service.** Don't test them. If you notice a problem there in normal use, please tell us through the form. Probing the service is not authorized.
+- **It binds only Paperless Movement S.L.** We can't give up the rights of anyone else, such as GitHub, other users or the makers of tools you connect. We can't bind a prosecutor or a court in any country. In Spain, for example, a prosecutor can act without our complaint when many people are affected.
+- If someone else takes action against you over research that followed this policy, we'll confirm in writing, on request, that we authorized it.
+- If your report shows a vulnerability that is being actively exploited, EU law may require us to notify the EU cybersecurity authorities (ENISA and the national response team). We'll tell you when we do, and we won't share your name without your consent unless the law requires it.
+
+Not sure something is allowed? Ask us through the form before you test.
+
+Thank you. A report that arrives privately, from a scratch copy, with the line quoted and nothing real broken, is worth a great deal.

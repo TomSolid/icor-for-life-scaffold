@@ -1,105 +1,53 @@
 # Scripts
 
-The deterministic half of the AI Team's work. Anything a machine can tell
-you got wrong lives here as code; anything only judgement can answer stays
-as prose in the SOPs, Workstreams and Guidelines
+The deterministic half of the work on your rooms: the life scripts ICOR for
+Life ships. Anything a machine can tell you got wrong lives here as code;
+anything only judgement can answer stays as prose in the Guidelines
 ([[GL-1005-code-vs-instructions|GL-1005]]).
+
+The AI team's own scripts (the hooks and guards, the harness generator, the
+updater, the task, session and hire tools, and the red-test suite) are not
+part of ICOR for Life. They ship with myPKA, and their reference is
+`README-myPKA.md` in this same folder once myPKA is in it (mode A), or in the
+myPKA folder (mode B).
 
 You never need to open this folder. Describe a rule in plain words and the
 AI writes and maintains the script; these pages are the reference for the
 AI, and for anyone who wants to run a check by hand.
 
 Every script prints `OK ...` and exits 0 when it is happy, and `FAIL ...`
-with exit 1 when it is not. Every guard in here is red-tested by
-`run-red-tests.py`: fed something it must reject, and watched to make sure
-it actually says no.
+with exit 1 when it is not. The fixture suites beside them
+(`test-life-snapshot.py`, `test-link-dates-to-daily-notes.py`) feed each one
+what it must reject, and myPKA's `run-red-tests.py` runs on a folder that
+holds both products.
 
 ## The scripts
 
 | Script | What it does | Typical call |
 | --- | --- | --- |
-| `add-mcp-server.py` | Wires an external tool's official MCP server into the scaffold, with the key in `.env` and never in a tracked file | `add-mcp-server.py <name> --command npx --args ...` |
 | `build-release-zip.sh` | Builds the distribution zip, with no personal data, no tokens, and no version that disagrees with the bytes | `build-release-zip.sh` |
 | `build-scaffold-manifest.py` | Builds `.icor-for-life/manifest.json`, the machine-readable description of a release that Scaffold Check compares a vault against | `build-scaffold-manifest.py` |
-| `check-hire.py` | Refuses an incomplete hire: 22 checks over one agent, from the contract frontmatter and the id to the shim, the skills, the guards and the research brief. `--self-test` plants every defect and proves each check can go red | `check-hire.py <Name>`, `check-hire.py --all` |
 | `check-bases.py` | Checks every `.base` file: valid shape, columns that GL-1002 declares, one Base per collection | `check-bases.py` |
-| `check-onboarding.py` | Says whether this vault is FRESH or already lived in, so the first session knows which greeting to give | `check-onboarding.py` |
 | `check-quality.py` | Measures the quality of what is in the vault: links, enums, required and invented fields, orphans, dangling links, the queues that are backing up | `check-quality.py --write` |
-| `checkpoint.py` | The deterministic half of a session checkpoint: what shipped, what is still open, and whether THIS session wrote its completion receipt | `checkpoint.py --write-receipt --output "<log>"`, then `checkpoint.py --assert-logged` |
 | `find-entity.py` | Finds the entity note a name or an alias belongs to, so one thing never gets two notes | `find-entity.py "Alex Rivera"` |
-| `import-file.py` | Copies one external file into the scaffold with the placement rules enforced | `import-file.py <path>` |
-| `import-inventory.py` | Scans an external knowledge source and reports what is in it, as JSON, before anything is imported | `import-inventory.py <folder>` |
 | `life-snapshot.py` | Answers the six everyday life questions from one regenerated file: goals, the projects to focus on, this week's priorities, today's highlight, key elements, the topics with recent attention | `life-snapshot.py --write --brief` |
 | `test-life-snapshot.py` | The fixture suite behind `life-snapshot.py`: one case per rule, and the negative controls (a session log, an mtime and a double-counted scratchpad must all score 0) | `test-life-snapshot.py` |
 | `link-dates-to-daily-notes.py` | Turns a full date written in a note body into `[[YYYY-MM-DD]]`, and creates the daily note it points at, so the backlinks alone make a blank daily note the timeline of that day (GL-1011) | `link-dates-to-daily-notes.py --fix` |
-| `mint-agent-ids.py` | Gives every agent contract its stable `myicor_id`, and checks that none is missing, malformed or shared | `mint-agent-ids.py --check` |
-| `new-agent.py` | The scripted half of a hire: the agent folder, the contract and bio skeletons, the minted id, the first `Journal/` entry, and the index row. Refuses to overwrite a contract. Drops `06 AI Team/Agents/<Name>/.hiring`, the marker that lets the write guard accept writes to that one contract for the next 24 hours; a green `check-hire.py <Name>` deletes it. No `ICOR_UNLOCK_WRITES` on a hire | `new-agent.py <Name> --slug <slug> --role "<Role>"` |
 | `planner-week.py` | Creates and edits this week's Planner note: the weekly priorities checklist and the daily highlight table. It writes; `life-snapshot.py` reads. It never proposes a priority and never picks a highlight | `planner-week.py ensure`, then `planner-week.py add-priority "..."` |
 | `set-property.py` | Sets or removes ONE frontmatter property on ONE note, refusing anything outside the field's closed set or outside GL-1002. The setter behind `focus_rank` | `set-property.py "<note>" focus_rank 1` |
 | `new-base.py` | Stamps a house-shaped `.base` for one entity collection; also the one parser of GL-1002's per-type table that every other script reads | `new-base.py note` |
 | `new-entity.py` | Creates one entity note from its template, in its room, already linked and with its required fields filled | `new-entity.py note "Title" --link "[[Health]]" --set note_type=outline` |
 | `new-journal-entry.py` | Creates a journal entry in `YYYY/MM/` with the right name, and the user's words verbatim under `## Original Text` | `new-journal-entry.py --date ... --slug ... --journal-type thought --original "..."` |
-| `new-progress-report.py` | Creates or re-stamps the `progress-report.md` inside a `03 WiP/` work folder | `new-progress-report.py <wip-folder> --touch` |
-| `new-session-log.py` | Creates a session log skeleton in `Session Logs/YYYY/MM/` | `new-session-log.py --agent larry --slug ...` |
-| `new-task.py` | Creates a task, or moves one through open, in-progress, done and cancelled | `new-task.py new --slug ... --title ... --assignee penn` |
 | `open-in-obsidian.py` | Opens a vault file in Obsidian, in a new tab (the guided tour and the diagram rule use it) | `open-in-obsidian.py "<vault relative path>"` |
-| `release-gate-red-tests.sh` | The release gate: runs the red-test suite against the tree about to ship and blocks the build when any guard did not refuse what it must refuse. Build tooling, stripped from the member download | `release-gate-red-tests.sh <tree>` |
-| `run-red-tests.py` | Feeds every guard in this folder something it must reject and confirms it says no | `run-red-tests.py` |
 | `test-link-dates-to-daily-notes.py` | The fixture suite behind `link-dates-to-daily-notes.py`: one case per rule it claims, every IGNORE case a date it must not touch | `test-link-dates-to-daily-notes.py` |
-| `scaffold-init.py` | Generates the whole harness layer from the scaffold's own frontmatter: skills, agent shims for three hosts, hook configs and host pointer files. `plan` shows, `apply` writes, `check` refuses a drift or a hand-edit, `doctor` reports per host | `scaffold-init.py plan`, then `apply`, `check`, `doctor` |
-| `scaffold-init.py doctor --json` | The same doctor report, also written to `.icor-for-life/scripts/harness.json` (`schema: 1`) for the Scaffold Check plugin, which renders it as the Harness block. Machine-layer data under GL-1008: per device, regenerated, never tracked. `--no-tests` skips the red-test run | `scaffold-init.py doctor --json` |
-| `session-start.py` | The SessionStart hook entry, spawned directly with `-I -B -X utf8` and no shell in the chain. Runs `check-onboarding.py`, `check-quality.py --write` when quality.json is stale, and `expansion-pack.py list`, prints the results as session context, and records which session this is for `checkpoint.py` | `session-start.py` |
-| `skill-doctor.py` | Checks every `SKILL.md`: the name, the description and its trigger, one pointer at a real SOP, the generated header, host-only frontmatter, dashes, command clashes, and the total description budget | `skill-doctor.py --all` |
 | `stamp-processed.py` | Stamps a scratchpad, a capture or a document wrapper note as processed, and moves the original where it belongs | `stamp-processed.py <note> --summary "..." --into "[[x]]"` |
-| `write-guard.py` | The PreToolUse guard on the file-writing tools: refuses a write to a Daily Scratchpad, to the root entry contracts or to a specialist contract, and refuses any write carrying a secret-shaped value. Exit 2 blocks; a fresh `.hiring` marker next to a contract lets that one contract through during its hire, and `ICOR_UNLOCK_WRITES=1` lifts the guard for one call on an approved edit of an existing contract | (the hook runs it) |
 | `validate-scaffold.py` | Validates the structure: the rooms, the names, the date nesting, the file-tree styling, the templates and the property types | `validate-scaffold.py` |
+| `noteio-icor.py` | A byte-identical copy of myPKA's `noteio.py`, pinned by sha256 in the manifest's `vendored` list: the life scripts read and write a note through it without rewriting a byte they never meant to touch. A fix lands in myPKA and comes back in the next release | (the life scripts import it) |
 
 Two checks, two questions, on purpose: `validate-scaffold.py` answers "is
 this a scaffold", `check-quality.py` answers "is what is in it any good".
 A structure failure stops a release; a quality finding is a conversation
 with you ([[SOP-1014-check-and-repair-what-was-filed-by-hand|SOP-1014]]).
-
-## The guards, and what they do not prove
-
-Three of the scripts above are not run by a person at all: a host's hook
-runs them, before a write or at the start of a session. Which rules exist,
-which script answers each one, and how each host's config is rendered from
-that, all live in ONE file: `hooks-rules.json`, next to these scripts. The
-Claude Code rendering is `.claude/settings.json`, hand-rendered for now and
-explained in `.claude/settings.README.md`. Change the table, never the
-rendered config.
-
-Every guard here obeys the same four rules:
-
-1. **It fails open.** An error inside it, or a run past its wall-clock
-   budget, prints one line and lets the work through. An unknown must never
-   render as clean, and a guard that stalls a turn gets switched off.
-2. **It has an unlock, and the unlock is red-tested.**
-   `ICOR_UNLOCK_WRITES=1`, set for one command. A guard with no way through
-   is deleted the first time it blocks real work, and then it protects
-   nothing.
-3. **It says what it does not prove**, in its own docstring and in
-   `hooks-rules.json`. A `PreToolUse` guard sees tool calls. A shell
-   redirect, a script, or an editor outside the session reaches the same
-   files untouched. **No hook here is an enforcement boundary and no
-   document may call one that.**
-4. **It is in `run-red-tests.py`** with a case it must refuse and a clean
-   control it must let through. A guard that refuses everything proves as
-   little as one that refuses nothing.
-
-## The completion receipt
-
-`checkpoint.py --write-receipt` writes
-`.icor-for-life/scripts/receipts/<session-id>.json` (`schema: 1`), in the
-machine layer ([[GL-1008-the-machine-layer|GL-1008]]): the workflow it
-closes, the session, when it started and finished, the inputs and outputs
-with their sha256, which version of the script wrote it, and anything
-knowingly left open. `--assert-logged` reads THAT, so a session log written
-in the morning can no longer close an afternoon session that wrote nothing.
-The session id comes from `.icor-for-life/scripts/session.json`, written by
-`session-start.py`. Where there is no session start hook there is no id, and
-the assert says so rather than guessing; `--assert-logged-today` is the old
-date-only check, kept under its true name and weaker by design.
 
 ## GL-1002 is parsed once
 
@@ -310,11 +258,3 @@ copied out of `VERSION` verbatim.
 
 Thresholds are judgement, not doctrine: they live in one dict at the top
 of `life-snapshot.py`, one comment per line, and are yours to move.
-
-## Optional AI Team packs
-
-`expansion-pack.py list|inspect|install|remove` manages additive pack files.
-See [[GL-1012-ai-team-expansions]] for the manifest and
-[[WS-1006-install-an-ai-team-expansion]] for the LLM-guided procedure.
-`test-expansion-pack.py` exercises ownership, conflict and path boundaries
-in temporary vaults.

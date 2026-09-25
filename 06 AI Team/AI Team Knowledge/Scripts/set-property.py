@@ -16,7 +16,7 @@ Why this exists. `focus_rank` on a project is a DECISION, stored as data.
 deterministically, and a model editing YAML by hand is the wrong tool for
 a deterministic job: it reflows quotes, it normalises line endings, it
 reorders keys, and none of that is visible in the diff a member reads.
-This does the one thing, reads and writes through noteio.py so the file's
+This does the one thing, reads and writes through noteio-icor.py so the file's
 line endings survive byte for byte, and refuses anything it cannot prove
 is legal.
 
@@ -52,14 +52,14 @@ sys.dont_write_bytecode = True
 
 HERE = Path(__file__).resolve().parent
 
-# noteio.py sits beside this script in the public Scaffold and is loaded
+# noteio-icor.py sits beside this script in the public Scaffold and is loaded
 # by path, not by name, so the import needs nothing on sys.path. Where it
 # does NOT sit beside this script (the private vault, whose Scripts/
 # folder predates it) the identical fallback below runs, the same shape
 # life-snapshot.py uses for check-quality.py's readers. One reader, two
 # homes, never two behaviours: the fixture suite asserts they agree.
 def _load_noteio():
-    path = HERE / "noteio.py"
+    path = HERE / "noteio-icor.py"
     if not path.is_file():
         return None
     try:
