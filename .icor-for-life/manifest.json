@@ -2,8 +2,8 @@
   "schema": 2,
   "name": "ICOR for Life Scaffold",
   "version": "2.0.0",
-  "built": "2026-09-25T09:49:26Z",
-  "commit": "e3b4baa",
+  "built": "2026-09-25T13:19:34Z",
+  "commit": "9e9d1bb",
   "lab": false,
   "source_commit": "f7dd5f0",
   "implements": "icor-concepts/1",
@@ -169,7 +169,7 @@
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1011-date-mentions-link-to-daily-notes.md": "13ff3e4d8d6cfd164ad2b9b1115880e8c7daec271694b9e234e01801d44146cd",
     "06 AI Team/AI Team Knowledge/Scripts/LICENSE": "77a6575ec003398ce17d644b60058039b4747e0ae1e2988c0e282775412110b9",
     "06 AI Team/AI Team Knowledge/Scripts/README.md": "108633ed45ee9d13ff92e2d61ed3008fa3044ad630c672465007916e4a9601c1",
-    "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py": "06183c87f72b9403113dd8ecbd3d3b175f1208092a02f448b0161c7d9f84b119",
+    "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py": "681ddebc5fbaa53411905f2eb71129e20f4d8fac364925ce82f71111bc6e3cd2",
     "06 AI Team/AI Team Knowledge/Scripts/check-bases.py": "bd3571dcb8fe219285afb10d7f22e4a4528a313756a8d0d58edd2560c2ce7fda",
     "06 AI Team/AI Team Knowledge/Scripts/check-quality.py": "8a3175f9b2f88e89fb7e3712adf1a493968103f440d39ed23e87b46ba02c9dc0",
     "06 AI Team/AI Team Knowledge/Scripts/find-entity.py": "a5525cc83234b85e1aaaf323ccdaa4b4747a2c1e9c59a99b0613e82fcfc99ebc",
@@ -209,7 +209,7 @@
   "repo_only": {
     ".github/workflows/release.yml": "68453e4ef216605522bdbf5c01241eae328c41b3ea4e4d63e215b378118a9e99",
     ".gitignore": "64bcab4ad2794445d9445ea1245ffa29adc6b390a2f9def29b9328532c1c76bf",
-    "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "ad9923dbbfa9d82f4e4aae4912804e8dcc52ecafaad5082977cfa0e4d8d90e3b"
+    "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "cbdf51c12aaaaa9648fce6804452f9c57e485de14fe14badb47460d48d69bd3d"
   },
   "seed": [
     ".obsidian/workspace.json"

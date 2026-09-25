@@ -433,6 +433,14 @@ previous = {k: sorted(v) for k, v in sorted(previous.items())}
 # ------------------------------------------------------------------ carried --
 carried = {k: on_disk[k] for k in CARRIED if k in on_disk}
 carry_fails = []
+# A RESIDUE_PATHS entry that is not tracked is stale: the zip builder's
+# residue gate refuses it at release time ("expected to remove ... and it
+# is not there"), after the tag exists. Refused here too, so Gate 1 sees it
+# before any tag (2.0.0: release-gate-red-tests.sh moved to myPKA, the entry
+# stayed). Same rule as build-mypka-manifest.py.
+for p in sorted(RESIDUE - set(tracked)):
+    carry_fails.append("RESIDUE_PATHS names %s, which is not tracked (a stale entry hides nothing, "
+                       "and the zip builder's residue gate refuses it after the tag)" % p)
 for tool, tpath in sorted((carried.get("tools") or {}).items()):
     if tpath not in files:
         carry_fails.append("tools.%s names %s, which this release does not ship" % (tool, tpath))

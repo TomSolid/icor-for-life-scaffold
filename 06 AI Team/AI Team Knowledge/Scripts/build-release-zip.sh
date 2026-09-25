@@ -420,11 +420,10 @@ echo "==> residue gate (our build tooling out of the member download)"
 # quoted path per line.
 declare -a RESIDUE_PATHS=(
   "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh"
-  # The red-test gate is the same kind of thing: it exists so a release
-  # cannot be cut on an unproven tree, and a member cutting no release has
-  # no use for it. run-red-tests.py itself DOES ship, because a member who
-  # writes a guard should be able to watch it go red.
-  "06 AI Team/AI Team Knowledge/Scripts/release-gate-red-tests.sh"
+  # The red-test gate (release-gate-red-tests.sh) is no longer listed: since
+  # 2.0.0 it lives in myPKA (repo-only there) and this build calls it from
+  # MYPKA_TREE, so this repository does not track it. A listed path that is
+  # not tracked blocks the build below and fails build-scaffold-manifest.py.
   # The release workflow is the same kind of thing one level up: it is how
   # this script runs on every push, it names the same internals, and a
   # workflow file inside a member's vault would do nothing but confuse.
