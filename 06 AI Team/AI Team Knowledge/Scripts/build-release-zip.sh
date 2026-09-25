@@ -104,7 +104,7 @@ fi
 
 MIRRORS="$HOME/.icor-git"
 SCAFFOLD_GIT="${ICOR_SCAFFOLD_GIT:-$MIRRORS/scaffold.git}"
-SCAFFOLD_REMOTE="${ICOR_SCAFFOLD_REMOTE:-https://github.com/TomSolid/icor-for-life-scaffold.git}"
+SCAFFOLD_REMOTE="${ICOR_SCAFFOLD_REMOTE:-https://github.com/myICOR/icor-for-life-scaffold.git}"
 SCAFFOLD_TAG="${ICOR_SCAFFOLD_TAG:-}"
 OUT_DIR="${1:-$HOME/Desktop}"
 STAMP="$(date +%Y-%m-%d)"

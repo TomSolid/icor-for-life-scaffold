@@ -56,8 +56,8 @@
 # same bytes got as far as its attestation. The member command (also in the
 # README and in myPKA's mypka-update.py usage text):
 #   gh attestation verify icor-for-life-obsidian-edition-<version>.zip \
-#     --repo TomSolid/icor-for-life-scaffold \
-#     --signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml \
+#     --repo myICOR/icor-for-life-scaffold \
+#     --signer-workflow myICOR/icor-for-life-scaffold/.github/workflows/release.yml \
 #     --source-ref refs/tags/<version> --deny-self-hosted-runners
 name: release
 

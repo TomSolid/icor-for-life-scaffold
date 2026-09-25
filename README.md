@@ -175,12 +175,17 @@ unpack a download, check it with the GitHub CLI (`gh`). Put the version you
 downloaded in place of `<version>`, as one line:
 
 ```
-gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo TomSolid/icor-for-life-scaffold --signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
+gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo myICOR/icor-for-life-scaffold --signer-workflow myICOR/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
 ```
 
 Use the download only if it prints that verification succeeded. The
 unversioned `icor-for-life-obsidian-edition.zip` is the same bytes and checks
 with the same command.
+
+Releases up to and including 2.0.0 were built before the repository moved
+from `TomSolid` to `myICOR`, so their record carries the old name. Check them
+with `--owner TomSolid` in place of `--repo ...` and
+`--signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml`.
 
 ## Extending it
 

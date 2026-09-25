@@ -27,7 +27,7 @@ A fix always ships as a new version. A published zip is never replaced or patche
 
 **Never in a public issue.** Use GitHub's private vulnerability reporting on this repository:
 
-https://github.com/TomSolid/icor-for-life-scaffold/security/advisories/new
+https://github.com/myICOR/icor-for-life-scaffold/security/advisories/new
 
 Only you and the maintainers see the report until a fix ships. You need a GitHub account. Without one, write to `support@myicor.com` with `SECURITY` and `icor-for-life` in the subject.
 
@@ -89,10 +89,12 @@ These aren't vulnerabilities in ICOR for Life, and we close them as such:
 Every release zip, and the `manifest.json` beside it, carries a build-provenance attestation: a signed record of which workflow built these exact bytes, from which tag. Check it with the GitHub CLI (`gh`) before you unpack the zip. Put your version in place of `<version>`, as one line:
 
 ```
-gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo TomSolid/icor-for-life-scaffold --signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
+gh attestation verify icor-for-life-obsidian-edition-<version>.zip --repo myICOR/icor-for-life-scaffold --signer-workflow myICOR/icor-for-life-scaffold/.github/workflows/release.yml --source-ref refs/tags/<version> --deny-self-hosted-runners
 ```
 
 Use the download only if it prints that verification succeeded. The unversioned `icor-for-life-obsidian-edition.zip` is the same bytes and checks with the same command.
+
+Releases up to and including 2.0.0 were built before the repository moved from `TomSolid` to `myICOR`, so their record carries the old name. Check them with `--owner TomSolid` in place of `--repo ...` and `--signer-workflow TomSolid/icor-for-life-scaffold/.github/workflows/release.yml`.
 
 This proves who built the zip: our release workflow, from that tag, on a GitHub-hosted runner. It doesn't prove the code is free of bugs. That's what this policy is for.
 
