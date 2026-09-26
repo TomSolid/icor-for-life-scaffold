@@ -207,7 +207,7 @@
     "THIRD-PARTY-NOTICES.md": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575"
   },
   "repo_only": {
-    ".github/workflows/release.yml": "db939ab856a773b3ea41c31613ab25df5a02f3b8dd44be297a9ed9efbed5352b",
+    ".github/workflows/release.yml": "9e5f6e5b752d3e728fe5e016a6776cef98693bdece0072023dd991a1eb332bed",
     ".gitignore": "64bcab4ad2794445d9445ea1245ffa29adc6b390a2f9def29b9328532c1c76bf",
     "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "687e3fd9cd2ae82d7422a71c0a689f683a506f5815bf91a45b47269e0284225c"
   },
