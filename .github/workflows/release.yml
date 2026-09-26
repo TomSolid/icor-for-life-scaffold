@@ -85,7 +85,7 @@ env:
   SCRIPTS: 06 AI Team/AI Team Knowledge/Scripts
   MYPKA_REPO: myICOR/myPKA
   MYPKA_PIN: 'v6.0.1'
-  MYPKA_PIN_SHA: 'df4e7116a7dd14af721cfd346bad38233073a7ca'
+  MYPKA_PIN_SHA: '0000000000000000000000000000000000000000'  # set at step 18, with the pin
 
 defaults:
   run:

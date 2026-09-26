@@ -17,6 +17,28 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 2.0.1
+
+The first release from the scaffold's new home,
+`github.com/myICOR/icor-for-life-scaffold` (moved from `TomSolid` on
+2026-09-26; GitHub redirects the old address). Nothing is removed or moved.
+
+- Changed: `README.md` "First steps" step 2 no longer describes the AI team
+  as part of this download. The team, `AGENTS.md` and the team scripts come
+  with myPKA (github.com/myICOR/myPKA); the step says where to put it and
+  keeps the path for working without AI. On Windows, the Terminal pane's
+  "Open in external terminal" button is named. Step 1 now lists Scratchpad,
+  and "Extending it" says Larry, Nolan and Mason come with myPKA.
+- Changed: `README.md` and `SECURITY.md` verify downloads with
+  `--repo myICOR/icor-for-life-scaffold`; releases up to 2.0.0 verify with
+  `--owner TomSolid`. The zip builder and the release workflow read the
+  scaffold from `myICOR/icor-for-life-scaffold`.
+- Changed: the bundled ICOR for Life - Scaffold Check plugin is 0.7.1. It
+  reads the manifest from the new home, moves a saved old default URL to
+  the new one, and its release assets carry build-provenance attestations.
+- Security: this release's zip and manifest are attested under
+  `myICOR/icor-for-life-scaffold`.
+
 ## 2.0.0
 
 The split. ICOR for Life 2.0.0 is the content half of the ICOR for Life

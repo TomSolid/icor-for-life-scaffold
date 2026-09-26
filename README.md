@@ -70,40 +70,32 @@ cannot hold.
    and enable plugins" so the bundled plugins activate: the ICOR for
    Life suite, every one of them our own plugin (Planner, Focus,
    Connect, AI Chat, Interface, Scaffold Check, SQLite Viewer,
-   Terminal, Outliner, PDF Annotation, Canvases; see `LICENSE.md`). Then run Settings ->
+   Terminal, Outliner, PDF Annotation, Canvases, Scratchpad; see
+   `LICENSE.md`). Then run Settings ->
    Community plugins -> Check for updates to get their latest
    versions. It opens in the ICOR for Life - INKLINE theme, which
    draws the rooms with icons and colors (the 00-06 prefixes only
    exist for sort order) and the banner above the folder tree.
-2. Open a terminal here and start your AI. The shell inside the app is
-   the **ICOR for Life - Terminal** plugin: run "Run Claude Code here"
-   from the command palette, or "New terminal" for a plain shell in the
-   vault folder. Use the AI runtime of your choice with file access. The
-   one entry file is `AGENTS.md`: Claude Code (2.1.277 or later), Codex
-   and Cursor read it as is, Gemini CLI through `.gemini/settings.json`,
-   and root `AGENT.md` is a compatibility pointer. If your runtime does
-   not discover the entry automatically, paste `ADAPTER-PROMPT.md` into
-   it. The AI reads the existing contract and initializes as Larry;
-   no generated `/init` file needs to overwrite your instructions.
-   The host harness (`.claude/`, `.codex/`, `.gemini/`) is generated from
-   the vault's own files: your AI prints the command, you run it, and
-   `apply` writes it. The command names your Python, and the name
-   differs by system:
-   macOS and Linux
-   `python3 "06 AI Team/AI Team Knowledge/Scripts/scaffold-init.py" plan`,
-   Windows
-   `py -3 "06 AI Team\AI Team Knowledge\Scripts\scaffold-init.py" plan`.
-   On Windows, never type `python3`: it opens the Microsoft Store instead
-   of running anything. Use `py -3`, or `python` if the launcher is not
-   installed. It never rewrites your instructions,
-   and nothing starts on its own.
-   Isolated subagents and integrations depend on the runtime's tools;
-   initialization reports any capability gaps. The scripts in this vault
-   need Python 3.9 or newer and nothing else: no install step, no
-   packages. The integrated terminal needs Python 3 on macOS (from
-   the Xcode Command Line Tools, `xcode-select --install`, or Homebrew)
-   and on Linux; on Windows the pane offers one button that opens your
-   own terminal (Windows Terminal by default) in the same folder.
+2. Open a terminal here. The shell inside the app is the
+   **ICOR for Life - Terminal** plugin: run "New terminal" from the
+   command palette for a plain shell in the vault folder, or "Run
+   Claude Code here" to open a Claude Code session in the same place.
+   The pane runs on macOS and Linux and needs Python 3 there (from the
+   Xcode Command Line Tools, `xcode-select --install`, or Homebrew).
+   Windows has no terminal pane in this version: the pane shows one
+   button, "Open in external terminal", that opens your own terminal
+   (Windows Terminal by default) in the vault folder.
+   This folder brings no AI team of its own. Larry and the
+   specialists, `AGENTS.md` and the team scripts come with **myPKA**,
+   a separate download: https://github.com/myICOR/myPKA. Put it inside
+   this folder (mode A) or beside it (mode B), as "ICOR for Life and
+   myPKA" above explains. Then open the folder that holds `AGENTS.md`
+   in Claude Code, Codex, Gemini CLI or Cursor and say hello to Larry.
+   myPKA's own README has every step.
+   No AI yet? This vault works fully without one. Its scripts need
+   Python 3.9 or newer and nothing else: no install step, no packages
+   (on Windows, type `py -3` where a command says `python3`). The
+   steps below show every move by hand.
 3. Write into today's Daily Scratchpad, then tell Larry:
    "process my scratchpad". No AI at hand? Carry the pieces into
    their homes yourself and tick `processed` on the scratchpad (step 4
@@ -192,11 +184,11 @@ with `--owner TomSolid` in place of `--repo ...` and
 The rooms are the core. Add your own collections (quotes, recipes,
 anything) as Topics or your own folders. AI Team expansion packs come
 with myPKA (see "ICOR for Life and myPKA" above). When you need a
-specialist the team does not have, ask Larry: Nolan hires them from the
-`Agent 01` template.
+specialist the team does not have, ask Larry (with myPKA): Nolan hires
+them from the `Agent 01` template.
 
 Found a bug in one of the plugins, or want one to do something new?
-Ask Larry for Mason. He makes the fix in that plugin's repository on
+With myPKA, ask Larry for Mason. He makes the fix in that plugin's repository on
 GitHub, explains it in plain words, and opens the pull request for you,
 so the fix reaches every member with the next release instead of
 staying on your machine.

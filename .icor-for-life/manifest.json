@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "name": "ICOR for Life Scaffold",
-  "version": "2.0.0",
-  "built": "2026-09-25T13:19:34Z",
-  "commit": "9e9d1bb",
+  "version": "2.0.1",
+  "built": "2026-09-26T01:03:53Z",
+  "commit": "d8c4929",
   "lab": false,
   "source_commit": "f7dd5f0",
   "implements": "icor-concepts/1",
@@ -84,9 +84,9 @@
   ],
   "snippets": [],
   "files": {
-    ".icor-for-life/CHANGELOG.md": "10c85af9ec4bb77338ccb9b60ba3f2969ebf65ce76791475c80972ca334ca9aa",
+    ".icor-for-life/CHANGELOG.md": "3f67fd699b47c2786e17980ef9752f498696f913314d05690f1861e94f9eefd9",
     ".icor-for-life/README.md": "c0ba4d491917950a639f365fe02ab9b26221c231fd0c4f18668e8d02856a32a4",
-    ".icor-for-life/VERSION": "c28fcca53637bc88e124af1725df13cb98c69dedefd62fb3cdbe1cdb6b760624",
+    ".icor-for-life/VERSION": "fe840f52fb5578d3f77eb497115eb02c6036601c3a53e60df7995c7276baa77a",
     ".icor-for-life/manifest.json": "self",
     ".obsidian/app.json": "4ba774add05d021eedf038c4f9cbf97e9de3bc646ec210d4e6974af0115d5470",
     ".obsidian/appearance.json": "a3cf5c14b0eb792c0fb669694e42d8e95c92f9a4a48243a4a16b10195aea608d",
@@ -202,14 +202,14 @@
     "06 AI Team/AI Team Knowledge/Workstreams/WS-1002-weekly-review.md": "57eb24c224ba0444b3c0acfe23999fc8efd41a5b389a29835447cfe7c20ce86e",
     "07 Databases/README.md": "7db2c398bc5fb511f27c3e86aad289c7681cd03d7545b5062ed1a1e502a2c1d5",
     "LICENSE.md": "bedc7c21261b89609773406afb7b5a595100e03e905fe52186d7a5ab011f654e",
-    "README.md": "aad10d1b9107d9eef3432447fc97b5a71e3451adc40114c45b25b6a521848629",
-    "SECURITY.md": "de7e4433e0994124570c7184114cbb4ae2ce514f27e6103902d19cab4609f4cb",
+    "README.md": "3a40a3567608fbf7c7c392a23a0bc1bdd5bd2e9144d35e33d6dcee990f0ec9b8",
+    "SECURITY.md": "3ac7f0f7e3adc66877c787351e3b8b88c8706f8e8424c4dfba80c8b39ee5d951",
     "THIRD-PARTY-NOTICES.md": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575"
   },
   "repo_only": {
-    ".github/workflows/release.yml": "4b9f763ad1b547e453b1fdb0d5fe7c61f773ddf45a1fdb0c8a2aa7fe997f71e5",
+    ".github/workflows/release.yml": "db939ab856a773b3ea41c31613ab25df5a02f3b8dd44be297a9ed9efbed5352b",
     ".gitignore": "64bcab4ad2794445d9445ea1245ffa29adc6b390a2f9def29b9328532c1c76bf",
-    "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "cbdf51c12aaaaa9648fce6804452f9c57e485de14fe14badb47460d48d69bd3d"
+    "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "687e3fd9cd2ae82d7422a71c0a689f683a506f5815bf91a45b47269e0284225c"
   },
   "seed": [
     ".obsidian/workspace.json"
@@ -286,6 +286,13 @@
     }
   ],
   "history": [
+    {
+      "version": "2.0.1",
+      "date": "2026-09-26",
+      "removed": [],
+      "renamed": [],
+      "added": []
+    },
     {
       "version": "2.0.0",
       "date": "2026-09-25",
@@ -2111,6 +2118,7 @@
       "0074c90d6b1765a80bffd6282cbab78b9058ff98540ca1e22913b847c6d3ae92",
       "02fd06bbf03130971a55bff5849fada50d1ab691d48b1a57196aeca405efbaa4",
       "040dbc00e93402bcc94285feab4b6753ddabed91be9511fd3b8a2b2a680d30b6",
+      "10c85af9ec4bb77338ccb9b60ba3f2969ebf65ce76791475c80972ca334ca9aa",
       "1ab7bc8edc45979d398a384aa85b4c6bed9f348fd3559a128a6d4631e229d8af",
       "1ba09329f1d1c5dabd204231437354af2905a87162df9026f09e27175e55516a",
       "27c81887c56f1586871b1c67fc6a6d17a458dca9b853524bd3171bd967e20ace",
@@ -2199,6 +2207,7 @@
       "b60eb1aee608b0e18ce0ee958536003246bf2618862ab401797f7e001a1b5604",
       "bb0df1bd902faba507c15975eb9973e695f2732f760d851b4f9c7ba17068f5ff",
       "bb7320d831e7a151aa901c35e7326c752fa2ef5024f30768c42319b8bed171ed",
+      "c28fcca53637bc88e124af1725df13cb98c69dedefd62fb3cdbe1cdb6b760624",
       "c4155251503c696a652c544a074652df9aeb85a650c1eebca99ee20a27dd85e8",
       "c55c898de5079ee498d5f051b29815688154292df4d72ab91f1edb5497ac4e6e",
       "c92df6bdde330be219d62f48ec6490b01889436f2f59027aab200e74de619168",
@@ -2543,6 +2552,7 @@
       "8c7c1a82a789bde8dbd3869311bcf704bd502ec942cade036a30dc249d516915",
       "8cf416fb4224ec1c1e49b4e0dde252b5e6b43ec7251830953bcd25f20e12bb30",
       "9377447087ec0ef87ec21cc6c79644b58c30ddd1148f8c4c7095edaefa8c288f",
+      "aad10d1b9107d9eef3432447fc97b5a71e3451adc40114c45b25b6a521848629",
       "ab224008999ed0f93455ce627379b58a73956850c3abdad15bcc73498ac6eac1",
       "adcc42b0f6a501a86411ab94aabacef4d09a205eea3aab7e51285841d4e52c60",
       "c189600594ab95ecc54abc6117c250e9246dc04ec1950a70816b9a699a37df97",
@@ -2551,7 +2561,8 @@
       "fb98debaaee4ca70996e4a305b223ed1b38c53e6d78af98a6cf19b1b0bea275e"
     ],
     "SECURITY.md": [
-      "b740e29095a963a268def592a95234991358eec67df427382205ba8319e1f728"
+      "b740e29095a963a268def592a95234991358eec67df427382205ba8319e1f728",
+      "de7e4433e0994124570c7184114cbb4ae2ce514f27e6103902d19cab4609f4cb"
     ],
     "THIRD-PARTY-NOTICES.md": [
       "4449fac3d2c0b08718664c9e12afe6a7f3280bb75d7c3a70596ed5814695f081",
