@@ -17,7 +17,8 @@ AI, and for anyone who wants to run a check by hand.
 
 Every script prints `OK ...` and exits 0 when it is happy, and `FAIL ...`
 with exit 1 when it is not. The fixture suites beside them
-(`test-life-snapshot.py`, `test-link-dates-to-daily-notes.py`) feed each one
+(`test-life-snapshot.py`, `test-link-dates-to-daily-notes.py`,
+`test-build-scaffold-manifest.py`) feed each one
 what it must reject, and myPKA's `run-red-tests.py` runs on a folder that
 holds both products.
 
@@ -27,6 +28,7 @@ holds both products.
 | --- | --- | --- |
 | `build-release-zip.sh` | Builds the distribution zip, with no personal data, no tokens, and no version that disagrees with the bytes | `build-release-zip.sh` |
 | `build-scaffold-manifest.py` | Builds `.icor-for-life/manifest.json`, the machine-readable description of a release that Scaffold Check compares a vault against | `build-scaffold-manifest.py` |
+| `test-build-scaffold-manifest.py` | The fixture suite behind the manifest's `previous_removed` map: every older state of a removed file is listed, nothing for a file that never changed, moved to myPKA or still ships | `test-build-scaffold-manifest.py` |
 | `check-bases.py` | Checks every `.base` file: valid shape, columns that GL-1002 declares, one Base per collection | `check-bases.py` |
 | `check-quality.py` | Measures the quality of what is in the vault: links, enums, required and invented fields, orphans, dangling links, the queues that are backing up | `check-quality.py --write` |
 | `find-entity.py` | Finds the entity note a name or an alias belongs to, so one thing never gets two notes | `find-entity.py "Alex Rivera"` |

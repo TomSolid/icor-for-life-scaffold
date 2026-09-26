@@ -26,6 +26,15 @@ changed here, and why:
     them when missing and never overwrites them. Formerly EXCLUDE.
   - `previous` maps a path to the sha256 of every older byte-state it had at
     an earlier tag: the updater overwrites only bytes a release shipped.
+  - `previous_removed` (idea: Brian Carroll, @brijcarroll) is the same for
+    the paths this release no longer ships: a path that `history` removes or
+    renames away (not a move to myPKA) maps to the sha256 of every byte-state
+    it had at an earlier tag that no `history` entry for it already names.
+    `history` keeps only the last shipped hash, so without this an untouched
+    copy of an older version reads as the member's own file. Only paths
+    with such an extra hash are listed. A reader takes the union of this
+    list and the path's `history` hashes; one that does not know the key
+    ignores it and keeps its old answer.
   - NO `agents` list. The contracts live in myPKA now, and so does the list
     (build-mypka-manifest.py). Reading 06 AI Team/Agents from here found
     nothing in a sibling layout and a different product's files in mode A.
@@ -68,6 +77,8 @@ Sources of truth, none of them duplicated here:
             build-release-zip.sh, not copied) in `repo_only`
   history   `git diff --name-status -M` between consecutive tags
   previous  the blobs of the same paths at every earlier tag
+  previous_removed  the blobs of the removed and renamed-away paths at
+            every earlier tag, less the hashes `history` already holds
   notes     .icor-for-life/CHANGELOG.md, the line whose first backticked
             name is the exact path; never one with an empty name in it
 
@@ -430,6 +441,48 @@ for tag in (t for t in tags if semver_key(t) < semver_key(version)):
             previous.setdefault(path, set()).add(h)
 previous = {k: sorted(v) for k, v in sorted(previous.items())}
 
+# --------------------------------------------------------- previous_removed --
+# `previous` for the paths this release no longer ships (idea: Brian Carroll).
+# A removal in `history` carries one hash, the bytes at the version before
+# it; a member who never updated that file holds an OLDER state, which then
+# matched nothing and was reported as their own work. Judged paths: removed
+# without moving to myPKA (a move is judged by myPKA's manifest, whose
+# `previous` holds the 1.x states), or renamed away. Kept small: a hash any
+# `history` entry for the path already names is left out, and so is a path
+# with nothing left. Tags only, the same evidence as `previous`.
+named_in_history, judged = {}, set()
+for h in history:
+    for r in h["removed"]:
+        named_in_history.setdefault(r["path"], set()).add(r["sha256"])
+        if not r.get("moved_to"):
+            judged.add(r["path"])
+    for r in h["renamed"]:
+        named_in_history.setdefault(r["from"], set()).add(r["from_sha256"])
+        judged.add(r["from"])
+judged = {p for p in judged if p not in files and p not in repo_only and p != MANIFEST_REL}
+previous_removed, blob_hash = {}, {}
+for tag in (t for t in tags if semver_key(t) < semver_key(version)):
+    wanted = []
+    for rec in filter(None, git("ls-tree", "-r", "-z", "--full-tree", tag).split("\0")):
+        info, path = rec.split("\t", 1)
+        _mode, typ, oid = info.split()
+        if typ == "blob" and path in judged:
+            wanted.append((path, oid))
+    fresh = sorted({oid for _p, oid in wanted if oid not in blob_hash})
+    if fresh:
+        out = subprocess.run(["git", "cat-file", "--batch"], cwd=ROOT, capture_output=True,
+                             input="".join(o + "\n" for o in fresh).encode()).stdout
+        pos = 0
+        for oid in fresh:
+            nl = out.index(b"\n", pos)
+            size = int(out[pos:nl].split()[2])
+            blob_hash[oid] = hashlib.sha256(out[nl + 1:nl + 1 + size]).hexdigest()
+            pos = nl + 1 + size + 1
+    for path, oid in wanted:
+        if blob_hash[oid] not in named_in_history[path]:
+            previous_removed.setdefault(path, set()).add(blob_hash[oid])
+previous_removed = {k: sorted(v) for k, v in sorted(previous_removed.items())}
+
 # ------------------------------------------------------------------ carried --
 carried = {k: on_disk[k] for k in CARRIED if k in on_disk}
 carry_fails = []
@@ -482,6 +535,7 @@ manifest.update({
     "bases": bases,
     "history": history,
     "previous": previous,
+    "previous_removed": previous_removed,
 })
 if "vendored" in carried:
     manifest["vendored"] = carried["vendored"]
