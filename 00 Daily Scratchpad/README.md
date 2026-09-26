@@ -33,9 +33,10 @@ From [Note-Taking like a Pro](https://app.myicor.com/courses/digital-note-taking
 
 ## Quick captures
 
-The new-note button (and Cmd+N) drops every new note here automatically,
-named with a full timestamp like `2026-08-28-143005.md`. Write your thought
-and move on: quick captures are processed exactly like daily scratchpads
+The new-note button (and Cmd+Alt+N) drops every new note into this
+month's folder, named with the minute like `2026/08/202608281430.md` (a
+second one in the same minute gets a number after a space). Write your
+thought and move on: quick captures are processed exactly like daily scratchpads
 ([[SOP-1001-process-the-daily-scratchpad|SOP-1001]]) - stamped, extracted,
 never deleted. Rename freely if you want; the timestamp is only a
 no-friction default.

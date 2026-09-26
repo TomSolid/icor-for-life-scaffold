@@ -117,8 +117,9 @@ for p in ROOT.rglob("*"):
 # correctly the glob matched zero files and the check passed by finding
 # nothing. It rglobs now, and the nesting is part of what it asserts.
 #
-# A collision suffix is Obsidian's own " 2" (space, number) on a same-minute
-# capture; " - Title" is the member naming a capture after the fact, which
+# A collision suffix is a space and a number on a same-minute capture:
+# Obsidian's own Unique note starts at " 1", the Scratchpad and AI Chat
+# plugins at " 2"; " - Title" is the member naming a capture after the fact, which
 # GL-1004 allows because the timestamp stays at the front and keeps the
 # folder chronological.
 SCRATCHPAD_SHAPES = (

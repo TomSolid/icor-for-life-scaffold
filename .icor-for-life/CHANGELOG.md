@@ -17,6 +17,44 @@ called `Unreleased`: the manifest builder matches removal lines by version
 section, so a removal under any other heading is a removal it cannot
 explain.
 
+## 2.1.0
+
+A quick capture made with Cmd+Alt+N lands in this month's folder, the
+manifest remembers every older state of a removed file, and five bundled
+plugins are newer. Nothing is removed or moved. Pairs with myPKA 6.0.3.
+
+- Changed: `.obsidian/zk-prefixer.json` (Obsidian's Unique note setting,
+  behind Cmd+Alt+N, Ctrl+Alt+N on Windows, and the myICOR Connect new-note
+  button) writes `YYYY/MM/YYYYMMDDHHmm.md` in `00 Daily Scratchpad/`. It
+  wrote `YYYY-MM-DD-HHmmss.md` at the room root, which the Scaffold's own
+  check fails. Obsidian creates the year and month folders. A second note in
+  the same minute gets a space and a number. Your existing captures keep
+  their names and stay valid; nothing is renamed.
+- If you use Obsidian Sync: "Core plugin settings" is a per-device Sync
+  setting. On a device where it is off, the new-note key keeps the old
+  name at the room root. Take the new `.obsidian/zk-prefixer.json`, or set
+  Settings > Unique note creator > format to `YYYY/MM/YYYYMMDDHHmm`, on each
+  such device.
+- Changed: `06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md`
+  and `00 Daily Scratchpad/README.md` name the capture `YYYYMMDDHHmm` in
+  today's `YYYY/MM/` and the key Cmd+Alt+N (Cmd+N is Obsidian's plain new
+  file). GL-1007 says the command "Add unique note link" is not part of
+  capture.
+- Added: `.icor-for-life/manifest.json` gains `previous_removed`: for each
+  file a release removed, every older state it had, so Scaffold Check can
+  tell an untouched old copy from one you edited. Built by
+  `06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py`, tested
+  by the new `06 AI Team/AI Team Knowledge/Scripts/test-build-scaffold-manifest.py`.
+  Idea: Brian Carroll (@brijcarroll). Readers that do not know the key
+  ignore it.
+- Changed: `06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py`: a
+  comment names Obsidian's first collision suffix as ` 1`. No behaviour
+  change; ` 1` and ` 2` were both accepted already.
+- Changed: bundled plugins. ICOR for Life - Planner 0.16.2, Scaffold Check
+  0.8.1, Connect 0.16.1, AI Chat 0.16.2, SQLite Viewer 0.6.1. The other
+  seven plugins and INKLINE are unchanged. Each plugin's release notes say
+  what changed and name the community members who contributed.
+
 ## 2.0.1
 
 The first release from the scaffold's new home,

@@ -1,9 +1,9 @@
 {
   "schema": 2,
   "name": "ICOR for Life Scaffold",
-  "version": "2.0.1",
-  "built": "2026-09-26T01:03:53Z",
-  "commit": "d8c4929",
+  "version": "2.1.0",
+  "built": "2026-09-26T16:39:52Z",
+  "commit": "9bbd775",
   "lab": false,
   "source_commit": "f7dd5f0",
   "implements": "icor-concepts/1",
@@ -84,9 +84,9 @@
   ],
   "snippets": [],
   "files": {
-    ".icor-for-life/CHANGELOG.md": "3f67fd699b47c2786e17980ef9752f498696f913314d05690f1861e94f9eefd9",
+    ".icor-for-life/CHANGELOG.md": "8cf85f8349f6ec666cf077e1caf3c376736491fd38a1717b763c8f4628635c2b",
     ".icor-for-life/README.md": "c0ba4d491917950a639f365fe02ab9b26221c231fd0c4f18668e8d02856a32a4",
-    ".icor-for-life/VERSION": "fe840f52fb5578d3f77eb497115eb02c6036601c3a53e60df7995c7276baa77a",
+    ".icor-for-life/VERSION": "c89b87c262e9d5ffd20e73aac74a1772adcc9f5a21682cc33adcf5086e5fef5c",
     ".icor-for-life/manifest.json": "self",
     ".obsidian/app.json": "4ba774add05d021eedf038c4f9cbf97e9de3bc646ec210d4e6974af0115d5470",
     ".obsidian/appearance.json": "a3cf5c14b0eb792c0fb669694e42d8e95c92f9a4a48243a4a16b10195aea608d",
@@ -105,8 +105,8 @@
     ".obsidian/types.json": "54bae287b9df7dd0496b800ff22a68f36d85fab3a37b2a4bb640501d44072557",
     ".obsidian/webviewer.json": "26e457f53a584f007c6c647043857e94b10589d121f3ed67842d44a0009aaa37",
     ".obsidian/workspace.json": "db7d4041c91467ee58b884eb43c0d744422c195ecbb0c42b034d2c881dc4e445",
-    ".obsidian/zk-prefixer.json": "91f3d16eea7a4a0cddcb995df0454457d8b0810d012002259d5ef0556daabf0f",
-    "00 Daily Scratchpad/README.md": "f0b2d3c55f9692a0a91b4c9c98144f8f985b3ab09d89636b3d5d48ee5ef32b42",
+    ".obsidian/zk-prefixer.json": "a12c06963b4046c8f980185a0ad0d075ef411ba5699f5f8f3a9d485f8df66264",
+    "00 Daily Scratchpad/README.md": "c3261b9ff572ee5b894edbf2d32e21aa5b1a301876074ab67aad5af366a4384d",
     "01 Inbox/Outer World/README.md": "ee6ad7a12a8218d53b5ecc43faecd60aa1eeb3edafbfb044c346177fdbaec420",
     "01 Inbox/Outer World/archive/2026-08-27-obsidian-video-clip.md": "d3a47ffc5cff1be4ce3c47796d3215da9487c822ae25d9b21d1f44c317b1a198",
     "01 Inbox/README.md": "a34accb1a39df892f1619d99649b519bc63c5e1adf1c51cd85da1b7bb8d10fac",
@@ -164,12 +164,12 @@
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1002-frontmatter-conventions.md": "61267844f935dc7002a02aa69bb656a076b107ede98cde3e41e861abda7fe994",
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1003-journal-entry-anatomy.md": "aca196784683c710d550e606f6df84c31140604dc5fcc55b78adc9bc14f6d109",
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1006-bases-and-live-views.md": "11397283273b8e5b88bcc65583d09e20cd88ca6279a2db826afc614974eb0296",
-    "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md": "d201a1aec7b65512c263bd447f0c73ebdd802a50bcd8e7e9a350b4e776929e1a",
+    "06 AI Team/AI Team Knowledge/Guidelines/GL-1007-capture-and-where-things-go.md": "aca462b702dfc5014219fd493e8083fb08021ef19b9d145a5946cef8c98cf843",
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1010-the-five-capture-workflows.md": "37e627b4ffeef3795ae3bc6122cc4cfecc6e6318cdff787b66aa7b125d58c413",
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1011-date-mentions-link-to-daily-notes.md": "13ff3e4d8d6cfd164ad2b9b1115880e8c7daec271694b9e234e01801d44146cd",
     "06 AI Team/AI Team Knowledge/Scripts/LICENSE": "77a6575ec003398ce17d644b60058039b4747e0ae1e2988c0e282775412110b9",
-    "06 AI Team/AI Team Knowledge/Scripts/README.md": "108633ed45ee9d13ff92e2d61ed3008fa3044ad630c672465007916e4a9601c1",
-    "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py": "681ddebc5fbaa53411905f2eb71129e20f4d8fac364925ce82f71111bc6e3cd2",
+    "06 AI Team/AI Team Knowledge/Scripts/README.md": "d02be2b03fbe4fa06d71a95c289d44d3648289583f9751ab8a524caa4a601fdc",
+    "06 AI Team/AI Team Knowledge/Scripts/build-scaffold-manifest.py": "ffcea163df25430fabcd9fd0ab3a19119b38dc7a15511ce166c04913111c5257",
     "06 AI Team/AI Team Knowledge/Scripts/check-bases.py": "bd3571dcb8fe219285afb10d7f22e4a4528a313756a8d0d58edd2560c2ce7fda",
     "06 AI Team/AI Team Knowledge/Scripts/check-quality.py": "8a3175f9b2f88e89fb7e3712adf1a493968103f440d39ed23e87b46ba02c9dc0",
     "06 AI Team/AI Team Knowledge/Scripts/find-entity.py": "a5525cc83234b85e1aaaf323ccdaa4b4747a2c1e9c59a99b0613e82fcfc99ebc",
@@ -183,9 +183,10 @@
     "06 AI Team/AI Team Knowledge/Scripts/planner-week.py": "2f844a2418fdd0ec9c94eb2d47791f8eea22a85e5946d691738988e4e2ffeb9b",
     "06 AI Team/AI Team Knowledge/Scripts/set-property.py": "d6f70105c652b63ec1648a7f344ff399f14d146cc1906827e646a8df38350d4b",
     "06 AI Team/AI Team Knowledge/Scripts/stamp-processed.py": "f800fc82f9dcfe5e87c924fe164d5ffcc2bcdf3bdfc3f7f163b481a0399bb456",
+    "06 AI Team/AI Team Knowledge/Scripts/test-build-scaffold-manifest.py": "bcba4b90c47d803677fc11720de36e7915dd75ab87f4fb5c384706112b053cb8",
     "06 AI Team/AI Team Knowledge/Scripts/test-life-snapshot.py": "af5cc5a8e0fa4b3ba4f9233c0eb047de7f847fc844c7884c2f4be20177ae4f18",
     "06 AI Team/AI Team Knowledge/Scripts/test-link-dates-to-daily-notes.py": "69dd2e31f3b4aba6bb0b7368a4cd88b8432b5b962e22f6547c282f5f1018cbb4",
-    "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py": "4822fe044b1b9cb90338338c9f1b969875dbf2b0f7436b6717fd76dd49e83bc6",
+    "06 AI Team/AI Team Knowledge/Scripts/validate-scaffold.py": "cd6a064d047391c9e4715c23d0e97dd131887773f7b8b1532b42f379069c8161",
     "06 AI Team/AI Team Knowledge/Templates/company.md": "19b9f579b8ac664b586e86d393fdfd93a7bdeacd3ed8a250548c243aa961e0b6",
     "06 AI Team/AI Team Knowledge/Templates/document.md": "81fca36e566a4369dc6b2fee8221a3ce9c4ee3eea050d01956ad2056929b4701",
     "06 AI Team/AI Team Knowledge/Templates/goal.md": "6b834e923925170d75bdfddde66e607ddef169c6166c7a6cb499bac6665c7873",
@@ -207,7 +208,7 @@
     "THIRD-PARTY-NOTICES.md": "ab06d2d6e97344768af779185fd7b7e31fc4657d334484edf9ba4d0613da6575"
   },
   "repo_only": {
-    ".github/workflows/release.yml": "9e5f6e5b752d3e728fe5e016a6776cef98693bdece0072023dd991a1eb332bed",
+    ".github/workflows/release.yml": "db939ab856a773b3ea41c31613ab25df5a02f3b8dd44be297a9ed9efbed5352b",
     ".gitignore": "64bcab4ad2794445d9445ea1245ffa29adc6b390a2f9def29b9328532c1c76bf",
     "06 AI Team/AI Team Knowledge/Scripts/build-release-zip.sh": "687e3fd9cd2ae82d7422a71c0a689f683a506f5815bf91a45b47269e0284225c"
   },
@@ -286,6 +287,15 @@
     }
   ],
   "history": [
+    {
+      "version": "2.1.0",
+      "date": "2026-09-26",
+      "removed": [],
+      "renamed": [],
+      "added": [
+        "06 AI Team/AI Team Knowledge/Scripts/test-build-scaffold-manifest.py"
+      ]
+    },
     {
       "version": "2.0.1",
       "date": "2026-09-26",
@@ -2128,6 +2138,7 @@
       "34acdf7923b3da7e8f34e5a3de2cc14d98076ab6779b02d4d565d8c9f9bd791c",
       "3506b7e81ba4f34a4937b1fa1c11c4935898d4890f2871e0ef0f6048170cb566",
       "3ed7d1b7eacd679564a91792441b41fe862b234ebf6bb0c48dbc0ac5386c46f6",
+      "3f67fd699b47c2786e17980ef9752f498696f913314d05690f1861e94f9eefd9",
       "40e315b55cdc641845f59716e64979a9add3e9b105401688d68dd406c53037c2",
       "448ad85d81c6d4319dd35cbf4b08048454ab5addab6ddc9133590415497153df",
       "4498ecd15635bfeb3b1bcafdb75f7b28d4831ed9ee6c49bfc28641df47f8f8ea",
@@ -2217,7 +2228,8 @@
       "d5b1f46669d1cff3be556b1656732c8777ad8ad3f3d05459cfb11dadb1f17d19",
       "e6b7255e251fae180891178dc54e93117e0e522c67cd10145600f71c36216ee9",
       "f24986f850ee6e66a4c7fdbe8ea5f72f94bee5434a3bcd1892799e3bc46f3d12",
-      "fb5d06054a807b4dfb034f1f4574148a59fe45cdbc0d0587f729b26e9b32a16f"
+      "fb5d06054a807b4dfb034f1f4574148a59fe45cdbc0d0587f729b26e9b32a16f",
+      "fe840f52fb5578d3f77eb497115eb02c6036601c3a53e60df7995c7276baa77a"
     ],
     ".obsidian/appearance.json": [
       "8ad1e237c32c2de67d49303a3f7553ec77e2e4d93fbdb84fc9672fac414817f9",
@@ -2260,12 +2272,16 @@
     ".obsidian/workspace.json": [
       "1288d4d639d57a45860ce6209b23a08d7cbf0acb6feab559d5fb93de397bf33c"
     ],
+    ".obsidian/zk-prefixer.json": [
+      "91f3d16eea7a4a0cddcb995df0454457d8b0810d012002259d5ef0556daabf0f"
+    ],
     "00 Daily Scratchpad/README.md": [
       "05167c3ba05f433b357149cae3b31489e31032a2fa32c5f5a566b464b4cb97f3",
       "1f9bf679ffa85cb1fb62a95076ffff26254ca27a8096a5265cd817cf418b38c3",
       "323201e8747340d9bb21aa86b1e9d240c47822658577c9466bd927011e6b3991",
       "d26d87a51496a6b3b8b68577a969495f24abb7c3b2e6091f16d6a95018e2e126",
       "e55db7a357b1b0d164346fd2990e7649bde72167254c6598873955a3aeb67e64",
+      "f0b2d3c55f9692a0a91b4c9c98144f8f985b3ab09d89636b3d5d48ee5ef32b42",
       "f34b7b365826dee73218c9c9543f890c8801e2aa5ee19b951f06e73a7642ed37"
     ],
     "01 Inbox/Outer World/README.md": [
@@ -2380,12 +2396,14 @@
       "6e3b7b72ce4f5b4d4a38a6aba57982f279d968efcea3ca6fc19dcefd00d107f4",
       "847b9fbe73c61e03d73ee07811160c185e3f12e9d7259b282ad408dcc399c6f6",
       "8e89d764994bf0523128aee7d4c31b27ec75929078c3b9931eba7fc65f4a77da",
-      "9e748743ac3cfbc8aa945b1c6ddbf922910b46b72c548a3d40bd0018662a69c1"
+      "9e748743ac3cfbc8aa945b1c6ddbf922910b46b72c548a3d40bd0018662a69c1",
+      "d201a1aec7b65512c263bd447f0c73ebdd802a50bcd8e7e9a350b4e776929e1a"
     ],
     "06 AI Team/AI Team Knowledge/Guidelines/GL-1010-the-five-capture-workflows.md": [
       "14f3c13f39f115c431f37a685ff6314b762de5825cb417a51e1ffbc2b2c658fe"
     ],
     "06 AI Team/AI Team Knowledge/Scripts/README.md": [
+      "108633ed45ee9d13ff92e2d61ed3008fa3044ad630c672465007916e4a9601c1",
       "1dd99b3b0ce497fabd7f70a6d91e052fcac00afc2be44680f32e8b22035891af",
       "5f02819386470185912f7818650dbc10ff3451038e00e71a5ce5bc35de4ab693",
       "65980442adb622fdbc0aedf457de39c860f369bfa9d88769a572f7c85a6b90ff",
@@ -2399,6 +2417,7 @@
       "08d22f96267cf39a57f976c04464f5770ed540307fa998c4af5c7c318dc00aca",
       "1c60622b05f2450e911cd6fe79962c832270007d82e398baf724f61305478e82",
       "436d9ac51b69e2dbe17cc0633da14555fbeb72173153058f3682d4f84c7bac39",
+      "681ddebc5fbaa53411905f2eb71129e20f4d8fac364925ce82f71111bc6e3cd2",
       "818e8ff794f023d265c84c590d8171bf0e94a9248efa7fc27c59bd0e3ca87564",
       "c394470e057a997d6ca461f5a0f6b06c6ca2d5ce311e1bbc7c9bd8f68851750a",
       "f8e6b5ba8b77ccd6dcd5579f5de9e6e4d565b1d3c5193b080624ca868cf4c0ad"
@@ -2496,6 +2515,7 @@
       "3eb07319abd3961db0bff24bc119f30589fa32cae374fca24063de85dad35e91",
       "44c4542530173f96aa0c819c9b4bcf77cf636bcfe63ee449bb8051168a0a2ae2",
       "46cbb07237f0a870dfeb6ead7c86b383cb6c829035ca1b0a27e002998b7b88bf",
+      "4822fe044b1b9cb90338338c9f1b969875dbf2b0f7436b6717fd76dd49e83bc6",
       "66a68eeda029af81b8c907453a00ee27db5b63b8d95f66175ad3fbb8c33c25a9",
       "696d7aec991202b791f01d7f1bc26d01126d6d71fdc0b22067d8084c70ee63a6",
       "6b211e0e44b8e753f0a0afbdb24f8e779c4dbdb9022120ea1b4b1c06c7aa8331",
@@ -2570,6 +2590,65 @@
       "c8ded3d9e3dcb0148bbc634c4b85b079fe39f19dbe3ed1eccb9ac958d68d95aa",
       "dc263ce28bab20f746a508df60db1731c627603c407aa3546ac0a2a2219fd550",
       "f261113197f623ad2773c3b92563af85bbfbedacb9489e55c4cd71c9d156fd79"
+    ]
+  },
+  "previous_removed": {
+    ".claude/commands/checkpoint.md": [
+      "36cdf9c1a63ddc05a2b977c2feaae40c5547d20dbbd881199cdb11d4ca4a518f"
+    ],
+    ".obsidian/plugins/terminal/data.json": [
+      "bef316d71112fdddeec0d4b20806eba9e4b0de3243cb96943fa3cb948304a3ee"
+    ],
+    ".obsidian/snippets/icor-logo.css": [
+      "4b14e85bbdbbbe207cd722ea4c62334a53661ae2bf79210aa479bdf716c50883"
+    ],
+    ".obsidian/snippets/icor-ribbon.css": [
+      "4a96a461121329dbf0b8a05c1f57158f9966f78a27486109a68f4472e6b2f42f"
+    ],
+    ".obsidian/snippets/icor-rooms.css": [
+      "8770efcf1bb5639bf4bfcf03cd4da187c0cece156c2c6d6fbc36bb15c39ef1a7",
+      "da1b604e73c59d3c578f70bb3609d86a2283788dadbf3566ffc8d0605e1cdee5",
+      "f26572556596fb9d5bc358cfd506f16f010cdef0f81a597564ea94642f6974d4"
+    ],
+    "04 Inner World/Documents/Documents.base": [
+      "02f193d32f4c147abf4a483c8b754654c788765c773a5b72fb12651f68ac23d7"
+    ],
+    "04 Inner World/Documents/README.md": [
+      "43b42391d7760bcf07a7375c3fb3266ce15119dd9b87638594d0b37e7b6c4ce8",
+      "dabdb8e491d8ab6ae48903fed3b10ee3d2704b3676bccacf8b1885927ea7530e",
+      "e31c0c5c602a8ac59fcc4d68463fd1bcc1b564a1951104efe6824d456816439e"
+    ],
+    "06 AI Team/AI Team Knowledge/Guidelines/GL-001-the-six-rooms.md": [
+      "23e60c5e0fc7e8fb255d4ce234f32e9fcd915b9c5d901fa150c8aee469d84635"
+    ],
+    "06 AI Team/AI Team Knowledge/Guidelines/GL-004-naming-rules.md": [
+      "59e4dc123478070d38ad7cb51bce521a62d6c71f28a147395979d3fe7a774c64"
+    ],
+    "06 AI Team/AI Team Knowledge/SOPs/SOP-002-process-an-inbox-capture.md": [
+      "a64502efa17d4747e03075eff355be8e7f3612cc3f4f11231008ad8906720a5d"
+    ],
+    "06 AI Team/AI Team Knowledge/Scripts/session-start.sh": [
+      "65b1b194b02cf0d8f0ab332698a5fd875df2e546ee872bbf4257395f27079d76",
+      "a85f7429ccc1c1dafa45edfea567536d84efaac3f4983d85fd18f5fe7ae6d74f"
+    ],
+    "06 AI Team/AI Team Knowledge/Workstreams/WS-001-daily-processing-run.md": [
+      "c16c586f7166466581a287bdb2c6be967e20c8b00916a6e596ec73c09ba7df75"
+    ],
+    "06 AI Team/AI Team Knowledge/Workstreams/WS-002-weekly-review.md": [
+      "93ac28020b4f07eacf0a40163b946b63514513ed8608cc477b838d3f229b1d12"
+    ],
+    "06 AI Team/AI Team Knowledge/Workstreams/WS-003-onboarding-first-launch.md": [
+      "abf9031090a20f490e185f0a06f696cc78d88e030ed44ea92c834d05ba315617"
+    ],
+    "CLAUDE.md": [
+      "276cba04d467333771b84f2d7235f3d1d200499eb3e395f1757656b775c16453",
+      "60b24a1d1763d5ecb09d650f95bc69931ff130c18b13465c163c4e9c0d39b5cb",
+      "61867ad942a657e01a0231566144c79a919c5ba27f541963703b7d894e392f74",
+      "879392949755ca4c6e7d4fdc54b51ce89a95b64c2b958f4202a9fc1f06a1870a",
+      "90c03ac23a8a2034342a937656c06b38db5befec751c9d99ef40b30d07f601f9",
+      "b39d1b0ebe6f4693c89dd2f8a9e2f7d3ed3391e5431b9e029d1d46683c145592",
+      "bceb2841a48dfd8a659dfaa841c6831d5323228fa9c389b2ed60bb5e4fb42c33",
+      "c75ad9405c83ba9e3267e8e1335adc0032d9e0493677a56a1d8a2e9352de3f0b"
     ]
   },
   "vendored": {
