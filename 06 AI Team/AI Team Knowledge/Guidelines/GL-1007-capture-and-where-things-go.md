@@ -90,11 +90,12 @@ Two shapes live here and both are the same door:
   it as the day runs: thoughts, meeting notes, quotes, half ideas, links
   with a line of why. Headings help the team read it; no other rule
   applies while writing.
-- **A quick capture** `YYYY-MM-DD-HHmmss.md`: one thought, any device,
-  Cmd+N or the new-note button. Write it, close it, move on.
+- **A quick capture** `YYYYMMDDHHmm.md` in today's `YYYY/MM/`: one
+  thought, any device, Cmd+Alt+N, the new-note button or the Scratchpad
+  plugin. Write it, close it, move on.
 
 Which one? If the day's note is already in front of you, write there. If
-it is not, press Cmd+N. That is the whole decision. Both are processed by
+it is not, press Cmd+Alt+N. That is the whole decision. Both are processed by
 [[SOP-1001-process-the-daily-scratchpad|SOP-1001]] the same way, both
 stay forever, neither is ever edited by the team.
 
@@ -209,7 +210,7 @@ The outline is a Note: `Notes/Obsidian course outline.md`, `note_type:
 outline`, `projects: ["[[Obsidian course]]"]`. You edit it for as long as
 the course is being built. If the team is drafting it with you, the draft
 lives in a dated WiP folder until it is yours; then it moves to Notes.
-Ideas for it that hit you on the go: Cmd+N, one line, done; processing
+Ideas for it that hit you on the go: Cmd+Alt+N, one line, done; processing
 carries them into the outline.
 
 **A video you want to keep, about a Topic.** Clip it into
