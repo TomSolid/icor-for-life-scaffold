@@ -84,8 +84,8 @@ env:
   ASSET_STEM: icor-for-life-obsidian-edition
   SCRIPTS: 06 AI Team/AI Team Knowledge/Scripts
   MYPKA_REPO: myICOR/myPKA
-  MYPKA_PIN: 'v6.0.1'
-  MYPKA_PIN_SHA: '0000000000000000000000000000000000000000'  # set at step 18, with the pin
+  MYPKA_PIN: 'v6.0.3'
+  MYPKA_PIN_SHA: 'fc008a6029936023d2b518bdd56ff997ea2e9eb9'
 
 defaults:
   run:
